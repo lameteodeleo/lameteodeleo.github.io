@@ -199,6 +199,10 @@ nav.tabs svg{width:24px;height:24px}
 .asset img.round{border-radius:50%}
 .asset img.sq{border-radius:24px}
 .asset span{font-size:.82rem;color:var(--muted);text-align:center}
+/* accès éditeur, volontairement discret */
+.code-acces{display:flex;align-items:center;gap:8px;justify-content:center;padding:6px 0;font-size:.75rem;color:var(--muted);opacity:.7}
+.code-acces input{width:5.5em;font:inherit;font-size:.9rem;letter-spacing:.3em;text-align:center;padding:4px 6px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.code-acces span{color:var(--alert);font-weight:700;min-width:0}
 /* kit de lancement */
 .kit{padding:14px 16px;display:flex;flex-direction:column;gap:8px}
 .kit h3{margin:0;font-family:var(--f-display);font-size:1rem;font-weight:700}
@@ -368,6 +372,11 @@ nav.tabs svg{width:24px;height:24px}
       </ul>
       <p class="sub">Les éléments entre crochets sont à compléter avant la mise en ligne.</p>
     </div>
+    <form class="code-acces" id="codeForm" autocomplete="off">
+      <label for="codeAcces">Accès éditeur</label>
+      <input id="codeAcces" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" aria-describedby="codeMsg">
+      <span id="codeMsg" role="status"></span>
+    </form>
   </main>
 
   <!-- ===== ESPACE CRÉATEUR ===== -->
@@ -375,7 +384,7 @@ nav.tabs svg{width:24px;height:24px}
     <a class="back" href="#meteo">← Retour à l'app</a>
     <div>
       <h2 style="font-size:1.3rem">Espace créateur</h2>
-      <div class="sub">Réservé à toi : il s'ouvre en gardant le logo appuyé 5 secondes, en haut à gauche.</div>
+      <div class="sub">Réservé à toi : il s'ouvre avec ton code, en bas de la page À propos.</div>
     </div>
     <section>
       <div class="sec-h"><h2>Logo et icône</h2></div>
@@ -1299,18 +1308,20 @@ function route(){
   window.scrollTo(0,0);
 }
 window.addEventListener("hashchange",()=>{studioOuvert=false;route()});
-/* Espace créateur : aucune adresse. Il s'ouvre seulement en gardant le logo appuyé 5 secondes (souris ou doigt). */
-(()=>{const logo=document.querySelector(".brand");let minuteur=null,ouvertParAppui=false;
-  const ouvrir=()=>{studioOuvert=true;route()};
-  const accueil=()=>{studioOuvert=false;if(location.hash==="#meteo"||!location.hash)route();else location.hash="#meteo"};
-  const stop=()=>{clearTimeout(minuteur);minuteur=null};
-  logo.addEventListener("pointerdown",()=>{ouvertParAppui=false;stop();minuteur=setTimeout(()=>{minuteur=null;ouvertParAppui=true;ouvrir()},5000)});
-  ["pointerup","pointerleave","pointercancel"].forEach(ev=>logo.addEventListener(ev,stop));
-  logo.addEventListener("contextmenu",e=>e.preventDefault());
-  logo.addEventListener("click",e=>{
-    e.preventDefault();if(ouvertParAppui){ouvertParAppui=false;return}
-    if(studioOuvert||(location.hash&&location.hash!=="#meteo"))accueil();
-  });
+/* Logo : retour à l'accueil */
+(()=>{const logo=document.querySelector(".brand");
+  logo.addEventListener("click",e=>{e.preventDefault();studioOuvert=false;if(location.hash==="#meteo"||!location.hash)route();else location.hash="#meteo"});
+})();
+/* Espace créateur : s'ouvre avec le code à 4 chiffres saisi en bas de la page À propos */
+(()=>{const f=$("codeForm"),inp=$("codeAcces"),msg=$("codeMsg");
+  const verifier=()=>{
+    const v=inp.value.replace(/\D/g,"");inp.value=v;
+    if(v.length<4){msg.textContent="";return}
+    if(hash("meteoenrire:"+v)===2627100762){inp.value="";msg.textContent="";inp.blur();studioOuvert=true;route()}
+    else{msg.textContent="Code incorrect.";inp.select()}
+  };
+  inp.addEventListener("input",verifier);
+  f.addEventListener("submit",e=>{e.preventDefault();verifier()});
 })();
 document.querySelectorAll("#v-studio .back").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();studioOuvert=false;if(location.hash==="#meteo"||!location.hash)route();else location.hash="#meteo"}));
 async function demarrer(){
