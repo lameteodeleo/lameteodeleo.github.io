@@ -491,6 +491,8 @@ function iconParts(t){
   switch(t){
     case "soleil": return sunParts(24,24,8,5,"sun");
     case "chaleur": return sunParts(24,24,8,5,"hot");
+    case "lune": return [["M29 9a15 15 0 1 0 10 24a12 12 0 1 1-10-24z","sun"]];
+    case "nuitNuageux": return [["M19 6a9 9 0 1 0 7 15a7 7 0 1 1-7-15z","sun"],[cloudD(3),"cloud"]];
     case "neige": return [[cloudD(-6),"cloud"],[circ(17,38,1.2)+circ(25,42,1.2)+circ(33,38,1.2),"rain"]];
     case "vent": return [["M7 20h26a5 5 0 1 0-5-5M7 29h20a5 5 0 1 1-5 5M7 38h12","cloud"]];
     case "nuageux": return [...sunParts(14,14,5,3,"sun"),[cloudD(3),"cloud"]];
@@ -501,9 +503,9 @@ function iconParts(t){
     default: return [["M9 16h30M7 24h34M10 32h28M14 40h20","cloud"]];
   }
 }
-const TYPES=["soleil","nuageux","mistral","vent","pluie","gel","brouillard","neige","chaleur","orage"];
+const TYPES=["lune","nuitNuageux","soleil","nuageux","mistral","vent","pluie","gel","brouillard","neige","chaleur","orage"];
 const ICONS={};TYPES.forEach(t=>ICONS[t]='<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">'+iconParts(t).map(([d,k])=>'<path d="'+d+'" stroke="'+PAL[k]+'"/>').join("")+'</g></svg>');
-const LIB={soleil:"Ensoleillé",nuageux:"Éclaircies",mistral:"Mistral",vent:"Vent fort",pluie:"Pluie",gel:"Gelée matinale",brouillard:"Brouillard",neige:"Neige",chaleur:"Très chaud",orage:"Orages"};
+const LIB={lune:"Nuit claire",nuitNuageux:"Nuit nuageuse",soleil:"Ensoleillé",nuageux:"Éclaircies",mistral:"Mistral",vent:"Vent fort",pluie:"Pluie",gel:"Gelée matinale",brouillard:"Brouillard",neige:"Neige",chaleur:"Très chaud",orage:"Orages"};
 /* Classement des vraies prévisions (codes météo WMO d'Open-Meteo) en types Météo en rire.
    Le mistral = vent de secteur nord à nord-ouest (290° à 20°) avec rafales d'au moins 40 km/h. Sinon, rafales de 55 km/h et plus = « vent ». */
 function classer(code,raf,dirDeg,tmax,tmin){
@@ -847,6 +849,11 @@ function soleil(date){
   return {lever:f(rise),coucher:f(set),duree:Math.floor(dur/60)+" h "+String(dur%60).padStart(2,"0")};
 }
 
+/* Jour ou nuit, d'après le lever et le coucher du soleil */
+const enMin=t=>{const [h,m]=t.split(" h ");return (+h)*60+(+m)};
+function estNuit(date,minutes){const s=soleil(date);return minutes<enMin(s.lever)||minutes>enMin(s.coucher)}
+const versNuit=t=>t==="soleil"?"lune":t==="nuageux"?"nuitNuageux":t;
+
 /* ---------- État ---------- */
 let st={c:idx("Aix-en-Provence"),scen:"mistral",jour:0,favs:[],demo:false,nom:null};
 try{const s=JSON.parse(localStorage.getItem(CLE)||"null");if(s){if(s.cn&&idx(s.cn)>=0){st.c=idx(s.cn)}st.nom=s.cn||null;if(SCEN[s.scen])st.scen=s.scen;if(Array.isArray(s.favs))st.favs=s.favs.filter(n=>idx(n)>=0)}}catch(e){}
@@ -894,11 +901,17 @@ function render(){
   $("when").textContent=(st.jour===0?"Aujourd'hui":st.jour===1?"Demain":"Prévision")+" · "+fmt(dayDate(st.jour));
   $("hero").dataset.t=m.type;
   $("heroIco").innerHTML=ICONS[m.type];
+  $("cond").textContent=LIB[m.type];
   const cur=enReel()&&DATA.par[c.n]&&DATA.par[c.n].cur;
-  if(st.jour===0&&cur){$("tempLbl").textContent="Maintenant · relevé de "+DATA.maj.getHours()+" h";$("temp").textContent=Math.round(cur[0])+"°";m=Object.assign({},m,{feel:Math.round(cur[1])})}
+  if(st.jour===0&&cur){
+    const now=new Date();let tNow=classer(cur[2],cur[3],cur[4],cur[0],cur[0]);
+    if(estNuit(now,now.getHours()*60+now.getMinutes())) tNow=versNuit(tNow);
+    $("tempLbl").textContent="Maintenant · relevé de "+DATA.maj.getHours()+" h";$("temp").textContent=Math.round(cur[0])+"°";
+    $("hero").dataset.t=tNow;$("heroIco").innerHTML=ICONS[tNow];$("cond").textContent=LIB[tNow];
+    m=Object.assign({},m,{feel:Math.round(cur[1])});
+  }
   else if(st.jour===0){$("tempLbl").textContent="Maintenant · "+new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}).replace(":"," h ");$("temp").textContent=tAt(m,new Date().getHours()+new Date().getMinutes()/60)+"°"}
   else{$("tempLbl").textContent="Maximale";$("temp").textContent=m.max+"°"}
-  $("cond").textContent=LIB[m.type];
   $("facts").innerHTML='<span>Min <b>'+m.min+'°</b></span><span>Max <b>'+m.max+'°</b></span><span>Ressenti <b>'+m.feel+'°</b></span>';
   if(m.alert){$("alertBox").hidden=false;$("motBox").hidden=true;$("alertTitle").textContent=m.alert.titre;$("alertList").innerHTML=m.alert.cons.map(x=>"<li>"+x+"</li>").join("")}
   else{$("alertBox").hidden=true;$("motBox").hidden=false;$("mot").textContent=motDuJour(c,m,st.jour)}
@@ -907,6 +920,7 @@ function render(){
   const hr=enReel()?heuresReelles(c,st.jour):null;
   if(hr) $("hours").innerHTML=hr.map((x,i)=>{
     const hh=7+i*2;if(!x)return "";
+    if(estNuit(dayDate(st.jour),hh*60)) x=Object.assign({},x,{type:versNuit(x.type)});
     const p=(x.prob>=20)?x.prob+" %":"";
     return '<div class="hour"><small>'+hh+' h</small>'+ICONS[x.type]+'<b>'+x.t+'°</b><span class="p">'+p+'</span></div>';
   }).join("");
