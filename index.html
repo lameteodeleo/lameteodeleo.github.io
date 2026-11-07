@@ -238,7 +238,7 @@ details.plus[open] .tiles{margin-top:10px}
 .stale{font-size:.85rem;font-weight:700;color:var(--alert);background:var(--alert-soft);border-radius:10px;padding:8px 10px}
 .mapcard{padding:12px 12px 10px;display:flex;flex-direction:column;gap:6px}
 #map{width:100%;height:auto;display:block}
-#leaf{height:auto;aspect-ratio:10/9;min-height:300px;max-height:480px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2);z-index:0}
+#leaf{height:min(370px,95vw);border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2);z-index:0}
 #leaf .leaflet-div-icon{background:none;border:0}
 .lpill{display:inline-flex;align-items:center;gap:4px;padding:3px 7px 3px 4px;border-radius:9px;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.18);font:800 13px/1.1 var(--f-body);white-space:nowrap;cursor:pointer;transform:translate(-50%,-50%)}
 .lpill svg{width:18px;height:18px;flex:0 0 auto}
@@ -1230,11 +1230,14 @@ async function renderCarte(){
   if(!LMAP){
     const pts=Object.values(COORDS), b=L.latLngBounds(pts);
     LMAP=L.map("leaf",{zoomSnap:.25,scrollWheelZoom:false,maxBounds:b.pad(.35),attributionControl:true});
-    LMAP.fitBounds(b,{padding:[4,4]});if(LMAP.attributionControl)LMAP.attributionControl.setPrefix(false);
+    LMAP.fitBounds(b,{padding:[4,4]});LMAP._cadre=b;LMAP._bouge=false;
+    LMAP.on("dragstart",()=>{LMAP._bouge=true});LMAP.getContainer().addEventListener("click",e=>{if(e.target.closest(".leaflet-control-zoom"))LMAP._bouge=true});
+    const recadrer=()=>{if(!LMAP||LMAP._bouge)return;const z=LMAP.getContainer();if(!z.offsetWidth)return;LMAP.invalidateSize();LMAP.fitBounds(LMAP._cadre,{padding:[4,4],animate:false})};
+    if(window.ResizeObserver)new ResizeObserver(recadrer).observe(LMAP.getContainer());requestAnimationFrame(recadrer);if(LMAP.attributionControl)LMAP.attributionControl.setPrefix(false);
     LCOUCHE=L.layerGroup().addTo(LMAP);
     majFond();
     LMAP.on("moveend",dessinerMarqueurs);
-  }else LMAP.invalidateSize();
+  }else{LMAP.invalidateSize();if(!LMAP._bouge)LMAP.fitBounds(LMAP._cadre,{padding:[4,4],animate:false})}
   dessinerMarqueurs();
   $("mapJ0").setAttribute("aria-pressed",mapJour===0);$("mapJ1").setAttribute("aria-pressed",mapJour===1);
 }
