@@ -375,7 +375,7 @@ nav.tabs svg{width:24px;height:24px}
     <a class="back" href="#meteo">← Retour à l'app</a>
     <div>
       <h2 style="font-size:1.3rem">Espace créateur</h2>
-      <div class="sub">Réservé à toi : cet espace n'apparaît pas dans les onglets de l'app publique.</div>
+      <div class="sub">Réservé à toi : aucun lien n'y mène dans l'app. Garde cette adresse dans tes favoris.</div>
     </div>
     <section>
       <div class="sec-h"><h2>Logo et icône</h2></div>
@@ -422,7 +422,7 @@ nav.tabs svg{width:24px;height:24px}
   <footer>
     <span>Prévisions : <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>, dont les modèles de Météo-France (licence CC BY 4.0). Vigilances : <a href="https://vigilance.meteofrance.fr" target="_blank" rel="noopener">Météo-France</a>.</span>
     <span id="foot"></span>
-    <span><a href="#apropos">À propos et mentions légales</a> · <a href="#studio">Espace créateur</a></span>
+    <span><a href="#apropos">À propos et mentions légales</a></span>
   </footer>
 </div>
 
@@ -1274,7 +1274,7 @@ $("copyCap").addEventListener("click",e=>copyText($("caption").value,e.currentTa
 function route(){
   $("demoPill").hidden=enReel();
   const h=location.hash||"#meteo";
-  const v=h==="#secteurs"?"secteurs":h==="#studio"?"studio":h==="#apropos"?"apropos":"meteo";
+  const v=h==="#secteurs"?"secteurs":h==="#atelier-mistral-4516"?"studio":h==="#apropos"?"apropos":"meteo";
   $("v-meteo").hidden=v!=="meteo";$("v-secteurs").hidden=v!=="secteurs";$("v-studio").hidden=v!=="studio";$("v-apropos").hidden=v!=="apropos";
   $("t-meteo").toggleAttribute("aria-current",v==="meteo");$("t-secteurs").toggleAttribute("aria-current",v==="secteurs");
   if(v==="meteo"){$("t-meteo").setAttribute("aria-current","page");render()}
@@ -1295,8 +1295,9 @@ async function demarrer(){
 }
 document.body.classList.add("boot");
 demarrer();
-(async()=>{try{if(window.claude&&claude.use){dl=await claude.use("downloads");if(dl&&location.hash==="#studio"){assetsBuilt=false;kitBuilt=false;buildAssets();buildKit();buildSlides()}}}catch(e){}})();
+(async()=>{try{if(window.claude&&claude.use){dl=await claude.use("downloads");if(dl&&location.hash==="#atelier-mistral-4516"){assetsBuilt=false;kitBuilt=false;buildAssets();buildKit();buildSlides()}}}catch(e){}})();
 </script>
 
+<script>if("serviceWorker" in navigator&&!window.claude&&location.protocol==="https:")window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </body>
 </html>
