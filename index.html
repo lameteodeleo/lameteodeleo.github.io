@@ -238,14 +238,14 @@ details.plus[open] .tiles{margin-top:10px}
 .stale{font-size:.85rem;font-weight:700;color:var(--alert);background:var(--alert-soft);border-radius:10px;padding:8px 10px}
 .mapcard{padding:12px 12px 10px;display:flex;flex-direction:column;gap:6px}
 #map{width:100%;height:auto;display:block}
-#leaf{height:420px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2);z-index:0}
+#leaf{height:auto;aspect-ratio:10/9;min-height:300px;max-height:480px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2);z-index:0}
 #leaf .leaflet-div-icon{background:none;border:0}
 .lpill{display:inline-flex;align-items:center;gap:4px;padding:3px 7px 3px 4px;border-radius:9px;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.18);font:800 13px/1.1 var(--f-body);white-space:nowrap;cursor:pointer;transform:translate(-50%,-50%)}
 .lpill svg{width:18px;height:18px;flex:0 0 auto}
 .lpill small{display:block;font-weight:700;font-size:10px;color:var(--muted)}
 .lpill.petit{padding:2px 6px 2px 3px;font-size:11px}.lpill.petit svg{width:14px;height:14px}.lpill.petit small{font-size:9px}
 .lpill .froid{color:var(--cool)}.lpill .chaud{color:var(--warm)}
-#leaf .leaflet-control-attribution{font-size:9px}
+#leaf .leaflet-control-attribution{font-size:8.5px;line-height:1.3;padding:1px 5px;background:rgba(255,255,255,.75)}
 #leaf .leaflet-tile-pane{filter:saturate(.85)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #leaf .leaflet-tile-pane{filter:saturate(.8) brightness(.78)}}
 :root[data-theme="dark"] #leaf .leaflet-tile-pane{filter:saturate(.8) brightness(.78)}
@@ -505,15 +505,15 @@ function tAt(m,hh){
 }
 /* ---------- Communes et secteurs ---------- */
 const SECTEURS={
- mc:{n:"Marseille et alentours",short:"Marseille et alentours",dT:1,dW:6,v:["Marseille","Aubagne","La Ciotat","Cassis","Allauch"],
+ mc:{n:"Marseille & alentours",short:"Marseille & alentours",dT:1,dW:6,v:["Marseille","Aubagne","La Ciotat","Cassis","Allauch"],
   c:["Marseille","Allauch","Plan-de-Cuques","Aubagne","La Penne-sur-Huveaune","Carnoux-en-Provence","Cassis","Ceyreste","La Ciotat","Roquefort-la-Bédoule","Gémenos","Cuges-les-Pins","Roquevaire","Auriol","La Destrousse","Peypin","Belcodène","La Bouilladisse","Cadolive","Saint-Savournin","Septèmes-les-Vallons","Le Rove","Ensuès-la-Redonne","Carry-le-Rouet","Sausset-les-Pins"]},
  aix:{n:"Pays d'Aix",short:"Pays d'Aix",dT:0,dW:0,v:["Aix-en-Provence","Gardanne","Trets","Venelles","Le Puy-Sainte-Réparade"],
   c:["Aix-en-Provence","Éguilles","Venelles","Le Tholonet","Saint-Marc-Jaumegarde","Vauvenargues","Beaurecueil","Châteauneuf-le-Rouge","Rousset","Peynier","Trets","Puyloubier","Fuveau","Gréasque","Mimet","Gardanne","Meyreuil","Bouc-Bel-Air","Simiane-Collongue","Cabriès","Les Pennes-Mirabeau","Ventabren","Saint-Cannat","Rognes","Le Puy-Sainte-Réparade","Meyrargues","Peyrolles-en-Provence","Jouques","Saint-Paul-lès-Durance","Saint-Estève-Janson","Saint-Antonin-sur-Bayon","La Roque-d'Anthéron"]},
  berre:{n:"Étang de Berre",short:"Étang de Berre",dT:.5,dW:9,v:["Martigues","Vitrolles","Marignane","Istres","Miramas"],
   c:["Martigues","Châteauneuf-les-Martigues","Gignac-la-Nerthe","Marignane","Saint-Victoret","Vitrolles","Rognac","Berre-l'Étang","Velaux","Coudoux","La Fare-les-Oliviers","Saint-Chamas","Istres","Fos-sur-Mer","Port-de-Bouc","Saint-Mitre-les-Remparts","Port-Saint-Louis-du-Rhône","Miramas","Cornillon-Confoux"]},
- salon:{n:"Salon et Alpilles",short:"Salon et Alpilles",dT:-.5,dW:11,v:["Salon-de-Provence","Saint-Rémy-de-Provence","Châteaurenard","Lambesc","Eyguières"],
+ salon:{n:"Salon & Alpilles",short:"Salon & Alpilles",dT:-.5,dW:11,v:["Salon-de-Provence","Saint-Rémy-de-Provence","Châteaurenard","Lambesc","Eyguières"],
   c:["Salon-de-Provence","Pélissanne","Lançon-Provence","Grans","Lambesc","Alleins","Aurons","Vernègues","Lamanon","Eyguières","Sénas","Mallemort","Charleval","Orgon","Plan-d'Orgon","Cabannes","Saint-Andiol","Verquières","Mollégès","Noves","Eyragues","Châteaurenard","Rognonas","Barbentane","Graveson","Maillane","Saint-Rémy-de-Provence","Eygalières","Aureille","Mouriès","Maussane-les-Alpilles","Paradou","Les Baux-de-Provence","Mas-Blanc-des-Alpilles"]},
- arles:{n:"Arles et Camargue",short:"Arles et Camargue",dT:.5,dW:14,v:["Arles","Saintes-Maries-de-la-Mer","Saint-Martin-de-Crau","Tarascon","Fontvieille"],
+ arles:{n:"Arles & Camargue",short:"Arles & Camargue",dT:.5,dW:14,v:["Arles","Saintes-Maries-de-la-Mer","Saint-Martin-de-Crau","Tarascon","Fontvieille"],
   c:["Arles","Saintes-Maries-de-la-Mer","Saint-Martin-de-Crau","Tarascon","Boulbon","Saint-Étienne-du-Grès","Saint-Pierre-de-Mézoargues","Fontvieille"]},
  voisins:{n:"Voisins du 13",short:"Voisins du 13",dT:-1.5,dW:-4,v:["Pertuis","Cadenet","Saint-Maximin-la-Sainte-Baume","Avignon","Lauris"],
   c:["Pertuis","Cadenet","Lauris","La Tour-d'Aigues","Saint-Maximin-la-Sainte-Baume","Avignon"]}
@@ -1220,7 +1220,7 @@ function dessinerMarqueurs(){
 function majFond(){
   if(!LMAP||LFOND) return;
   // Fond OpenTopoMap : relief ombré et courbes de niveau, gratuit et sans clé (données OpenStreetMap et SRTM)
-  LFOND=L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{subdomains:"abc",maxZoom:15,minZoom:8,attribution:'Données : &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, SRTM · Carte : &copy; <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC BY-SA)'}).addTo(LMAP);
+  LFOND=L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{subdomains:"abc",maxZoom:15,minZoom:8,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, SRTM · <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC BY-SA)'}).addTo(LMAP);
 }
 async function renderCarte(){
   const ok=await chargerLeaflet();
@@ -1229,8 +1229,8 @@ async function renderCarte(){
   $("mapNote").textContent="Zoomez pour voir plus de communes. Touchez une ville pour voir sa météo.";
   if(!LMAP){
     const pts=Object.values(COORDS), b=L.latLngBounds(pts);
-    LMAP=L.map("leaf",{zoomSnap:.5,scrollWheelZoom:false,maxBounds:b.pad(.35),attributionControl:true});
-    LMAP.fitBounds(b,{padding:[10,10]});
+    LMAP=L.map("leaf",{zoomSnap:.25,scrollWheelZoom:false,maxBounds:b.pad(.35),attributionControl:true});
+    LMAP.fitBounds(b,{padding:[4,4]});if(LMAP.attributionControl)LMAP.attributionControl.setPrefix(false);
     LCOUCHE=L.layerGroup().addTo(LMAP);
     majFond();
     LMAP.on("moveend",dessinerMarqueurs);
