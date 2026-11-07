@@ -116,7 +116,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tile{padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .tile .k{font-size:.7rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px}
-.tile .k svg{width:15px;height:15px}
+.tile .k svg{width:15px;height:15px;flex:0 0 auto}
 .tile .v{font-family:var(--f-display);font-weight:700;font-size:1.45rem;line-height:1.1;font-variant-numeric:tabular-nums}
 .tile .d{font-size:.82rem;color:var(--muted)}
 .arrow{display:inline-block;width:16px;height:16px;vertical-align:-2px}
@@ -124,9 +124,13 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .uvbar i{position:absolute;top:-3px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:3px solid var(--ink);transform:translateX(-50%)}
 /* conseils */
 .tips{display:flex;flex-direction:column;padding:4px 14px}
-.tip{display:flex;align-items:center;gap:12px;padding:10px 0;font-size:.95rem}
+.tip{display:flex;align-items:center;gap:12px;padding:11px 0;font-size:.95rem}
 .tip+.tip{border-top:1px solid var(--line)}
-.tip span.i{flex:0 0 32px;height:32px;border-radius:10px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand);font-weight:800}
+.tip span.i{flex:0 0 36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand)}
+.tip span.i svg{width:20px;height:20px}
+.tip .tx{display:flex;flex-direction:column;gap:1px;min-width:0}
+.tip .tx small{font-size:.68rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.tip .tx span{line-height:1.35}
 .tip.warn span.i{background:var(--alert-soft);color:var(--alert)}
 footer{font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:4px;padding:4px 2px}
 footer a{color:var(--brand);font-weight:800}
@@ -199,6 +203,14 @@ nav.tabs svg{width:24px;height:24px}
 .asset img.round{border-radius:50%}
 .asset img.sq{border-radius:24px}
 .asset span{font-size:.82rem;color:var(--muted);text-align:center}
+/* détails repliés */
+details.plus{display:flex;flex-direction:column}
+details.plus summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;border-radius:16px;background:var(--surface);border:1px solid var(--line);font-weight:800}
+details.plus summary::-webkit-details-marker{display:none}
+details.plus summary small{font-weight:600;color:var(--muted);font-size:.8rem;margin-left:auto}
+details.plus summary::after{content:"";width:9px;height:9px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);margin:-4px 2px 0 6px;flex:0 0 auto}
+details.plus[open] summary::after{transform:rotate(-135deg);margin-top:4px}
+details.plus[open] .tiles{margin-top:10px}
 /* accès éditeur, volontairement discret */
 .code-acces{display:flex;align-items:center;gap:8px;justify-content:center;padding:6px 0;font-size:.75rem;color:var(--muted);opacity:.7}
 .code-acces input{width:5.5em;font:inherit;font-size:.9rem;letter-spacing:.3em;text-align:center;padding:4px 6px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
@@ -220,19 +232,33 @@ nav.tabs svg{width:24px;height:24px}
 .install-h .mm svg{width:44px;height:44px;display:block}
 .install-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:.92rem}
 .install .close{align-self:flex-end;padding:4px}
-.share-card{padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.share-card{padding:4px 2px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
 .share-card > div{min-width:0;flex:1 1 200px}
 .btn-brand{border:0;border-radius:999px;padding:10px 18px;background:var(--brand);color:var(--surface);font-weight:800;cursor:pointer;white-space:nowrap}
 .stale{font-size:.85rem;font-weight:700;color:var(--alert);background:var(--alert-soft);border-radius:10px;padding:8px 10px}
 .mapcard{padding:12px 12px 10px;display:flex;flex-direction:column;gap:6px}
 #map{width:100%;height:auto;display:block}
-#map .dot{fill:var(--muted);opacity:.45}
-#map .pin{fill:var(--brand);stroke:var(--surface);stroke-width:2}
+#leaf{height:380px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2);z-index:0}
+#leaf .leaflet-div-icon{background:none;border:0}
+.lpill{display:inline-flex;align-items:center;gap:4px;padding:3px 7px 3px 4px;border-radius:9px;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.18);font:800 13px/1.1 var(--f-body);white-space:nowrap;cursor:pointer;transform:translate(-50%,-50%)}
+.lpill svg{width:18px;height:18px;flex:0 0 auto}
+.lpill small{display:block;font-weight:700;font-size:10px;color:var(--muted)}
+.lpill.petit{padding:2px 5px 2px 3px;font-size:11px}.lpill.petit svg{width:14px;height:14px}
+.lpill .froid{color:var(--cool)}.lpill .chaud{color:var(--warm)}
+#leaf .leaflet-control-attribution{font-size:9px}
+#map .terre{fill:var(--surface-2)}
+#map .mer,#map .etang{fill:color-mix(in srgb,var(--cool) 22%,var(--surface))}
+#map .cote{fill:none;stroke:color-mix(in srgb,var(--cool) 55%,var(--surface));stroke-width:1.1;stroke-linejoin:round}
+#map .fleuve{fill:none;stroke:color-mix(in srgb,var(--cool) 60%,var(--surface));stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#map .dot{fill:var(--muted);opacity:.35}
+#map .pin{fill:var(--brand);stroke:var(--surface);stroke-width:1.5}
+#map .pill{fill:var(--surface);stroke:var(--line);stroke-width:1}
 #map .mk{cursor:pointer;outline:none}
-#map .mk:focus-visible .pin{stroke:var(--sun);stroke-width:3}
-#map .t{font-family:var(--f-body);font-weight:800;font-size:12.5px;fill:var(--ink)}
-#map .nm{font-family:var(--f-body);font-weight:700;font-size:9.5px;fill:var(--muted)}
-#map .sea{font-family:var(--f-body);font-style:italic;font-weight:600;font-size:10px;fill:var(--cool)}
+#map .mk:hover .pill,#map .mk:focus-visible .pill{stroke:var(--brand);stroke-width:2}
+#map .t{font-family:var(--f-body);font-weight:800;font-size:11.5px;fill:var(--ink)}
+#map .t.froid{fill:var(--cool)} #map .t.chaud{fill:var(--warm)}
+#map .nm{font-family:var(--f-body);font-weight:700;font-size:9px;fill:var(--muted)}
+#map .lieu{font-family:var(--f-body);font-style:italic;font-weight:600;font-size:9px;fill:color-mix(in srgb,var(--cool) 75%,var(--ink))}
 @media (prefers-reduced-motion:no-preference){.day,.opt,.crow{transition:background .15s}}
 </style>
 
@@ -312,17 +338,17 @@ nav.tabs svg{width:24px;height:24px}
     </section>
 
     <section>
-      <div class="sec-h"><h2>En détail</h2></div>
-      <div class="tiles" id="tiles"></div>
-    </section>
-
-    <section>
       <div class="sec-h"><h2>Les conseils du jour</h2></div>
       <div class="card tips" id="tips"></div>
     </section>
 
-    <div class="card share-card">
-      <div><b>Tu aimes Météo en rire ?</b><div class="sub">Envoie l'app à tes proches : c'est gratuit et sans inscription.</div></div>
+    <details class="plus" id="plus">
+      <summary><span>Plus de détails</span></summary>
+      <div class="tiles" id="tiles"></div>
+    </details>
+
+    <div class="share-card">
+      <span class="sub">Tu aimes Météo en rire ?</span>
       <button class="btn-brand" type="button" id="shareApp">Partager l'app</button>
     </div>
   </main>
@@ -334,8 +360,12 @@ nav.tabs svg{width:24px;height:24px}
       <div class="sub" id="secDate"></div>
     </div>
     <div class="card mapcard">
-      <svg id="map" viewBox="-20 -12 380 292" role="group" aria-label="Carte des températures maximales du jour"></svg>
-      <div class="sub">Carte schématique : les communes sont à leur vraie position, sans les contours du département.</div>
+      <div class="sec-h" style="margin:0"><h2>Températures max.</h2>
+        <div class="seg" role="group" aria-label="Jour affiché sur la carte"><button type="button" id="mapJ0" aria-pressed="true">Aujourd'hui</button><button type="button" id="mapJ1" aria-pressed="false">Demain</button></div>
+      </div>
+      <div id="leaf" hidden></div>
+      <svg id="map" viewBox="-4 -4 368 252" role="group" aria-label="Carte des températures maximales"></svg>
+      <div class="sub" id="mapNote">Carte simplifiée : la côte, les étangs, le Rhône et la Durance. Touchez une ville pour voir sa météo.</div>
     </div>
     <div class="sgrid" id="sgrid"></div>
     <button class="wide" type="button" id="openSearch2">Voir toutes les communes</button>
@@ -359,8 +389,8 @@ nav.tabs svg{width:24px;height:24px}
     <div class="card prose">
       <h3>Mentions légales</h3>
       <ul>
-        <li>Éditeur : Météo en rire, projet personnel et non commercial, édité par un particulier.</li>
-        <li>Contact : message privé sur Instagram, <a href="https://www.instagram.com/meteoenrire/" target="_blank" rel="noopener">@meteoenrire</a></li>
+        <li>Éditeur : Météoenrire, projet non commercial.</li>
+        <li>Contact : <a href="https://www.instagram.com/meteoenrire/" target="_blank" rel="noopener">@meteoenrire</a></li>
         <li>Hébergement : GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis</li>
         <li>Données météo : Open-Meteo, sous licence CC BY 4.0, dont les modèles de Météo-France</li>
       </ul>
@@ -472,15 +502,15 @@ function tAt(m,hh){
 }
 /* ---------- Communes et secteurs ---------- */
 const SECTEURS={
- mc:{n:"Marseille et côte",short:"Marseille & côte",dT:1,dW:6,v:["Marseille","Aubagne","La Ciotat","Cassis","Allauch"],
+ mc:{n:"Marseille et alentours",short:"Marseille et alentours",dT:1,dW:6,v:["Marseille","Aubagne","La Ciotat","Cassis","Allauch"],
   c:["Marseille","Allauch","Plan-de-Cuques","Aubagne","La Penne-sur-Huveaune","Carnoux-en-Provence","Cassis","Ceyreste","La Ciotat","Roquefort-la-Bédoule","Gémenos","Cuges-les-Pins","Roquevaire","Auriol","La Destrousse","Peypin","Belcodène","La Bouilladisse","Cadolive","Saint-Savournin","Septèmes-les-Vallons","Le Rove","Ensuès-la-Redonne","Carry-le-Rouet","Sausset-les-Pins"]},
  aix:{n:"Pays d'Aix",short:"Pays d'Aix",dT:0,dW:0,v:["Aix-en-Provence","Gardanne","Trets","Venelles","Le Puy-Sainte-Réparade"],
   c:["Aix-en-Provence","Éguilles","Venelles","Le Tholonet","Saint-Marc-Jaumegarde","Vauvenargues","Beaurecueil","Châteauneuf-le-Rouge","Rousset","Peynier","Trets","Puyloubier","Fuveau","Gréasque","Mimet","Gardanne","Meyreuil","Bouc-Bel-Air","Simiane-Collongue","Cabriès","Les Pennes-Mirabeau","Ventabren","Saint-Cannat","Rognes","Le Puy-Sainte-Réparade","Meyrargues","Peyrolles-en-Provence","Jouques","Saint-Paul-lès-Durance","Saint-Estève-Janson","Saint-Antonin-sur-Bayon","La Roque-d'Anthéron"]},
  berre:{n:"Étang de Berre",short:"Étang de Berre",dT:.5,dW:9,v:["Martigues","Vitrolles","Marignane","Istres","Miramas"],
   c:["Martigues","Châteauneuf-les-Martigues","Gignac-la-Nerthe","Marignane","Saint-Victoret","Vitrolles","Rognac","Berre-l'Étang","Velaux","Coudoux","La Fare-les-Oliviers","Saint-Chamas","Istres","Fos-sur-Mer","Port-de-Bouc","Saint-Mitre-les-Remparts","Port-Saint-Louis-du-Rhône","Miramas","Cornillon-Confoux"]},
- salon:{n:"Salon et Alpilles",short:"Salon & Alpilles",dT:-.5,dW:11,v:["Salon-de-Provence","Saint-Rémy-de-Provence","Châteaurenard","Lambesc","Eyguières"],
+ salon:{n:"Salon et Alpilles",short:"Salon et Alpilles",dT:-.5,dW:11,v:["Salon-de-Provence","Saint-Rémy-de-Provence","Châteaurenard","Lambesc","Eyguières"],
   c:["Salon-de-Provence","Pélissanne","Lançon-Provence","Grans","Lambesc","Alleins","Aurons","Vernègues","Lamanon","Eyguières","Sénas","Mallemort","Charleval","Orgon","Plan-d'Orgon","Cabannes","Saint-Andiol","Verquières","Mollégès","Noves","Eyragues","Châteaurenard","Rognonas","Barbentane","Graveson","Maillane","Saint-Rémy-de-Provence","Eygalières","Aureille","Mouriès","Maussane-les-Alpilles","Paradou","Les Baux-de-Provence","Mas-Blanc-des-Alpilles"]},
- arles:{n:"Arles et Camargue",short:"Arles & Camargue",dT:.5,dW:14,v:["Arles","Saintes-Maries-de-la-Mer","Saint-Martin-de-Crau","Tarascon","Fontvieille"],
+ arles:{n:"Arles et Camargue",short:"Arles et Camargue",dT:.5,dW:14,v:["Arles","Saintes-Maries-de-la-Mer","Saint-Martin-de-Crau","Tarascon","Fontvieille"],
   c:["Arles","Saintes-Maries-de-la-Mer","Saint-Martin-de-Crau","Tarascon","Boulbon","Saint-Étienne-du-Grès","Saint-Pierre-de-Mézoargues","Fontvieille"]},
  voisins:{n:"Voisins du 13",short:"Voisins du 13",dT:-1.5,dW:-4,v:["Pertuis","Cadenet","Saint-Maximin-la-Sainte-Baume","Avignon","Lauris"],
   c:["Pertuis","Cadenet","Lauris","La Tour-d'Aigues","Saint-Maximin-la-Sainte-Baume","Avignon"]}
@@ -802,13 +832,13 @@ const dirTxt=d=>d==null?"Variable":DIR8[Math.round(d/45)%8];
 const enReel=()=>DATA&&!st.demo;
 function reel(c,jour){
   const r=DATA.par[c.n]; if(!r||!r.d[jour]) return null;
-  const [date,code,max,min,raf,dir,pl,prob,uv,feel]=r.d[jour];
-  return {type:classer(code,raf,dir,max,min),min:Math.round(min),max:Math.round(max),raf:Math.round(raf),pl:Math.round(pl*10)/10,prob:prob==null?0:Math.round(prob),uv:Math.round(uv||0),feel:Math.round(feel==null?max:feel),dir:dirTxt(dir),deg:dir,alert:(DATA.alertes&&DATA.alertes[c.s]&&jour===0)?DATA.alertes[c.s]:null};
+  const [date,code,max,min,raf,dir,pl,prob,uv,feel,uvDe,uvA]=r.d[jour];
+  return {date,uvDe,uvA,type:classer(code,raf,dir,max,min),min:Math.round(min),max:Math.round(max),raf:Math.round(raf),pl:Math.round(pl*10)/10,prob:prob==null?0:Math.round(prob),uv:Math.round(uv||0),feel:Math.round(feel==null?max:feel),dir:dirTxt(dir),deg:dir,alert:(DATA.alertes&&DATA.alertes[c.s]&&jour===0)?DATA.alertes[c.s]:null};
 }
 function chargerDonnees(d){
   if(!d||!Array.isArray(d.communes)||d.communes.length<50) throw new Error("données incomplètes");
   const nomActuel=COMMUNES[st.c]&&COMMUNES[st.c].n;
-  DATA={maj:new Date(d.maj),par:{},alertes:d.alertes||null};
+  DATA={maj:new Date(d.maj),par:{},alertes:d.alertes||null,air:d.air||null,mer:d.mer||null};
   COMMUNES.length=0;ORDRE.forEach(k=>SECTEURS[k].c=[]);
   for(const k in COORDS) delete COORDS[k];
   d.communes.slice().sort((a,b)=>a.n.localeCompare(b.n,"fr")).forEach(x=>{
@@ -834,6 +864,26 @@ function meteo(c,scenKey,jour){
   const feel=Math.round(max-(raf>40?Math.round(raf/14):0)+(b.t==="chaleur"?2:0));
   return {type:b.t,min,max,raf,pl,prob,uv:b.uv,feel,dir:b.dir,deg:b.deg,alert:jour===0?sc.alert:null};
 }
+function airDuJour(c,m){
+  if(!enReel()||!DATA.air||!DATA.air[c.s]||!m.date) return null;
+  const e=DATA.air[c.s].find(x=>x[0]===m.date);if(!e) return null;
+  return {aqi:e[1],o3:e[2],pm:e[3],pol:e[4]||{}};
+}
+function merDuJour(c,m){
+  if(!enReel()||!DATA.mer||!DATA.mer.communes||!m.date) return null;
+  const z=DATA.mer.communes[c.n];if(!z||!DATA.mer.zones[z]) return null;
+  const e=DATA.mer.zones[z].find(x=>x[0]===m.date);if(!e||(e[1]==null&&e[2]==null)) return null;
+  return {zone:z,eau:e[1]==null?null:Math.round(e[1]),vague:e[2]};
+}
+const fr=v=>String(v).replace(".",",");
+const AQI=a=>a<20?["Bonne","bon"]:a<40?["Assez bonne","bon"]:a<60?["Moyenne","moyen"]:a<80?["Médiocre","mauvais"]:a<100?["Mauvaise","mauvais"]:["Très mauvaise","mauvais"];
+const POLNOM={alder:"d'aulne",birch:"de bouleau",grass:"de graminées",mugwort:"d'armoise",olive:"d'olivier",ragweed:"d'ambroisie"};
+const POLSEUIL={alder:[20,100],birch:[20,100],olive:[20,100],grass:[20,50],mugwort:[5,20],ragweed:[5,20]};
+function pollenFort(pol){
+  let best=null;
+  for(const [k,v] of Object.entries(pol||{})){const sx=POLSEUIL[k];if(!sx||v<sx[0])continue;const niv=v>=sx[1]?2:1;if(!best||niv>best.niv||(niv===best.niv&&v>best.v))best={k,v,niv}}
+  return best;
+}
 function heuresReelles(c,jour){
   const r=DATA.par[c.n];if(!r||!r.h||!r.h[jour])return null;
   return r.h[jour].map(([t,code,prob,raf,dir])=>t==null?null:{t:Math.round(t),type:classer(code,raf,dir,t,t),prob:prob==null?0:Math.round(prob)});
@@ -847,7 +897,7 @@ function prochainesHeures(c){
   return liste.map(([t,temp,code,prob,raf,dir],i)=>{
     const d=new Date(t), hh=d.getHours();let type=classer(code,raf,dir,temp,temp);
     if(estNuit(d,hh*60+30)) type=versNuit(type);
-    return {lbl:i===0?"Maint.":hh+" h",t:Math.round(temp),type,prob:prob==null?0:Math.round(prob)};
+    return {lbl:i===0?"Maint.":hh+" h",h:hh,demain:d.getDate()!==now.getDate(),t:Math.round(temp),type,prob:prob==null?0:Math.round(prob),raf:Math.round(raf||0)};
   });
 }
 function heures(m,jour,scenKey){
@@ -897,20 +947,109 @@ function motDuJour(c,m,jour){
   const list=BANQUE[m.type]||BANQUE.nuageux;
   return remplir(list[(jourN+h)%list.length]);
 }
-function conseils(m){
-  const t=[];
-  if(m.alert) t.push(["!","Suivez les consignes de vigilance",1]);
-  if(m.pl>=1) t.push(["☂","Prenez un parapluie"]);
-  if(m.raf>=50) t.push(["≋","Coupe-vent plutôt que parapluie"]);
-  if(m.min<=3) t.push(["❄","Gants, et grattoir pour le pare-brise"]);
-  else if(m.min<=8) t.push(["◐","Veste chaude pour le matin"]);
-  if(m.uv>=6) t.push(["☀","Crème solaire et chapeau"]);
-  if(m.type==="brouillard") t.push(["◌","Feux allumés sur la route"]);
-  if(m.type==="neige") t.push(["❄","Chaussures qui accrochent, et prudence sur la route"]);
-  if(m.pl===0&&m.raf>=35&&!m.alert) t.push(["✓","Linge : sec en un temps record"]);
-  else if(m.pl>=1) t.push(["✗","Linge : on étend un autre jour"]);
-  if(t.length<2) t.push(["✓","Journée sans contrainte particulière"]);
-  return t;
+/* ---------- Conseils du jour : concrets, chiffrés, adaptés à la commune et au jour ---------- */
+const CICO={
+ tenue:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 3l3 2 3-2 5 3-2 4-2-1v12H8V9l-2 1-2-4z"/></svg>',
+ sortir:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+ linge:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7a2 2 0 1 1 2-2M12 7v2L3 16h18l-9-7"/></svg>',
+ jardin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14zM5 19l7-7"/></svg>',
+ route:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 16l1.5-5a2 2 0 0 1 2-1.5h7a2 2 0 0 1 2 1.5L19 16v3h-2v-2H7v2H5z"/><circle cx="8" cy="14" r=".5"/><circle cx="16" cy="14" r=".5"/></svg>',
+ sante:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg>',
+ alerte:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3L2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.01"/></svg>',
+ soleil:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>',
+ air:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 9h10a3 3 0 1 0-3-3M3 15h14a3 3 0 1 1-3 3M3 12h7"/></svg>',
+ pollen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="10" r="2.5"/><path d="M12 5.5V3M12 17v4M16.5 10H19M5 10h2.5M15.2 6.8l1.8-1.8M7 15l1.8-1.8M15.2 13.2l1.8 1.8M7 5l1.8 1.8"/></svg>',
+ mer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 9c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 14c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 19c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/></svg>'
+};
+const CAT={tenue:"S'habiller",sortir:"Sortir",linge:"Linge",jardin:"Jardin",route:"Sur la route",sante:"Santé",alerte:"Vigilance",soleil:"Soleil",air:"Qualité de l'air",pollen:"Pollens",mer:"La mer"};
+function creneaux(c,m){
+  let slots=[];
+  if(enReel()){
+    if(st.jour===0){const p=prochainesHeures(c);if(p)slots=p.filter(x=>!x.demain).map(x=>({h:x.h,t:x.t,type:x.type,prob:x.prob,raf:x.raf}))}
+    else{const r=heuresReelles(c,st.jour);if(r)slots=r.map((x,i)=>x&&{h:7+i*2,t:x.t,type:x.type,prob:x.prob,raf:0}).filter(Boolean)}
+  }
+  if(!slots.length) slots=heures(m,st.jour,st.scen).map((ic,i)=>({h:7+i*2,t:tAt(m,7+i*2),type:ic,prob:(ic==="pluie"||ic==="orage"||ic==="neige")?75:5,raf:(ic==="mistral"||ic==="vent")?m.raf:15}));
+  const s=soleil(dayDate(st.jour)), lev=enMin(s.lever)/60, cou=enMin(s.coucher)/60, maint=new Date().getHours();
+  return slots.filter(x=>x.h>=Math.ceil(lev)&&x.h<=Math.floor(cou)&&(st.jour>0||x.h>=maint));
+}
+function meilleurCreneau(c,m){
+  const jour=creneaux(c,m);if(!jour.length)return null;
+  const mouille=x=>["pluie","orage","neige"].includes(x.type)||x.prob>=60;
+  const note=x=>(mouille(x)?100:0)+x.prob*.5+Math.abs(x.t-20)*2+((x.type==="mistral"||x.type==="vent"||x.raf>=50)?15:0);
+  const tri=jour.slice().sort((a,b)=>note(a)-note(b));
+  return {best:tri[0],toutMouille:jour.every(mouille),seul:jour.length===1};
+}
+function conseils(m,c){
+  const t=[], add=(cat,txt,warn)=>t.push({cat,txt,warn:!!warn});
+  // Vigilance : uniquement la sécurité
+  if(m.alert){
+    add("alerte",m.alert.titre+" : suivez les consignes officielles et limitez vos déplacements.",1);
+    if(m.type==="chaleur") add("sante","Buvez souvent, restez au frais entre 12 h et 17 h, et prenez des nouvelles des personnes fragiles.",1);
+    if(m.type==="orage"||m.pl>=20) add("route","Ne vous engagez jamais sur une route inondée, même en voiture.",1);
+    if(m.raf>=70) add("jardin","Rentrez ou attachez le mobilier de jardin, les pots et les trampolines.",1);
+    const mv=merDuJour(c,m);if(mv&&mv.vague>=2) add("mer","Mer forte, vagues jusqu'à "+fr(mv.vague)+" m : restez loin des digues et des rochers.",1);
+    return t.slice(0,3);
+  }
+  // Santé et route d'abord, quand c'est utile
+  if(m.max>=33) add("sante","Grosse chaleur : buvez régulièrement et évitez l'effort entre 12 h et 17 h.",1);
+  if(m.type==="neige") add("route","Neige possible : évitez la route si vous le pouvez, sinon roulez très doucement.",1);
+  else if(m.type==="brouillard") add("route","Brouillard le matin : feux de croisement allumés et distances doublées.");
+  else if(m.min<=1) add("route","Pare-brise givré au réveil : prévoyez 5 minutes de grattage.");
+  else if(m.pl>=10||m.type==="orage") add("route","Chaussée glissante : levez le pied et allumez vos feux.");
+  else if(m.raf>=70) add("route","Rafales à "+m.raf+" km/h : prudence à vélo, à moto et avec un véhicule haut.");
+  // Tenue : le matin et l'après-midi, d'après les températures ressenties
+  const habit=f=>f>=26?"t-shirt et short":f>=20?"un t-shirt":f>=14?"un pull léger":f>=8?"un manteau de mi-saison":"un manteau chaud, écharpe et bonnet";
+  let matin=m.min;
+  if(enReel()){const hr=heuresReelles(c,st.jour);if(hr&&hr[1])matin=hr[1].t;else if(hr&&hr[0])matin=hr[0].t}
+  else matin=tAt(m,8);
+  const aprem=m.feel;
+  let tenue=(aprem-matin>=7&&habit(matin)!==habit(aprem))?"Le matin ("+matin+"°) : "+habit(matin)+". L'après-midi ("+aprem+"°) : "+habit(aprem)+" suffit.":"Tenue du jour : "+habit(Math.min(aprem,matin+4))+".";
+  if(m.raf>=50) tenue+=" Ajoutez un coupe-vent : ça souffle.";
+  if(m.type==="neige") tenue+=" Gants, et chaussures qui accrochent.";
+  else if(m.pl>=1||m.prob>=50) tenue+=m.raf>=50?" Laissez le parapluie, préférez une capuche.":" Prenez un parapluie.";
+  add("tenue",tenue);
+  // Meilleur moment pour sortir
+  const mc=meilleurCreneau(c,m);
+  if(mc){
+    if(mc.toutMouille) add("sortir",st.jour===0?"Pluie jusqu'au soir : une sortie à l'abri sera plus agréable.":"Journée humide : prévoyez une activité à l'abri.");
+    else{const b=mc.best;add("sortir",(st.jour===0&&b.h===new Date().getHours()?"C'est maintenant le meilleur moment pour sortir":"Meilleur moment pour sortir : vers "+b.h+" h")+" ("+b.t+"°"+(b.prob<20?", au sec":"")+").")}
+  }else if(st.jour===0) add("sortir","Le soleil est couché : pour prévoir votre sortie de demain, touchez « Demain » dans les 7 jours.");
+  // Soleil : indice UV et heures où se protéger
+  if(m.uv>=6){
+    const cr=(m.uvDe!=null&&m.uvA!=null)?" de "+m.uvDe+" h à "+m.uvA+" h":"";
+    add("soleil",m.uv>=11?"Indice UV extrême ("+m.uv+")"+cr+" : restez à l'ombre aux heures chaudes, crème indice 50.":
+      m.uv>=8?"Indice UV très élevé ("+m.uv+")"+cr+" : évitez le soleil de 12 h à 16 h, crème toutes les 2 heures.":
+      m.uv>=6?"Indice UV élevé ("+m.uv+")"+cr+" : crème, lunettes et chapeau.":
+      "Indice UV modéré ("+m.uv+")"+cr+" : lunettes de soleil, et crème si vous restez dehors longtemps.",m.uv>=8);
+  }
+  // Qualité de l'air et pollens (données par secteur)
+  const air=airDuJour(c,m);
+  if(air&&air.aqi>=60){const [lbl,cl]=AQI(air.aqi);add("air","Qualité de l'air "+lbl.toLowerCase()+(air.o3>=120?" (ozone)":air.pm>=25?" (particules fines)":"")+" : évitez le sport intense"+(air.o3>=120?" l'après-midi":"")+", surtout si vous êtes sensible.",cl==="mauvais")}
+  const pf=air&&pollenFort(air.pol);
+  if(pf&&pf.niv===2) add("pollen","Pollens "+POLNOM[pf.k]+" "+(pf.niv===2?"élevés":"modérés")+" : si vous êtes allergique, lunettes de soleil dehors et aérez plutôt le soir.");
+  // La mer, pour les communes de la côte
+  const mv=merDuJour(c,m);
+  if(mv){
+    const eau=mv.eau!=null?"eau à "+mv.eau+"°":"";
+    let txt=mv.vague>=2?"Mer forte, vagues jusqu'à "+fr(mv.vague)+" m : restez loin des digues et des rochers.":
+      mv.vague>=1.2?"Mer agitée, vagues jusqu'à "+fr(mv.vague)+" m"+(eau?", "+eau:"")+" : baignade et sorties en petit bateau déconseillées.":
+      mv.vague>=0.5?"Mer un peu agitée (vagues de "+fr(mv.vague)+" m)"+(eau?", "+eau:"")+".":
+      "Mer calme"+(eau?", "+eau:"")+(mv.eau!=null&&mv.eau>=21&&!["pluie","orage"].includes(m.type)?" : belle journée pour la baignade.":mv.eau!=null&&mv.eau<17?" : fraîche pour se baigner.":".");
+    if(mv.vague>=1.2||(mv.eau!=null&&mv.eau>=21)) add("mer",txt,mv.vague>=2);
+  }
+  // Linge
+  if(m.pl>=1||m.prob>=50) add("linge",st.jour===0?"On étend à l'intérieur aujourd'hui.":"On étendra à l'intérieur ce jour-là.");
+  else if(m.raf>=35) add("linge","Sec en un temps record : pensez juste aux pinces.");
+  else if(m.max>=15) add("linge","Bonne journée pour étendre dehors.");
+  else add("linge","Séchage lent dehors : préférez le début d'après-midi.");
+  // Jardin, seulement quand il y a quelque chose à dire
+  if(m.min<=2) add("jardin","Risque de gel : protégez les plantes fragiles avec un voile.");
+  else if(m.pl>=5) add("jardin","La pluie arrose pour vous : inutile de sortir l'arrosoir.");
+  else if(m.max>=28) add("jardin","Arrosez plutôt le soir, après 19 h, pour moins d'évaporation.");
+  else if(m.raf>=60) add("jardin","Rentrez ou attachez les pots et le mobilier de jardin.");
+  // Version essentielle : les alertes d'abord, puis la tenue, puis le plus utile du jour ; 3 conseils au maximum
+  const ordre=["alerte","sante","route","tenue","mer","soleil","air","pollen","sortir","linge","jardin"];
+  return t.map((x,i)=>({x,i})).sort((a,b)=>(b.x.warn-a.x.warn)||(ordre.indexOf(a.x.cat)-ordre.indexOf(b.x.cat))||(a.i-b.i)).map(o=>o.x).slice(0,3);
 }
 const uvLabel=u=>u<=2?"Faible":u<=5?"Modéré":u<=7?"Élevé":u<=10?"Très élevé":"Extrême";
 const arrow=deg=>deg==null?"":'<svg class="arrow" viewBox="0 0 16 16" aria-hidden="true" style="transform:rotate('+(deg+180)+'deg)"><path d="M8 2l4 10-4-2.5L4 12z" fill="currentColor"/></svg>';
@@ -964,9 +1103,12 @@ function render(){
   $("tiles").innerHTML=
    '<div class="card tile"><span class="k">'+SMALL.wind+'Rafales</span><span class="v">'+m.raf+' km/h</span><span class="d">'+windTxt+' · '+arrow(m.deg)+' '+m.dir+'</span></div>'+
    '<div class="card tile"><span class="k">'+SMALL.drop+'Pluie</span><span class="v">'+m.pl+' mm</span><span class="d">Risque de pluie : '+m.prob+' %</span></div>'+
-   '<div class="card tile"><span class="k">'+SMALL.sun+'Indice UV</span><span class="v">'+m.uv+' · '+uvLabel(m.uv)+'</span><div class="uvbar" aria-hidden="true"><i style="left:'+Math.min(100,m.uv/11*100)+'%"></i></div></div>'+
+   '<div class="card tile"><span class="k">'+SMALL.sun+'Indice UV</span><span class="v">'+m.uv+' · '+uvLabel(m.uv)+'</span><div class="uvbar" aria-hidden="true"><i style="left:'+Math.min(100,m.uv/11*100)+'%"></i></div>'+(m.uvDe!=null&&m.uvA!=null?'<span class="d">Protection de '+m.uvDe+' h à '+m.uvA+' h</span>':'')+'</div>'+
    '<div class="card tile"><span class="k">'+SMALL.rise+'Soleil</span><span class="v">'+sun.lever+'</span><span class="d">Coucher '+sun.coucher+' · '+sun.duree+' de jour</span></div>';
-  $("tips").innerHTML=conseils(m).map(([i,t,w])=>'<div class="tip'+(w?" warn":"")+'"><span class="i" aria-hidden="true">'+i+'</span><span>'+t+'</span></div>').join("");
+  const tAir=airDuJour(c,m), tMer=merDuJour(c,m);
+  if(tAir){const [lbl]=AQI(tAir.aqi), pf=pollenFort(tAir.pol);$("tiles").insertAdjacentHTML("beforeend",'<div class="card tile"><span class="k">'+CICO.air+"Qualité de l'air</span><span class=\"v\">"+lbl+'</span><span class="d">Indice européen '+tAir.aqi+(pf?" · pollens "+POLNOM[pf.k].replace(/^d'|^de /,"")+" "+(pf.niv===2?"élevés":"modérés"):" · pollens faibles")+'</span></div>')}
+  if(tMer){$("tiles").insertAdjacentHTML("beforeend",'<div class="card tile"><span class="k">'+CICO.mer+'La mer</span><span class="v">'+(tMer.eau!=null?tMer.eau+"°":"–")+'</span><span class="d">Vagues jusqu\'à '+fr(tMer.vague)+' m · '+tMer.zone+'</span></div>')}
+  $("tips").innerHTML=conseils(m,c).map(x=>'<div class="tip'+(x.warn?" warn":"")+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+x.txt+'</span></div></div>').join("");
   let maj=enReel()?new Date(DATA.maj):new Date();if(!enReel())maj.setMinutes(0,0,0);if(st.stale)maj=new Date(maj.getTime()-5*36e5);
   const age=Math.floor((Date.now()-maj)/36e5), hMaj=maj.getHours()+" h "+String(maj.getMinutes()).padStart(2,"0");
   $("foot").textContent="Mis à jour à "+hMaj+" · "+COMMUNES.length+" communes couvertes";
@@ -980,28 +1122,110 @@ function render(){
 /* ---------- Rendu : Le 13 ---------- */
 function renderSecteurs(){
   $("secDate").textContent=fmt(today)+" · touchez une commune pour le détail";
-  renderMap();
+  renderCarte();
   $("sgrid").innerHTML=ORDRE.map(k=>{
     const s=SECTEURS[k];
     const rows=s.v.map(n=>{const c=COMMUNES[idx(n)],m=meteo(c,st.scen,0);return '<button type="button" class="crow" data-n="'+n+'">'+ICONS[m.type]+'<span class="n">'+n+'</span><span class="lo">'+m.min+'°</span><span class="hi">'+m.max+'°</span></button>'}).join("");
     return '<div class="card scard"><h3>'+s.n+'<small>'+s.c.length+' communes</small></h3>'+rows+'</div>';
   }).join("");
 }
-const MAPPTS=["Avignon","Saint-Rémy-de-Provence","Arles","Saintes-Maries-de-la-Mer","Salon-de-Provence","Istres","Martigues","Pertuis","Aix-en-Provence","Marseille","La Ciotat","Saint-Maximin-la-Sainte-Baume"];
+/* Carte simplifiée : projection simple, longitude corrigée par le cosinus de la latitude */
+const CARTE={lon0:4.2,lat0:44.0,k:283.5};
+const MX=lo=>(lo-CARTE.lon0)*Math.cos(43.5*Math.PI/180)*CARTE.k, MY=la=>(CARTE.lat0-la)*CARTE.k;
+const tracer=pts=>pts.map(([lo,la],i)=>(i?"L":"M")+MX(lo).toFixed(1)+" "+MY(la).toFixed(1)).join("");
+const COTE=[[4.2,43.53],[4.32,43.49],[4.43,43.45],[4.53,43.40],[4.6,43.36],[4.7,43.35],[4.79,43.34],[4.84,43.33],[4.86,43.37],[4.9,43.4],[4.94,43.42],[4.98,43.4],[5.02,43.36],[5.04,43.33],[5.11,43.33],[5.18,43.33],[5.25,43.34],[5.31,43.36],[5.35,43.33],[5.37,43.28],[5.37,43.24],[5.35,43.21],[5.42,43.2],[5.5,43.2],[5.54,43.21],[5.58,43.2],[5.61,43.17],[5.66,43.18],[5.72,43.16],[5.8,43.12],[5.95,43.09]];
+const BERRE=[[5.0,43.54],[5.06,43.55],[5.13,43.52],[5.19,43.49],[5.23,43.45],[5.2,43.42],[5.13,43.42],[5.07,43.42],[5.03,43.44],[4.99,43.49]];
+const VACCARES=[[4.52,43.56],[4.6,43.57],[4.67,43.54],[4.66,43.5],[4.58,43.49],[4.52,43.51]];
+const RHONE=[[4.79,44.0],[4.81,43.95],[4.76,43.88],[4.66,43.81],[4.63,43.73],[4.63,43.68],[4.7,43.6],[4.75,43.5],[4.8,43.42],[4.84,43.33]];
+const PETIT_RHONE=[[4.63,43.68],[4.55,43.62],[4.45,43.55],[4.42,43.47]];
+const DURANCE=[[5.95,43.72],[5.8,43.69],[5.65,43.68],[5.5,43.68],[5.38,43.71],[5.25,43.73],[5.12,43.74],[5.02,43.77],[4.94,43.84],[4.86,43.92],[4.81,43.95]];
+const MAPPTS=[["Avignon","d"],["Saint-Rémy-de-Provence","d"],["Arles","d"],["Saintes-Maries-de-la-Mer","d"],["Salon-de-Provence","d"],["Istres","g"],["Martigues","d"],["Pertuis","d"],["Aix-en-Provence","g"],["Marseille","g"],["La Ciotat","d"],["Saint-Maximin-la-Sainte-Baume","g"],["Aubagne","d"]];
 const SHORT={"Saint-Rémy-de-Provence":"St-Rémy","Saintes-Maries-de-la-Mer":"Stes-Maries","Salon-de-Provence":"Salon","Aix-en-Provence":"Aix","Saint-Maximin-la-Sainte-Baume":"St-Maximin"};
+let mapJour=0;
 function renderMap(){
-  const X=lo=>(lo-4.35)/1.6*340, Y=la=>(44.0-la)/0.9*264;
-  let g='<defs><linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--cool)" stop-opacity="0"/><stop offset="1" stop-color="var(--cool)" stop-opacity=".2"/></linearGradient></defs><rect x="-20" y="214" width="380" height="66" fill="url(#sea)"/><text x="-8" y="270" class="sea">Méditerranée</text>';
-  for(const [n,[la,lo]] of Object.entries(COORDS)) if(!MAPPTS.includes(n)) g+='<circle cx="'+X(lo).toFixed(1)+'" cy="'+Y(la).toFixed(1)+'" r="1.8" class="dot"/>';
-  MAPPTS.forEach(n=>{
+  const mer=tracer(COTE)+"L"+MX(5.95).toFixed(1)+" 260L"+MX(4.2).toFixed(1)+" 260Z";
+  let g='<rect x="-4" y="-4" width="368" height="252" class="terre"/>'+
+    '<path d="'+mer+'" class="mer"/><path d="'+tracer(COTE)+'" class="cote"/>'+
+    '<path d="'+tracer(BERRE)+'Z" class="etang"/><path d="'+tracer(BERRE)+'Z" class="cote"/>'+
+    '<path d="'+tracer(VACCARES)+'Z" class="etang"/>'+
+    '<path d="'+tracer(RHONE)+'" class="fleuve"/><path d="'+tracer(PETIT_RHONE)+'" class="fleuve"/><path d="'+tracer(DURANCE)+'" class="fleuve"/>'+
+    '<text x="'+MX(4.62)+'" y="'+MY(43.25)+'" class="lieu">Méditerranée</text>'+
+    '<text x="'+MX(5.3)+'" y="'+MY(43.745)+'" class="lieu" text-anchor="middle">Durance</text>'+
+    '<text x="'+MX(4.71)+'" y="'+MY(43.86)+'" class="lieu" text-anchor="end">Rhône</text>';
+  const vedettes=MAPPTS.map(x=>x[0]);
+  for(const [n,[la,lo]] of Object.entries(COORDS)) if(!vedettes.includes(n)) g+='<circle cx="'+MX(lo).toFixed(1)+'" cy="'+MY(la).toFixed(1)+'" r="1.3" class="dot"/>';
+  MAPPTS.forEach(([n,cote])=>{
     if(!COORDS[n]||idx(n)<0) return;
-    const [la,lo]=COORDS[n], x=X(lo), y=Y(la), m=meteo(COMMUNES[idx(n)],st.scen,0), left=x>285;
-    const tx=(left?x-8:x+8).toFixed(1), anc=left?"end":"start";
-    g+='<g class="mk" data-n="'+n+'" tabindex="0" role="button" aria-label="'+n+', maximale '+m.max+' degrés"><circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4.5" class="pin"/><text x="'+tx+'" y="'+(y+1).toFixed(1)+'" text-anchor="'+anc+'" class="t">'+m.max+'°</text><text x="'+tx+'" y="'+(y+12).toFixed(1)+'" text-anchor="'+anc+'" class="nm">'+(SHORT[n]||n)+'</text></g>';
+    const [la,lo]=COORDS[n], x=MX(lo), y=MY(la), m=meteo(COMMUNES[idx(n)],st.scen,mapJour);
+    const nom=SHORT[n]||n, w=Math.max(46,nom.length*4.9+12), h=27, gauche=cote==="g";
+    const bx=gauche?x-6-w:x+6, by=y-h/2;
+    const cls=m.max<=10?" froid":m.max>=28?" chaud":"";
+    const ico=ICONS[m.type].replace('<svg ','<svg x="'+(bx+3).toFixed(1)+'" y="'+(by+2.5).toFixed(1)+'" width="14" height="14" ');
+    g+='<g class="mk" data-n="'+n+'" tabindex="0" role="button" aria-label="'+n+', '+LIB[m.type]+', maximale '+m.max+' degrés">'+
+      '<line x1="'+x.toFixed(1)+'" y1="'+y.toFixed(1)+'" x2="'+(gauche?bx+w:bx).toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="var(--brand)" stroke-width="1"/>'+
+      '<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h+'" rx="7" class="pill"/>'+ico+
+      '<text x="'+(bx+19).toFixed(1)+'" y="'+(by+13.5).toFixed(1)+'" class="t'+cls+'">'+m.max+'°</text>'+
+      '<text x="'+(bx+5).toFixed(1)+'" y="'+(by+23).toFixed(1)+'" class="nm">'+nom+'</text>'+
+      '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3" class="pin"/></g>';
   });
   $("map").innerHTML=g;
+  $("mapJ0").setAttribute("aria-pressed",mapJour===0);$("mapJ1").setAttribute("aria-pressed",mapJour===1);
 }
-const goTo=n=>{st.c=idx(n);st.jour=0;location.hash="#meteo"};
+/* Vraie carte zoomable (Leaflet + fond CARTO/OpenStreetMap) sur l'app en ligne. La carte dessinée reste en secours. */
+let LMAP=null,LCOUCHE=null,LFOND=null,leafletPret=null;
+function chargerLeaflet(){
+  if(leafletPret) return leafletPret;
+  const permis=!window.claude&&(location.protocol==="https:"||location.hostname==="localhost");
+  leafletPret=!permis?Promise.resolve(false):window.L?Promise.resolve(true):new Promise(res=>{
+    const css=document.createElement("link");css.rel="stylesheet";css.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(css);
+    const js=document.createElement("script");js.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    js.onload=()=>res(!!window.L);js.onerror=()=>res(false);document.head.appendChild(js);setTimeout(()=>res(!!window.L),8000);
+  });
+  return leafletPret;
+}
+const themeSombre=()=>{const t=document.documentElement.dataset.theme;return t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches};
+function pillHTML(n,m,petit){
+  const cls=m.max<=10?"froid":m.max>=28?"chaud":"";
+  return '<div class="lpill'+(petit?" petit":"")+'">'+ICONS[m.type]+'<span><span class="'+cls+'">'+m.max+'°</span>'+(petit?"":'<small>'+(SHORT[n]||n)+'</small>')+'</span></div>';
+}
+function dessinerMarqueurs(){
+  if(!LMAP) return;
+  LCOUCHE.clearLayers();
+  const z=LMAP.getZoom(), toutes=z>=11, vedettes=MAPPTS.map(x=>x[0]);
+  const noms=toutes?Object.keys(COORDS):vedettes;
+  noms.forEach(n=>{
+    if(!COORDS[n]||idx(n)<0) return;
+    const m=meteo(COMMUNES[idx(n)],st.scen,mapJour), petit=toutes&&!vedettes.includes(n);
+    const mk=L.marker(COORDS[n],{icon:L.divIcon({className:"",html:pillHTML(n,m,petit),iconSize:[0,0]}),title:n+", "+LIB[m.type]+", maximale "+m.max+" degrés",keyboard:true,riseOnHover:true,zIndexOffset:petit?0:1000});
+    mk.on("click",()=>goTo(n));mk.addTo(LCOUCHE);
+  });
+}
+function majFond(){
+  if(!LMAP) return;
+  const url=themeSombre()?"https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png":"https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+  if(LFOND) LMAP.removeLayer(LFOND);
+  LFOND=L.tileLayer(url,{subdomains:"abcd",maxZoom:14,minZoom:8,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(LMAP);
+}
+async function renderCarte(){
+  const ok=await chargerLeaflet();
+  if(!ok||!window.L){$("leaf").hidden=true;$("map").style.display="";renderMap();return}
+  $("map").style.display="none";$("leaf").hidden=false;
+  $("mapNote").textContent="Pincez pour zoomer : en vous rapprochant, toutes les communes apparaissent. Touchez une ville pour voir sa météo.";
+  if(!LMAP){
+    const pts=Object.values(COORDS), b=L.latLngBounds(pts);
+    LMAP=L.map("leaf",{zoomSnap:.5,scrollWheelZoom:false,maxBounds:b.pad(.35),attributionControl:true});
+    LMAP.fitBounds(b,{padding:[10,10]});
+    LCOUCHE=L.layerGroup().addTo(LMAP);
+    majFond();
+    LMAP.on("zoomend",dessinerMarqueurs);
+    try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",majFond)}catch(e){}
+  }else LMAP.invalidateSize();
+  dessinerMarqueurs();
+  $("mapJ0").setAttribute("aria-pressed",mapJour===0);$("mapJ1").setAttribute("aria-pressed",mapJour===1);
+}
+$("mapJ0").addEventListener("click",()=>{mapJour=0;LMAP?(dessinerMarqueurs(),$("mapJ0").setAttribute("aria-pressed",true),$("mapJ1").setAttribute("aria-pressed",false)):renderMap()});
+$("mapJ1").addEventListener("click",()=>{mapJour=1;LMAP?(dessinerMarqueurs(),$("mapJ0").setAttribute("aria-pressed",false),$("mapJ1").setAttribute("aria-pressed",true)):renderMap()});
+const goTo=n=>{st.c=idx(n);st.jour=mapJour;location.hash="#meteo"};
 $("map").addEventListener("click",e=>{const g=e.target.closest(".mk");if(g)goTo(g.dataset.n)});
 $("map").addEventListener("keydown",e=>{const g=e.target.closest(".mk");if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();goTo(g.dataset.n)}});
 
@@ -1118,7 +1342,8 @@ function slideCover(){
     x.strokeStyle="rgba(255,255,255,.22)";x.lineWidth=2;rr(x,px,py,290,200,32);x.stroke();
     cIcon(x,m.type,px+22,py+22,84,true);
     x.fillStyle=B.white;x.font="800 76px "+FD;x.textAlign="right";x.fillText(m.max+"°",px+266,py+98);x.textAlign="left";
-    x.font="700 28px "+FB;x.fillText(SECTEURS[k].short,px+24,py+164);
+    let fs=28;x.font="700 "+fs+"px "+FB;while(x.measureText(SECTEURS[k].short).width>246&&fs>18){fs--;x.font="700 "+fs+"px "+FB}
+    x.fillText(SECTEURS[k].short,px+24,py+164);
   }
   const c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,0);
   const txt=al?(al.titre+". "+al.cons[0]):motDuJour(c,m,0);

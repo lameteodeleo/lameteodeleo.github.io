@@ -68,7 +68,7 @@ async function communes() {
 // 2. Prévisions Open-Meteo, par paquets de 25 communes
 const PARAMS = new URLSearchParams({
   current: "temperature_2m,apparent_temperature,weather_code,wind_gusts_10m,wind_direction_10m",
-  hourly: "temperature_2m,weather_code,precipitation_probability,wind_gusts_10m,wind_direction_10m",
+  hourly: "temperature_2m,weather_code,precipitation_probability,wind_gusts_10m,wind_direction_10m,uv_index",
   daily: "weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,wind_gusts_10m_max,wind_direction_10m_dominant,precipitation_sum,precipitation_probability_max,uv_index_max",
   timezone: "Europe/Paris", forecast_days: "7", wind_speed_unit: "kmh"
 });
@@ -89,6 +89,12 @@ async function previsions(liste) {
         Math.round(d.wind_gusts_10m_max[k] ?? 0), d.wind_direction_10m_dominant[k], r1(d.precipitation_sum[k] ?? 0),
         d.precipitation_probability_max[k], r1(d.uv_index_max[k]), r1(d.apparent_temperature_max[k])]);
       const pos = {}; h.time.forEach((t, k) => { pos[t] = k; });
+      // Pour chaque jour : première et dernière heure où l'indice UV atteint 3 (protection conseillée)
+      x.d.forEach((jour, k) => {
+        const heures = [];
+        for (let hh = 6; hh <= 20; hh++) { const i = pos[jour[0] + "T" + String(hh).padStart(2, "0") + ":00"]; if (i != null && (h.uv_index[i] ?? 0) >= 3) heures.push(hh); }
+        jour.push(heures.length ? heures[0] : null, heures.length ? heures[heures.length - 1] + 1 : null);
+      });
       // Les 24 prochaines heures, à partir de l'heure en cours
       const debut = pos[(c.time || "").slice(0, 13) + ":00"];
       x.n24 = debut == null ? [] : h.time.slice(debut, debut + 24).map((t, k) => {
@@ -104,16 +110,70 @@ async function previsions(liste) {
   }
 }
 
-// 3. Construction du site
+// 3. Qualité de l'air et pollens, un point par secteur (Open-Meteo Air Quality, données CAMS)
+const POLLENS = ["alder_pollen", "birch_pollen", "grass_pollen", "mugwort_pollen", "olive_pollen", "ragweed_pollen"];
+async function air(liste) {
+  const secteurs = [...new Set(liste.map(x => x.s))];
+  const pts = secteurs.map(s => { const c = liste.filter(x => x.s === s); return [c.reduce((a, x) => a + x.lat, 0) / c.length, c.reduce((a, x) => a + x.lon, 0) / c.length]; });
+  const url = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=" + pts.map(p => p[0].toFixed(3)).join(",") + "&longitude=" + pts.map(p => p[1].toFixed(3)).join(",") +
+    "&hourly=european_aqi,ozone,pm2_5," + POLLENS.join(",") + "&timezone=Europe%2FParis&forecast_days=5";
+  let rep = await lireJSON(url); if (!Array.isArray(rep)) rep = [rep];
+  const res = {};
+  rep.forEach((p, j) => {
+    const h = p.hourly, jours = {};
+    h.time.forEach((t, i) => {
+      const date = t.slice(0, 10), hh = +t.slice(11, 13);
+      if (hh < 8 || hh > 20) return;
+      const J = jours[date] ||= { aqi: 0, o3: 0, pm: 0, pol: {} };
+      J.aqi = Math.max(J.aqi, h.european_aqi[i] ?? 0); J.o3 = Math.max(J.o3, h.ozone[i] ?? 0); J.pm = Math.max(J.pm, h.pm2_5[i] ?? 0);
+      for (const k of POLLENS) J.pol[k.replace("_pollen", "")] = Math.max(J.pol[k.replace("_pollen", "")] || 0, h[k]?.[i] ?? 0);
+    });
+    res[secteurs[j]] = Object.entries(jours).map(([date, J]) => [date, Math.round(J.aqi), Math.round(J.o3), Math.round(J.pm), Object.fromEntries(Object.entries(J.pol).map(([k, v]) => [k, Math.round(v)]))]);
+  });
+  return res;
+}
+
+// 4. La mer : un point au large pour chaque zone de côte (Open-Meteo Marine)
+const MER = {
+  "rade de Marseille": { pt: [43.27, 5.31], communes: ["Marseille"] },
+  "Cassis": { pt: [43.195, 5.535], communes: ["Cassis", "Roquefort-la-Bédoule"] },
+  "La Ciotat": { pt: [43.16, 5.61], communes: ["La Ciotat", "Ceyreste"] },
+  "Côte Bleue": { pt: [43.31, 5.17], communes: ["Le Rove", "Ensuès-la-Redonne", "Carry-le-Rouet", "Sausset-les-Pins"] },
+  "Carro": { pt: [43.315, 5.03], communes: ["Martigues", "Saint-Mitre-les-Remparts"] },
+  "golfe de Fos": { pt: [43.37, 4.93], communes: ["Fos-sur-Mer", "Port-de-Bouc"] },
+  "Port-Saint-Louis": { pt: [43.34, 4.86], communes: ["Port-Saint-Louis-du-Rhône"] },
+  "Saintes-Maries": { pt: [43.42, 4.43], communes: ["Saintes-Maries-de-la-Mer"] }
+};
+async function mer() {
+  const zones = Object.keys(MER);
+  const url = "https://marine-api.open-meteo.com/v1/marine?latitude=" + zones.map(z => MER[z].pt[0]).join(",") + "&longitude=" + zones.map(z => MER[z].pt[1]).join(",") +
+    "&daily=wave_height_max&hourly=sea_surface_temperature&timezone=Europe%2FParis&forecast_days=7";
+  let rep = await lireJSON(url); if (!Array.isArray(rep)) rep = [rep];
+  const res = {}, communes = {};
+  rep.forEach((p, j) => {
+    const z = zones[j], h = p.hourly, pos = {}; h.time.forEach((t, i) => { pos[t] = i; });
+    res[z] = p.daily.time.map((date, k) => { const i = pos[date + "T14:00"]; return [date, i == null ? null : r1(h.sea_surface_temperature[i]), r1(p.daily.wave_height_max[k])]; });
+    MER[z].communes.forEach(c => { communes[c] = z; });
+  });
+  return { zones: res, communes };
+}
+// Ces données sont un bonus : si elles manquent, le site est quand même publié
+async function bonus(nom, f) { try { return await f(); } catch (e) { console.warn(`${nom} indisponible : ${e.message}`); return null; } }
+
+// 5. Construction du site
 const liste = await communes();
 await previsions(liste);
 const ok = liste.filter(x => x.d && x.d.length >= 7);
 if (ok.length < 100) throw new Error(`Seulement ${ok.length} communes avec des prévisions : site non publié, la version précédente reste en ligne.`);
+const qualiteAir = await bonus("Qualité de l'air", () => air(ok));
+const laMer = await bonus("Mer", mer);
 await mkdir("site/data", { recursive: true });
 await writeFile("site/data/meteo.json", JSON.stringify({
   maj: new Date().toISOString(),
   source: "Open-Meteo (CC BY 4.0), dont les modèles de Météo-France",
   alertes: null,
+  air: qualiteAir,
+  mer: laMer,
   communes: ok.map(({ n, s, lat, lon, cur, d, h, n24 }) => ({ n, s, lat: r1x(lat), lon: r1x(lon), cur, d, h, n24 }))
 }));
 function r1x(v) { return Math.round(v * 1000) / 1000; }
