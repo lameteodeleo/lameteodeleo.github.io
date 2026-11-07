@@ -238,14 +238,17 @@ details.plus[open] .tiles{margin-top:10px}
 .stale{font-size:.85rem;font-weight:700;color:var(--alert);background:var(--alert-soft);border-radius:10px;padding:8px 10px}
 .mapcard{padding:12px 12px 10px;display:flex;flex-direction:column;gap:6px}
 #map{width:100%;height:auto;display:block}
-#leaf{height:380px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2);z-index:0}
+#leaf{height:420px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2);z-index:0}
 #leaf .leaflet-div-icon{background:none;border:0}
 .lpill{display:inline-flex;align-items:center;gap:4px;padding:3px 7px 3px 4px;border-radius:9px;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.18);font:800 13px/1.1 var(--f-body);white-space:nowrap;cursor:pointer;transform:translate(-50%,-50%)}
 .lpill svg{width:18px;height:18px;flex:0 0 auto}
 .lpill small{display:block;font-weight:700;font-size:10px;color:var(--muted)}
-.lpill.petit{padding:2px 5px 2px 3px;font-size:11px}.lpill.petit svg{width:14px;height:14px}
+.lpill.petit{padding:2px 6px 2px 3px;font-size:11px}.lpill.petit svg{width:14px;height:14px}.lpill.petit small{font-size:9px}
 .lpill .froid{color:var(--cool)}.lpill .chaud{color:var(--warm)}
 #leaf .leaflet-control-attribution{font-size:9px}
+#leaf .leaflet-tile-pane{filter:saturate(.85)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #leaf .leaflet-tile-pane{filter:saturate(.8) brightness(.78)}}
+:root[data-theme="dark"] #leaf .leaflet-tile-pane{filter:saturate(.8) brightness(.78)}
 #map .terre{fill:var(--surface-2)}
 #map .mer,#map .etang{fill:color-mix(in srgb,var(--cool) 22%,var(--surface))}
 #map .cote{fill:none;stroke:color-mix(in srgb,var(--cool) 55%,var(--surface));stroke-width:1.1;stroke-linejoin:round}
@@ -1184,41 +1187,53 @@ function chargerLeaflet(){
   return leafletPret;
 }
 const themeSombre=()=>{const t=document.documentElement.dataset.theme;return t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches};
-function pillHTML(n,m,petit){
+function pillHTML(n,m,petit,dx,dy){
   const cls=m.max<=10?"froid":m.max>=28?"chaud":"";
-  return '<div class="lpill'+(petit?" petit":"")+'">'+ICONS[m.type]+'<span><span class="'+cls+'">'+m.max+'°</span>'+(petit?"":'<small>'+(SHORT[n]||n)+'</small>')+'</span></div>';
+  return '<div class="lpill'+(petit?" petit":"")+'" style="margin-left:'+(dx||0)+'px;margin-top:'+(dy||0)+'px">'+ICONS[m.type]+'<span><span class="'+cls+'">'+m.max+'°</span><small>'+(SHORT[n]||n)+'</small></span></div>';
 }
+/* Étiquettes sans chevauchement : les villes principales d'abord, puis les autres communes s'il reste de la place */
+const PRIORITE=["Marseille","Aix-en-Provence","Arles","Avignon","Salon-de-Provence","Martigues","Aubagne","La Ciotat","Istres","Pertuis","Saint-Rémy-de-Provence","Saintes-Maries-de-la-Mer","Saint-Maximin-la-Sainte-Baume","Vitrolles","Marignane","Gardanne","Miramas","Tarascon","Châteaurenard","Cassis","Trets","Lambesc","Cadenet"];
 function dessinerMarqueurs(){
   if(!LMAP) return;
   LCOUCHE.clearLayers();
-  const z=LMAP.getZoom(), toutes=z>=11, vedettes=MAPPTS.map(x=>x[0]);
-  const noms=toutes?Object.keys(COORDS):vedettes;
-  noms.forEach(n=>{
+  const taille=LMAP.getSize(), places=[];
+  const noms=[...PRIORITE.filter(n=>COORDS[n]),...Object.keys(COORDS).filter(n=>!PRIORITE.includes(n)).sort((a,b)=>a.localeCompare(b,"fr"))];
+  noms.forEach((n,rang)=>{
     if(!COORDS[n]||idx(n)<0) return;
-    const m=meteo(COMMUNES[idx(n)],st.scen,mapJour), petit=toutes&&!vedettes.includes(n);
-    const mk=L.marker(COORDS[n],{icon:L.divIcon({className:"",html:pillHTML(n,m,petit),iconSize:[0,0]}),title:n+", "+LIB[m.type]+", maximale "+m.max+" degrés",keyboard:true,riseOnHover:true,zIndexOffset:petit?0:1000});
+    const pt=LMAP.latLngToContainerPoint(COORDS[n]);
+    if(pt.x<0||pt.y<0||pt.x>taille.x||pt.y>taille.y) return;
+    const prio=PRIORITE.includes(n);
+    if(!prio&&LMAP.getZoom()<10) return;
+    const petit=!prio;
+    const nom=SHORT[n]||n, w=petit?28+Math.max(20,nom.length*5):34+Math.max(24,nom.length*6), h=petit?30:36;
+    // Si l'étiquette dépasse du bord de la carte, on la décale vers l'intérieur
+    let x0=pt.x-w/2,y0=pt.y-h/2;const dx=Math.max(0,4-x0)-Math.max(0,x0+w-(taille.x-4)), dy=Math.max(0,4-y0)-Math.max(0,y0+h-(taille.y-18));
+    x0+=dx;y0+=dy;
+    const box=[x0-2,y0-2,x0+w+2,y0+h+2];
+    if(places.some(b=>!(box[2]<b[0]||box[0]>b[2]||box[3]<b[1]||box[1]>b[3]))) return;
+    places.push(box);
+    const m=meteo(COMMUNES[idx(n)],st.scen,mapJour);
+    const mk=L.marker(COORDS[n],{icon:L.divIcon({className:"",html:pillHTML(n,m,petit,Math.round(dx),Math.round(dy)),iconSize:[0,0]}),title:n+", "+LIB[m.type]+", maximale "+m.max+" degrés",keyboard:true,riseOnHover:true,zIndexOffset:1000-rang});
     mk.on("click",()=>goTo(n));mk.addTo(LCOUCHE);
   });
 }
 function majFond(){
-  if(!LMAP) return;
-  const url=themeSombre()?"https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png":"https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
-  if(LFOND) LMAP.removeLayer(LFOND);
-  LFOND=L.tileLayer(url,{subdomains:"abcd",maxZoom:14,minZoom:8,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(LMAP);
+  if(!LMAP||LFOND) return;
+  // Fond OpenTopoMap : relief ombré et courbes de niveau, gratuit et sans clé (données OpenStreetMap et SRTM)
+  LFOND=L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{subdomains:"abc",maxZoom:15,minZoom:8,attribution:'Données : &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, SRTM · Carte : &copy; <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC BY-SA)'}).addTo(LMAP);
 }
 async function renderCarte(){
   const ok=await chargerLeaflet();
   if(!ok||!window.L){$("leaf").hidden=true;$("map").style.display="";renderMap();return}
   $("map").style.display="none";$("leaf").hidden=false;
-  $("mapNote").textContent="Pincez pour zoomer : en vous rapprochant, toutes les communes apparaissent. Touchez une ville pour voir sa météo.";
+  $("mapNote").textContent="Zoomez pour voir plus de communes. Touchez une ville pour voir sa météo.";
   if(!LMAP){
     const pts=Object.values(COORDS), b=L.latLngBounds(pts);
     LMAP=L.map("leaf",{zoomSnap:.5,scrollWheelZoom:false,maxBounds:b.pad(.35),attributionControl:true});
     LMAP.fitBounds(b,{padding:[10,10]});
     LCOUCHE=L.layerGroup().addTo(LMAP);
     majFond();
-    LMAP.on("zoomend",dessinerMarqueurs);
-    try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",majFond)}catch(e){}
+    LMAP.on("moveend",dessinerMarqueurs);
   }else LMAP.invalidateSize();
   dessinerMarqueurs();
   $("mapJ0").setAttribute("aria-pressed",mapJour===0);$("mapJ1").setAttribute("aria-pressed",mapJour===1);
@@ -1230,8 +1245,8 @@ $("map").addEventListener("click",e=>{const g=e.target.closest(".mk");if(g)goTo(
 $("map").addEventListener("keydown",e=>{const g=e.target.closest(".mk");if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();goTo(g.dataset.n)}});
 
 /* Bandeau « Ajouter à l'écran d'accueil » : une seule fois, jamais dans l'app déjà installée */
-const STEPS={ios:["Ouvre l'app dans Safari.","Touche le bouton Partager : le carré avec une flèche vers le haut.","Choisis « Sur l'écran d'accueil », puis « Ajouter »."],
-  and:["Ouvre l'app dans Chrome.","Touche le menu ⋮ en haut à droite.","Choisis « Ajouter à l'écran d'accueil » ou « Installer l'application »."]};
+const STEPS={ios:["Ouvre l'app dans Safari.","Touche Partager (le carré avec une flèche).","Choisis « Sur l'écran d'accueil »."],
+  and:["Ouvre l'app dans Chrome.","Touche ⋮ en haut à droite.","Choisis « Installer »."]};
 let os=/android/i.test(navigator.userAgent)?"and":"ios";
 function renderInstall(){$("os-ios").setAttribute("aria-pressed",os==="ios");$("os-and").setAttribute("aria-pressed",os==="and");$("installSteps").innerHTML=STEPS[os].map(t=>"<li>"+t+"</li>").join("")}
 (()=>{
@@ -1465,7 +1480,7 @@ const KIT={
  pins:[
   {titre:"C'est quoi Météo en rire ?",points:["La météo de toutes les communes du 13 et de quelques voisines.","Des prévisions fiables, issues des modèles de Météo-France.","Un mot du jour pour commencer avec le sourire.","Zéro humour en cas de vigilance : la sécurité d'abord.","Gratuit, sans inscription : lien en bio."],
    legende:"Bienvenue sur Météo en rire ☀️\n\nChaque matin à 7 h, la météo de ta commune, avec des chiffres sérieux et un mot du jour pour sourire. Et quand la météo devient dangereuse, on range les blagues et on donne les consignes.\n\nL'app est gratuite : lien en bio.\n\n#meteo #bouchesdurhone #provence #meteoenrire"},
-  {titre:"Installer l'app en 30 secondes",points:["iPhone : ouvre le lien dans Safari.","Touche Partager, puis « Sur l'écran d'accueil ».","Android : ouvre le lien dans Chrome.","Touche le menu ⋮, puis « Ajouter à l'écran d'accueil ».","Et voilà : Météo en rire est sur ton téléphone."],
+  {titre:"Installer l'app en 30 secondes",points:["iPhone : ouvre le lien dans Safari.","Touche Partager, puis « Sur l'écran d'accueil ».","Android : ouvre le lien dans Chrome.","Touche ⋮, puis « Installer ».","Et voilà : Météo en rire est sur ton téléphone."],
    legende:"Météo en rire sur ton écran d'accueil, comme une vraie app 📲\n\nPas de téléchargement, pas d'inscription : deux gestes et c'est fait. Le lien est dans la bio.\n\nTu bloques ? Écris-nous en commentaire, on t'aide.\n\n#meteo #provence #meteoenrire"},
   {titre:"Le mistral, expliqué en rire",points:["Il descend du nord et du nord-ouest par la vallée du Rhône.","Il chasse les nuages : ciel bleu garanti, chapeau non garanti.","Ses rafales peuvent dépasser 90 km/h.","Il rend le ressenti bien plus froid que le thermomètre.","Le dicton dit qu'il souffle 3, 6 ou 9 jours. Le dicton ne signe jamais de contrat."],
    legende:"Le mistral, notre colocataire le plus bruyant 🌬️\n\nTu as une anecdote de mistral ? Un parasol envolé, une porte claquée ? Raconte-nous en commentaire, les meilleures passeront en story.\n\n#mistral #provence #bouchesdurhone #meteoenrire"}
