@@ -89,6 +89,12 @@ async function previsions(liste) {
         Math.round(d.wind_gusts_10m_max[k] ?? 0), d.wind_direction_10m_dominant[k], r1(d.precipitation_sum[k] ?? 0),
         d.precipitation_probability_max[k], r1(d.uv_index_max[k]), r1(d.apparent_temperature_max[k])]);
       const pos = {}; h.time.forEach((t, k) => { pos[t] = k; });
+      // Les 24 prochaines heures, à partir de l'heure en cours
+      const debut = pos[(c.time || "").slice(0, 13) + ":00"];
+      x.n24 = debut == null ? [] : h.time.slice(debut, debut + 24).map((t, k) => {
+        const i = debut + k;
+        return [t, r1(h.temperature_2m[i]), h.weather_code[i], h.precipitation_probability[i], Math.round(h.wind_gusts_10m[i] ?? 0), h.wind_direction_10m[i]];
+      });
       x.h = d.time.map(date => HEURES.map(hh => {
         const k = pos[date + "T" + String(hh).padStart(2, "0") + ":00"];
         return k == null ? [null] : [r1(h.temperature_2m[k]), h.weather_code[k], h.precipitation_probability[k], Math.round(h.wind_gusts_10m[k] ?? 0), h.wind_direction_10m[k]];
@@ -108,7 +114,7 @@ await writeFile("site/data/meteo.json", JSON.stringify({
   maj: new Date().toISOString(),
   source: "Open-Meteo (CC BY 4.0), dont les modèles de Météo-France",
   alertes: null,
-  communes: ok.map(({ n, s, lat, lon, cur, d, h }) => ({ n, s, lat: r1x(lat), lon: r1x(lon), cur, d, h }))
+  communes: ok.map(({ n, s, lat, lon, cur, d, h, n24 }) => ({ n, s, lat: r1x(lat), lon: r1x(lon), cur, d, h, n24 }))
 }));
 function r1x(v) { return Math.round(v * 1000) / 1000; }
 // Copie tous les fichiers de l'app (tout sauf les outils et le dossier « site » lui-même)

@@ -181,7 +181,7 @@ nav.tabs svg{width:24px;height:24px}
 .sbtn{font-size:.82rem;font-weight:800;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;cursor:pointer}
 .caption{width:100%;min-height:170px;font:inherit;font-size:.92rem;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);resize:vertical}
 /* logo, localisation, à propos */
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}
 .brand svg{width:34px;height:34px;flex:0 0 auto}
 .icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--muted);text-decoration:none}
 .icon-btn svg{width:20px;height:20px}
@@ -298,7 +298,7 @@ nav.tabs svg{width:24px;height:24px}
     </div>
 
     <section>
-      <div class="sec-h"><h2>Heure par heure</h2><span class="sub" id="hoursDay"></span></div>
+      <div class="sec-h"><h2 id="hoursTitle">Heure par heure</h2><span class="sub" id="hoursDay"></span></div>
       <div class="card hours" id="hours"></div>
     </section>
 
@@ -375,7 +375,7 @@ nav.tabs svg{width:24px;height:24px}
     <a class="back" href="#meteo">← Retour à l'app</a>
     <div>
       <h2 style="font-size:1.3rem">Espace créateur</h2>
-      <div class="sub">Réservé à toi : il s'ouvre en touchant 5 fois de suite le logo, en haut à gauche.</div>
+      <div class="sub">Réservé à toi : il s'ouvre en gardant le logo appuyé 5 secondes, en haut à gauche.</div>
     </div>
     <section>
       <div class="sec-h"><h2>Logo et icône</h2></div>
@@ -828,6 +828,18 @@ function heuresReelles(c,jour){
   const r=DATA.par[c.n];if(!r||!r.h||!r.h[jour])return null;
   return r.h[jour].map(([t,code,prob,raf,dir])=>t==null?null:{t:Math.round(t),type:classer(code,raf,dir,t,t),prob:prob==null?0:Math.round(prob)});
 }
+/* Aujourd'hui : les 24 prochaines heures, à partir de l'heure en cours */
+function prochainesHeures(c){
+  const r=DATA.par[c.n];if(!r||!r.n24||!r.n24.length)return null;
+  const now=new Date(), cle=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0")+"T"+String(now.getHours()).padStart(2,"0")+":00";
+  const liste=r.n24.filter(x=>x[0]>=cle);
+  if(liste.length<6)return null;
+  return liste.map(([t,temp,code,prob,raf,dir],i)=>{
+    const d=new Date(t), hh=d.getHours();let type=classer(code,raf,dir,temp,temp);
+    if(estNuit(d,hh*60+30)) type=versNuit(type);
+    return {lbl:i===0?"Maint.":hh+" h",t:Math.round(temp),type,prob:prob==null?0:Math.round(prob)};
+  });
+}
 function heures(m,jour,scenKey){
   if(jour===0) return SCEN[scenKey].h;
   const t=m.type;
@@ -916,9 +928,12 @@ function render(){
   if(m.alert){$("alertBox").hidden=false;$("motBox").hidden=true;$("alertTitle").textContent=m.alert.titre;$("alertList").innerHTML=m.alert.cons.map(x=>"<li>"+x+"</li>").join("")}
   else{$("alertBox").hidden=true;$("motBox").hidden=false;$("mot").textContent=motDuJour(c,m,st.jour)}
   // heures
-  $("hoursDay").textContent=st.jour===0?"Aujourd'hui":fmt(dayDate(st.jour));
-  const hr=enReel()?heuresReelles(c,st.jour):null;
-  if(hr) $("hours").innerHTML=hr.map((x,i)=>{
+  const prochaines=(enReel()&&st.jour===0)?prochainesHeures(c):null;
+  $("hoursTitle").textContent=prochaines?"Les prochaines heures":"Heure par heure";
+  $("hoursDay").textContent=prochaines?"24 heures à venir":st.jour===0?"Aujourd'hui":fmt(dayDate(st.jour));
+  const hr=(enReel()&&!prochaines)?heuresReelles(c,st.jour):null;
+  if(prochaines) $("hours").innerHTML=prochaines.map(x=>'<div class="hour"><small>'+x.lbl+'</small>'+ICONS[x.type]+'<b>'+x.t+'°</b><span class="p">'+(x.prob>=20?x.prob+" %":"")+'</span></div>').join("");
+  else if(hr) $("hours").innerHTML=hr.map((x,i)=>{
     const hh=7+i*2;if(!x)return "";
     if(estNuit(dayDate(st.jour),hh*60)) x=Object.assign({},x,{type:versNuit(x.type)});
     const p=(x.prob>=20)?x.prob+" %":"";
@@ -1284,12 +1299,19 @@ function route(){
   window.scrollTo(0,0);
 }
 window.addEventListener("hashchange",()=>{studioOuvert=false;route()});
-/* Espace créateur : aucune adresse, il s'ouvre seulement avec 5 touches rapides sur le logo */
-(()=>{let n=0,t=0;document.querySelector(".brand").addEventListener("click",e=>{
-  e.preventDefault();const now=Date.now();n=(now-t<700)?n+1:1;t=now;
-  if(n>=5){n=0;studioOuvert=true;route();return}
-  if(studioOuvert||location.hash!=="#meteo"){studioOuvert=false;if(location.hash==="#meteo"||!location.hash)route();else location.hash="#meteo"}
-});})();
+/* Espace créateur : aucune adresse. Il s'ouvre seulement en gardant le logo appuyé 5 secondes (souris ou doigt). */
+(()=>{const logo=document.querySelector(".brand");let minuteur=null,ouvertParAppui=false;
+  const ouvrir=()=>{studioOuvert=true;route()};
+  const accueil=()=>{studioOuvert=false;if(location.hash==="#meteo"||!location.hash)route();else location.hash="#meteo"};
+  const stop=()=>{clearTimeout(minuteur);minuteur=null};
+  logo.addEventListener("pointerdown",()=>{ouvertParAppui=false;stop();minuteur=setTimeout(()=>{minuteur=null;ouvertParAppui=true;ouvrir()},5000)});
+  ["pointerup","pointerleave","pointercancel"].forEach(ev=>logo.addEventListener(ev,stop));
+  logo.addEventListener("contextmenu",e=>e.preventDefault());
+  logo.addEventListener("click",e=>{
+    e.preventDefault();if(ouvertParAppui){ouvertParAppui=false;return}
+    if(studioOuvert||(location.hash&&location.hash!=="#meteo"))accueil();
+  });
+})();
 document.querySelectorAll("#v-studio .back").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();studioOuvert=false;if(location.hash==="#meteo"||!location.hash)route();else location.hash="#meteo"}));
 async function demarrer(){
   try{
