@@ -375,7 +375,7 @@ nav.tabs svg{width:24px;height:24px}
     <a class="back" href="#meteo">← Retour à l'app</a>
     <div>
       <h2 style="font-size:1.3rem">Espace créateur</h2>
-      <div class="sub">Réservé à toi : aucun lien n'y mène dans l'app. Garde cette adresse dans tes favoris.</div>
+      <div class="sub">Réservé à toi : il s'ouvre en touchant 5 fois de suite le logo, en haut à gauche.</div>
     </div>
     <section>
       <div class="sec-h"><h2>Logo et icône</h2></div>
@@ -1271,10 +1271,11 @@ $("kit").addEventListener("click",e=>{const b=e.target.closest("[data-copy]");if
 $("copyCap").addEventListener("click",e=>copyText($("caption").value,e.currentTarget,"Légende copiée !"));
 
 /* ---------- Navigation ---------- */
+let studioOuvert=false;
 function route(){
   $("demoPill").hidden=enReel();
   const h=location.hash||"#meteo";
-  const v=h==="#secteurs"?"secteurs":h==="#atelier-mistral-4516"?"studio":h==="#apropos"?"apropos":"meteo";
+  const v=h==="#secteurs"?"secteurs":studioOuvert?"studio":h==="#apropos"?"apropos":"meteo";
   $("v-meteo").hidden=v!=="meteo";$("v-secteurs").hidden=v!=="secteurs";$("v-studio").hidden=v!=="studio";$("v-apropos").hidden=v!=="apropos";
   $("t-meteo").toggleAttribute("aria-current",v==="meteo");$("t-secteurs").toggleAttribute("aria-current",v==="secteurs");
   if(v==="meteo"){$("t-meteo").setAttribute("aria-current","page");render()}
@@ -1282,7 +1283,14 @@ function route(){
   if(v==="studio"){markScen();buildAssets();buildKit();buildSlides()}
   window.scrollTo(0,0);
 }
-window.addEventListener("hashchange",route);
+window.addEventListener("hashchange",()=>{studioOuvert=false;route()});
+/* Espace créateur : aucune adresse, il s'ouvre seulement avec 5 touches rapides sur le logo */
+(()=>{let n=0,t=0;document.querySelector(".brand").addEventListener("click",e=>{
+  e.preventDefault();const now=Date.now();n=(now-t<700)?n+1:1;t=now;
+  if(n>=5){n=0;studioOuvert=true;route();return}
+  if(studioOuvert||location.hash!=="#meteo"){studioOuvert=false;if(location.hash==="#meteo"||!location.hash)route();else location.hash="#meteo"}
+});})();
+document.querySelectorAll("#v-studio .back").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();studioOuvert=false;if(location.hash==="#meteo"||!location.hash)route();else location.hash="#meteo"}));
 async function demarrer(){
   try{
     const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),7000);
@@ -1295,7 +1303,7 @@ async function demarrer(){
 }
 document.body.classList.add("boot");
 demarrer();
-(async()=>{try{if(window.claude&&claude.use){dl=await claude.use("downloads");if(dl&&location.hash==="#atelier-mistral-4516"){assetsBuilt=false;kitBuilt=false;buildAssets();buildKit();buildSlides()}}}catch(e){}})();
+(async()=>{try{if(window.claude&&claude.use){dl=await claude.use("downloads");if(dl&&studioOuvert){assetsBuilt=false;kitBuilt=false;buildAssets();buildKit();buildSlides()}}}catch(e){}})();
 </script>
 
 <script>if("serviceWorker" in navigator&&!window.claude&&location.protocol==="https:")window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
