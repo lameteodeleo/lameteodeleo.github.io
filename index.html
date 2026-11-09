@@ -25,7 +25,7 @@
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
-<title>La météo de Léo</title>
+<title>La météo de Léo · Météo des Bouches-du-Rhône</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap">
 <style>
@@ -60,14 +60,15 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
 .view[hidden]{display:none!important}
 /* en-tête */
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.logo{font-family:var(--f-display);font-weight:800;font-size:1.35rem;letter-spacing:-.02em;line-height:1}
+@media(max-width:340px){.logo{font-size:1.12rem!important}}
+.logo{margin:0;white-space:nowrap;font-family:var(--f-display);font-weight:800;font-size:1.35rem;letter-spacing:-.02em;line-height:1}
 .logo em{font-style:normal;color:var(--brand)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .logo em{color:var(--sun)}}
 :root[data-theme="dark"] .logo em{color:var(--sun)}
 .pill{font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--brand-soft);color:var(--brand);padding:4px 9px;border-radius:999px;white-space:nowrap}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
 h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;letter-spacing:-.01em}
-.sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+.sec-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
 .sub{font-size:.85rem;color:var(--muted)}
 /* hero */
 .hero{--glow:var(--brand);padding:18px 18px 20px;background:radial-gradient(circle at 92% -10%,color-mix(in srgb,var(--glow) 30%,transparent),transparent 58%),var(--surface);display:flex;flex-direction:column;gap:12px}
@@ -283,6 +284,7 @@ details.plus[open] .tiles{margin-top:10px}
 .slide.hl img{aspect-ratio:9/16}
 /* installation, partage, fraîcheur, carte */
 .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;gap:3px}
+.seg button,.back,#installClose,#share{min-height:40px}
 .seg button{border:0;background:none;color:var(--muted);font-weight:800;font-size:.85rem;padding:6px 14px;border-radius:999px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
 .install{padding:16px;display:flex;flex-direction:column;gap:12px}
@@ -325,7 +327,7 @@ details.plus[open] .tiles{margin-top:10px}
 
 <div class="wrap">
   <div class="top">
-    <a class="brand" href="#meteo" aria-label="La météo de Léo, accueil"><span id="mark"></span><span class="logo">La météo <em>de Léo</em></span></a>
+    <a class="brand" href="#meteo" aria-label="La météo de Léo, accueil"><span id="mark"></span><h1 class="logo">La météo <em>de Léo</em></h1></a>
     <div class="place-acts">
       <span class="pill" id="demoPill" title="Les chiffres affichés sont des exemples" style="align-self:center">Exemple</span>
       <button class="icon-btn" type="button" id="openSearch3" aria-label="Rechercher une commune"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
@@ -459,18 +461,21 @@ details.plus[open] .tiles{margin-top:10px}
     </div>
     <div class="card prose">
       <h3>Le principe</h3>
-      <p>La météo de Léo donne chaque jour la météo des communes des Bouches-du-Rhône et de quelques communes voisines. Les chiffres sont précis ; le commentaire, lui, est là pour vous faire sourire, même quand il pleut.</p>
+      <p>La météo de Léo, c'est la météo de votre commune, dans les Bouches-du-Rhône et quelques communes voisines : des prévisions sérieuses, actualisées tout au long de la journée, et un sourire en plus, même quand il pleut.</p>
       <h3 style="margin:14px 0 4px;font-size:1rem">Derrière La météo de Léo</h3>
-      <p>Moi, c'est Léo, un habitant des Bouches-du-Rhône passionné de météo. J'ai créé cette app pour que la météo du 13 donne le sourire chaque matin. Je ne suis pas météorologue : les prévisions viennent des modèles de Météo-France, je les rends simples, locales et agréables à lire. L'app est gratuite, sans pub et sans inscription.</p>
+      <p>Moi, c'est Léo. J'habite les Bouches-du-Rhône et je suis passionné de météo.</p>
+      <p>J'ai créé cette app avec une idée simple : une météo fiable et claire, qui donne le sourire dès le matin.</p>
+      <p>Les prévisions s'appuient sur les modèles de Météo-France. Mon rôle, c'est de les rendre simples, locales et agréables à lire, commune par commune.</p>
+      <p>L'app est gratuite, sans publicité et sans inscription.</p>
       <h3>D'où viennent les prévisions ?</h3>
-      <p>Les prévisions viennent d'Open-Meteo, qui s'appuie sur les modèles de Météo-France (AROME et ARPEGE). Elles sont mises à jour automatiquement toutes les heures. Les vigilances renvoient vers le site officiel de Météo-France.</p>
+      <p>Les prévisions s'appuient sur les modèles AROME et ARPEGE de Météo-France, fournis par Open-Meteo. Elles sont actualisées automatiquement tout au long de la journée ; la température du moment et la pluie des deux prochaines heures sont demandées en direct à l'ouverture de l'app. Pour les vigilances, le site officiel de Météo-France fait référence.</p>
       <h3>Quand il y a une vigilance</h3>
       <p>L'humour disparaît : l'app affiche uniquement les consignes de sécurité. Pour toute décision importante, référez-vous à vigilance.meteofrance.fr.</p>
     </div>
     <div class="card prose">
       <h3>Mentions légales</h3>
       <ul>
-        <li>Éditeur : La météo de Léo, projet non commercial.</li>
+        <li>Éditeur : La météo de Léo (projet non commercial).</li>
         <li>Contact : <a href="https://www.instagram.com/lameteodeleo/" target="_blank" rel="noopener">@lameteodeleo</a></li>
         <li>Hébergement : GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis</li>
         <li>Données météo : Open-Meteo, sous licence CC BY 4.0, dont les modèles de Météo-France</li>
@@ -1099,7 +1104,7 @@ const SCEN={
 };
 
 /* ---------- Données d'une commune pour un jour (0 = aujourd'hui) ---------- */
-/* ---------- Prévisions réelles (fichier data/meteo.json écrit chaque heure par GitHub) ---------- */
+/* ---------- Prévisions réelles (fichier data/meteo.json écrit toutes les 2 heures par GitHub) ---------- */
 let DATA=null;
 const DIR8=["Nord","Nord-est","Est","Sud-est","Sud","Sud-ouest","Ouest","Nord-ouest"];
 const dirTxt=d=>d==null?"Variable":DIR8[Math.round(d/45)%8];
@@ -1384,7 +1389,7 @@ function conseils(m,c,profondeur){
   const aprem=m.feel, apresMidiPasse=st.jour===0&&hNow>=15;
   let tenue=apresMidiPasse?"D'ici ce soir : "+habit(Math.min(aprem,matin+3))+".":
     (aprem-matin>=7&&habit(matin)!==habit(aprem))?"Le matin ("+matin+"°) : "+habit(matin)+". L'après-midi ("+aprem+"°) : "+habit(aprem)+" suffit.":
-    varie("Tenue du jour : "+habit(Math.min(aprem,matin+4))+".","Pour la journée : "+habit(Math.min(aprem,matin+4))+".");
+    (st.jour===1?"Tenue de demain : "+habit(Math.min(aprem,matin+4))+".":varie("Tenue du jour : "+habit(Math.min(aprem,matin+4))+".","Pour la journée : "+habit(Math.min(aprem,matin+4))+"."));
   // Le ressenti avec le vent : le mistral fait paraître bien plus froid que le thermomètre
   if(m.max-m.feel>=4&&m.raf>=40) tenue+=" Avec le vent, on ressent "+m.feel+"° alors que le thermomètre affiche "+m.max+"° : couvrez-vous plus que prévu.";
   else if(m.raf>=50&&m.feel<24) tenue+=" Ajoutez un coupe-vent : ça souffle.";
@@ -1837,7 +1842,7 @@ function slideStory(){
   drawMark(x,135,190,130,true);
   logoCanvas(x,230,210,70,B.white,al?B.white:B.sun);
   x.fillStyle=B.white;x.globalAlpha=.85;x.font="700 34px "+FB;x.fillText(fmt(today),70,330);x.globalAlpha=1;
-  x.font="800 64px "+FD;x.fillText(al?al.titre:"La météo du 13",70,420);
+  x.font="800 64px "+FD;x.fillText(al?al.titre:"Aujourd'hui dans le 13",70,420);
   ORDRE.forEach((k,i)=>{
     const c=COMMUNES[idx(SECTEURS[k].v[0])], m=meteo(c,st.scen,0), y=480+i*120;
     x.fillStyle="rgba(255,255,255,.1)";rr(x,70,y,940,100,26);x.fill();
@@ -1912,7 +1917,7 @@ async function buildAssets(){
 }
 /* ---------- Kit de lancement Instagram ---------- */
 const KIT={
- bio:"La météo du 13, commune par commune ☀️\nDes prévisions sérieuses, le sourire en plus 😉\n👇 L'app gratuite",
+ bio:"La météo des Bouches-du-Rhône, commune par commune ☀️\nDes prévisions sérieuses, le sourire en plus 😉\n👇 L'app gratuite",
  pins:[
   {titre:"C'est quoi La météo de Léo ?",points:["La météo de toutes les communes du 13 et de quelques voisines.","Des prévisions fiables, issues des modèles de Météo-France.","Le sourire du jour pour bien commencer la journée.","Zéro humour en cas de vigilance : la sécurité d'abord.","Gratuit, sans inscription : lien en bio."],
    legende:"Bienvenue sur La météo de Léo ☀️\n\nChaque matin à 7 h, la météo de ta commune, avec des chiffres sérieux et le sourire du jour. Et quand la météo devient dangereuse, on range les blagues et on donne les consignes.\n\nL'app est gratuite : lien en bio.\n\n#meteo #bouchesdurhone #provence #lameteodeleo"},
