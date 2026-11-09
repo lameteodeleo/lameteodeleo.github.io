@@ -1,4 +1,4 @@
-# Météo en rire : mise à jour automatique toutes les heures et mise en ligne sur GitHub Pages.
+# La météo de Léo : mise à jour automatique toutes les heures et mise en ligne sur GitHub Pages.
 name: Mise à jour météo
 
 on:
