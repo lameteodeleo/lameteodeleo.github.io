@@ -1,12 +1,12 @@
-# Météo en rire
+# La météo de Léo
 
 Des prévisions sérieuses, racontées avec le sourire : la météo des Bouches-du-Rhône, commune par commune.
 
 ## Comment ça marche
 
 - `index.html` : l'app (une seule page, sans installation).
-- `scripts/update.mjs` : toutes les heures, récupère la liste officielle des communes (geo.api.gouv.fr) et les prévisions d'Open-Meteo, puis prépare le site.
-- `.github/workflows/meteo.yml` : lance le programme chaque heure et met le site en ligne sur GitHub Pages.
+- `scripts/update.mjs` : toutes les 2 heures, récupère la liste officielle des communes (geo.api.gouv.fr) et les prévisions d'Open-Meteo, puis prépare le site.
+- `.github/workflows/meteo.yml` : lance le programme toutes les 2 heures et met le site en ligne sur GitHub Pages.
 - `manifest.webmanifest` et `icons/` : l'icône et le nom de l'app sur l'écran d'accueil.
 
 ## Réglage à faire une seule fois
@@ -19,4 +19,4 @@ Onglet Actions → « Mise à jour météo » → Run workflow.
 
 ## Données
 
-Prévisions : [Open-Meteo](https://open-meteo.com) (licence CC BY 4.0), dont les modèles de Météo-France. Usage non commercial pour l'offre gratuite.
+Prévisions : [Open-Meteo](https://open-meteo.com) (licence CC BY 4.0) : modèles AROME et ARPEGE de Météo-France, complétés par le modèle global. Usage non commercial pour l'offre gratuite.

@@ -1,6 +1,6 @@
-// Météo en rire : service worker minimal.
+// La météo de Léo : service worker minimal.
 // Il rend l'app installable comme une vraie app et garde la dernière version pour l'afficher hors connexion.
-const CACHE = "meteoenrire-v1";
+const CACHE = "lameteodeleo-v1";
 const BASE = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", e => {

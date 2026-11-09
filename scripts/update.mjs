@@ -1,4 +1,4 @@
-// Météo en rire : programme de mise à jour automatique.
+// La météo de Léo : programme de mise à jour automatique.
 // GitHub le lance toutes les heures. Il récupère la liste officielle des communes,
 // demande les prévisions à Open-Meteo, puis prépare le site dans le dossier « site ».
 // Aucune clé n'est nécessaire. Node 20 ou plus récent.
@@ -10,7 +10,7 @@ const SECTEURS = {"mc": ["Marseille","Allauch","Plan-de-Cuques","Aubagne","La Pe
 // Communes voisines (hors Bouches-du-Rhône) : nom et numéro de département.
 const VOISINS = [["Pertuis", "84"], ["Cadenet", "84"], ["Lauris", "84"], ["La Tour-d'Aigues", "84"], ["Saint-Maximin-la-Sainte-Baume", "83"], ["Avignon", "84"]];
 
-const UA = { "User-Agent": "meteo-en-rire (GitHub Actions)" };
+const UA = { "User-Agent": "lameteodeleo (GitHub Actions)" };
 const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/['’\-]/g, " ").replace(/\s+/g, " ").trim();
 const pause = ms => new Promise(r => setTimeout(r, ms));
 
@@ -72,8 +72,55 @@ const PARAMS = new URLSearchParams({
   daily: "weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,wind_gusts_10m_max,wind_direction_10m_dominant,precipitation_sum,precipitation_probability_max,uv_index_max",
   timezone: "Europe/Paris", forecast_days: "7", wind_speed_unit: "kmh"
 });
+// Modèles de Météo-France (AROME 1,3 à 2,5 km pour aujourd'hui et demain, puis ARPEGE) : plus précis pour le mistral,
+// les orages et le relief. Ils remplacent les valeurs ci-dessus sur les 3 premiers jours quand ils sont disponibles.
+// Le risque de pluie, l'indice UV et les jours 4 à 7 restent ceux du modèle global (Open-Meteo « best match »).
+const PARAMS_MF = new URLSearchParams({
+  models: "meteofrance_seamless",
+  current: "temperature_2m,apparent_temperature,weather_code,wind_gusts_10m,wind_direction_10m",
+  hourly: "temperature_2m,weather_code,wind_gusts_10m,wind_direction_10m",
+  daily: "weather_code,temperature_2m_max,temperature_2m_min,wind_gusts_10m_max,precipitation_sum",
+  timezone: "Europe/Paris", forecast_days: "3", wind_speed_unit: "kmh"
+});
+const JOURS_MF = 3;
 const HEURES = [7, 9, 11, 13, 15, 17, 19, 21];
 const r1 = v => v == null ? null : Math.round(v * 10) / 10;
+
+// Remplace par les valeurs Météo-France quand elles existent (une valeur absente garde celle du modèle global)
+const vu = v => v != null && !Number.isNaN(v);
+function appliquerMF(x, p) {
+  try {
+    const c = p.current, d = p.daily, h = p.hourly;
+    if (c && vu(c.temperature_2m) && vu(c.weather_code)) {
+      x.cur = [r1(c.temperature_2m), vu(c.apparent_temperature) ? r1(c.apparent_temperature) : x.cur[1], c.weather_code,
+        vu(c.wind_gusts_10m) ? Math.round(c.wind_gusts_10m) : x.cur[3], vu(c.wind_direction_10m) ? c.wind_direction_10m : x.cur[4]];
+    }
+    if (d && d.time) d.time.forEach((date, k) => {
+      if (k >= JOURS_MF) return;
+      const J = x.d.find(j => j[0] === date); if (!J) return;
+      if (!vu(d.temperature_2m_max[k]) || !vu(d.temperature_2m_min[k])) return;
+      // Garde-fou : un écart énorme avec le modèle global signale une donnée incomplète
+      if (Math.abs(d.temperature_2m_max[k] - J[2]) > 8 || Math.abs(d.temperature_2m_min[k] - J[3]) > 8) return;
+      J[2] = r1(d.temperature_2m_max[k]); J[3] = r1(d.temperature_2m_min[k]);
+      if (vu(d.weather_code[k])) J[1] = d.weather_code[k];
+      if (vu(d.wind_gusts_10m_max[k])) J[4] = Math.round(d.wind_gusts_10m_max[k]);
+      if (vu(d.precipitation_sum[k])) J[6] = r1(d.precipitation_sum[k]);
+    });
+    if (h && h.time) {
+      const pos = {}; h.time.forEach((t, k) => { pos[t] = k; });
+      const maj = (t, cible, iT, iC, iR, iD) => {
+        const k = pos[t]; if (k == null || !vu(h.temperature_2m[k])) return;
+        cible[iT] = r1(h.temperature_2m[k]);
+        if (vu(h.weather_code[k])) cible[iC] = h.weather_code[k];
+        if (vu(h.wind_gusts_10m[k])) cible[iR] = Math.round(h.wind_gusts_10m[k]);
+        if (vu(h.wind_direction_10m[k])) cible[iD] = h.wind_direction_10m[k];
+      };
+      for (const e of x.n24) maj(e[0], e, 1, 2, 4, 5);
+      x.d.forEach((J, k) => { if (k < JOURS_MF) HEURES.forEach((hh, i) => { const e = x.h[k][i]; if (e && e.length > 1) maj(J[0] + "T" + String(hh).padStart(2, "0") + ":00", e, 0, 1, 3, 4); }); });
+    }
+    x.mf = 1;
+  } catch (e) { console.warn("Météo-France ignoré pour " + x.n + " : " + e.message); }
+}
 
 async function previsions(liste) {
   for (let i = 0; i < liste.length; i += 25) {
@@ -82,6 +129,13 @@ async function previsions(liste) {
       "&longitude=" + lot.map(x => x.lon.toFixed(4)).join(",") + "&" + PARAMS.toString();
     let rep = await lireJSON(url);
     if (!Array.isArray(rep)) rep = [rep];
+    // Météo-France : un bonus, si la demande échoue on garde le modèle global
+    let mf = null;
+    try {
+      const urlMF = "https://api.open-meteo.com/v1/forecast?latitude=" + lot.map(x => x.lat.toFixed(4)).join(",") +
+        "&longitude=" + lot.map(x => x.lon.toFixed(4)).join(",") + "&" + PARAMS_MF.toString();
+      mf = await lireJSON(urlMF, 2); if (!Array.isArray(mf)) mf = [mf];
+    } catch (e) { console.warn("Modèles Météo-France indisponibles pour ce lot : " + e.message); }
     rep.forEach((p, j) => {
       const x = lot[j], d = p.daily, h = p.hourly, c = p.current;
       x.cur = [r1(c.temperature_2m), r1(c.apparent_temperature), c.weather_code, Math.round(c.wind_gusts_10m), c.wind_direction_10m];
@@ -105,6 +159,7 @@ async function previsions(liste) {
         const k = pos[date + "T" + String(hh).padStart(2, "0") + ":00"];
         return k == null ? [null] : [r1(h.temperature_2m[k]), h.weather_code[k], h.precipitation_probability[k], Math.round(h.wind_gusts_10m[k] ?? 0), h.wind_direction_10m[k]];
       }));
+      if (mf && mf[j]) appliquerMF(x, mf[j]);
     });
     await pause(1200);
   }
@@ -164,13 +219,15 @@ async function bonus(nom, f) { try { return await f(); } catch (e) { console.war
 const liste = await communes();
 await previsions(liste);
 const ok = liste.filter(x => x.d && x.d.length >= 7);
+console.log(`Météo-France appliqué à ${ok.filter(x => x.mf).length}/${ok.length} communes`);
 if (ok.length < 100) throw new Error(`Seulement ${ok.length} communes avec des prévisions : site non publié, la version précédente reste en ligne.`);
 const qualiteAir = await bonus("Qualité de l'air", () => air(ok));
 const laMer = await bonus("Mer", mer);
 await mkdir("site/data", { recursive: true });
 await writeFile("site/data/meteo.json", JSON.stringify({
   maj: new Date().toISOString(),
-  source: "Open-Meteo (CC BY 4.0), dont les modèles de Météo-France",
+  source: "Open-Meteo (CC BY 4.0) : modèles Météo-France AROME et ARPEGE, complétés par le modèle global",
+  mf: ok.filter(x => x.mf).length,
   alertes: null,
   air: qualiteAir,
   mer: laMer,

@@ -4,43 +4,49 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="La météo des Bouches-du-Rhône, commune par commune : des prévisions sérieuses, racontées avec le sourire.">
-<meta name="theme-color" content="#5B4FC4">
+<meta name="theme-color" content="#4B3BB8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Météo en rire">
+<meta name="apple-mobile-web-app-title" content="Météo de Léo">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta property="og:title" content="Météo en rire">
+<meta property="og:title" content="La météo de Léo">
 <meta property="og:description" content="La météo des Bouches-du-Rhône, racontée avec le sourire.">
-<meta property="og:image" content="icons/icon-512.png">
+<meta property="og:image" content="https://lameteodeleo.github.io/icons/partage.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://lameteodeleo.github.io/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://lameteodeleo.github.io/">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
-<title>Météo en rire</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<title>La météo de Léo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap">
 <style>
 /* Layout : appli mobile une colonne. Ordre de lecture : commune → temps du jour → vigilance → mot du jour → heures → 7 jours → détails → conseils. Onglets publics en bas (Ma météo / Le 13), espace créateur à part. */
 :root{
-  --bg:#EEF3F8; --surface:#FFFFFF; --surface-2:#F5F8FB; --ink:#132639; --muted:#5B6F83; --line:#DCE5EE;
-  --brand:#5B4FC4; --brand-soft:#ECEAFB; --sun:#F2B705; --sun-ink:#433100;
-  --alert:#B3261E; --alert-soft:#FCEBE9; --cool:#3A79B3; --warm:#D9822B; --ok:#2F7D5B;
+  --bg:#F3F1FA; --surface:#FFFFFF; --surface-2:#F7F5FD; --ink:#1D1838; --muted:#655F86; --line:#E4E0F2;
+  --brand:#4B3BB8; --brand-soft:#ECE9FB; --sun:#FFC21A; --sun-ink:#433100;
+  --alert:#B3261E; --alert-soft:#FCEBE9; --cool:#4A6FD1; --warm:#D9822B; --ok:#2F7D5B;
   --shadow:0 1px 2px rgba(19,38,57,.05),0 6px 20px rgba(19,38,57,.06);
   --f-display:"Bricolage Grotesque","Arial Rounded MT Bold",system-ui,sans-serif;
   --f-body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0D1823; --surface:#152536; --surface-2:#1A2C40; --ink:#E7EFF7; --muted:#9AAFC3; --line:#243A50;
-  --brand:#A99FF5; --brand-soft:#26244A; --sun:#F5C433; --sun-ink:#2A1F00;
-  --alert:#FF8C82; --alert-soft:#3A1D1C; --cool:#7EB6E9; --warm:#F0A55A; --ok:#6FD3A4;
+  --bg:#110F26; --surface:#1A1736; --surface-2:#211D42; --ink:#EEEBFF; --muted:#A7A1CC; --line:#2D2952;
+  --brand:#A99FF5; --brand-soft:#2A2557; --sun:#F5C433; --sun-ink:#2A1F00;
+  --alert:#FF8C82; --alert-soft:#3A1D1C; --cool:#8FB0F5; --warm:#F0A55A; --ok:#6FD3A4;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0D1823; --surface:#152536; --surface-2:#1A2C40; --ink:#E7EFF7; --muted:#9AAFC3; --line:#243A50;
-  --brand:#A99FF5; --brand-soft:#26244A; --sun:#F5C433; --sun-ink:#2A1F00;
-  --alert:#FF8C82; --alert-soft:#3A1D1C; --cool:#7EB6E9; --warm:#F0A55A; --ok:#6FD3A4;
+  --bg:#110F26; --surface:#1A1736; --surface-2:#211D42; --ink:#EEEBFF; --muted:#A7A1CC; --line:#2D2952;
+  --brand:#A99FF5; --brand-soft:#2A2557; --sun:#F5C433; --sun-ink:#2A1F00;
+  --alert:#FF8C82; --alert-soft:#3A1D1C; --cool:#8FB0F5; --warm:#F0A55A; --ok:#6FD3A4;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}
 *{box-sizing:border-box}
 body.boot main.view{visibility:hidden}
@@ -56,6 +62,8 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .logo{font-family:var(--f-display);font-weight:800;font-size:1.35rem;letter-spacing:-.02em;line-height:1}
 .logo em{font-style:normal;color:var(--brand)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .logo em{color:var(--sun)}}
+:root[data-theme="dark"] .logo em{color:var(--sun)}
 .pill{font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--brand-soft);color:var(--brand);padding:4px 9px;border-radius:999px;white-space:nowrap}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
 h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;letter-spacing:-.01em}
@@ -66,6 +74,11 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .hero[data-t="soleil"],.hero[data-t="nuageux"]{--glow:var(--sun)}
 .hero[data-t="pluie"],.hero[data-t="gel"],.hero[data-t="brouillard"],.hero[data-t="neige"]{--glow:var(--cool)}
 .hero[data-t="chaleur"],.hero[data-t="orage"]{--glow:var(--alert)}
+/* Carte principale violette (identité de la marque), identique en mode clair et sombre */
+.hero{--ink:#FFFFFF;--muted:#DCD7FF;--brand:#EAE6FF;--brand-soft:rgba(255,255,255,.14);--surface-2:rgba(255,255,255,.12);--line:rgba(255,255,255,.18);--cool:#C4D6FF;
+  color:var(--ink);border:0;background:radial-gradient(circle at 92% -10%,color-mix(in srgb,var(--glow) 45%,transparent),transparent 58%),linear-gradient(160deg,#5A48D0,#3A2C9C)}
+.hero[data-t="soleil"],.hero[data-t="nuageux"],.hero[data-t="chaleur"]{--glow:#FFC21A}
+.hero[data-t="orage"]{--glow:#FF8C82}
 .place{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .place-btn{display:flex;align-items:center;gap:6px;min-width:0;background:none;border:0;padding:6px 0;cursor:pointer;text-align:left}
 .place-btn svg{flex:0 0 auto;width:18px;height:18px;color:var(--brand)}
@@ -91,6 +104,12 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .mot p{margin:0;font-family:var(--f-display);font-weight:600;font-size:1.12rem;line-height:1.38;text-wrap:pretty}
 .mot .acts{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .mot small{font-size:.75rem;opacity:.7}
+.saviez{padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.saviez .k{display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--brand)}
+.saviez .k svg{width:16px;height:16px}
+.saviez p{margin:0;font-size:.98rem;line-height:1.45;text-wrap:pretty}
+.saviez a{font-size:.75rem;color:var(--muted);text-decoration:none;align-self:flex-start}
+.saviez a:hover{text-decoration:underline}
 .btn-ink{border:0;border-radius:999px;padding:7px 14px;background:var(--sun-ink);color:var(--sun);font-weight:800;font-size:.82rem;cursor:pointer;white-space:nowrap}
 /* heures */
 .hours{display:flex;gap:4px;overflow-x:auto;padding:14px 10px;scrollbar-width:none}
@@ -99,7 +118,8 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .hour small{color:var(--muted);font-size:.75rem;font-weight:700}
 .hour svg{width:30px;height:30px}
 .hour b{font-size:.98rem}
-.hour .p{font-size:.7rem;font-weight:800;color:var(--cool);min-height:1.1em}
+.hour .p{font-size:.7rem;font-weight:800;color:var(--cool);min-height:1.1em;white-space:nowrap}
+.hour .p svg{width:.85em;height:.85em;vertical-align:-1px;margin-right:2px}
 /* 7 jours */
 .days{display:flex;flex-direction:column;padding:4px}
 .day{display:grid;grid-template-columns:72px 30px 34px 1fr 34px;align-items:center;gap:10px;padding:10px 10px;border:0;background:none;border-radius:14px;cursor:pointer;text-align:left;font-variant-numeric:tabular-nums}
@@ -164,6 +184,10 @@ footer a{color:var(--brand);font-weight:800}
 .opt.on{background:var(--brand-soft)}
 .opt span{font-weight:700}
 .opt small{color:var(--muted);white-space:nowrap}
+.opt .od{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.opt .ot{display:flex;align-items:center;gap:4px;font-weight:800;font-variant-numeric:tabular-nums}
+.opt .ot svg{width:22px;height:22px}
+.opt mark{background:color-mix(in srgb,var(--sun) 45%,transparent);color:inherit;border-radius:3px;padding:0 1px}
 /* onglets */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-block:6px calc(6px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 nav.tabs div{max-width:480px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -187,6 +211,40 @@ nav.tabs svg{width:24px;height:24px}
 /* logo, localisation, à propos */
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}
 .brand svg{width:34px;height:34px;flex:0 0 auto}
+/* Pluie dans l'heure */
+.pdh{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.pdh-h{display:flex;align-items:center;gap:12px}
+.pdh-ico{flex:0 0 auto;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:color-mix(in srgb,var(--cool) 14%,transparent);color:var(--cool)}
+.pdh-ico svg{width:20px;height:20px}
+.pdh.sec .pdh-ico{background:var(--surface-2);color:var(--muted)}
+.pdh-t{display:flex;flex-direction:column;min-width:0}
+.pdh-t b{font-family:var(--f-display);font-weight:700;font-size:1rem;line-height:1.3}
+.pdh-t .sub{font-size:.8rem}
+.pdh-bars{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;height:34px;align-items:end}
+.pdh-bars i{display:block;border-radius:5px;background:var(--surface-2);height:6px}
+.pdh-bars i.l1{height:14px;background:color-mix(in srgb,var(--cool) 45%,transparent)}
+.pdh-bars i.l2{height:24px;background:color-mix(in srgb,var(--cool) 75%,transparent)}
+.pdh-bars i.l3{height:34px;background:var(--cool)}
+.pdh-axe{display:flex;justify-content:space-between;font-size:.7rem;font-weight:700;color:var(--muted)}
+.pdh.sec .pdh-bars,.pdh.sec .pdh-axe{display:none}
+/* Chargement */
+.skel{display:none;flex-direction:column;gap:16px}
+body.boot .skel{display:flex}
+.sk{border-radius:20px;background:linear-gradient(100deg,var(--surface) 30%,var(--surface-2) 50%,var(--surface) 70%);background-size:300% 100%;border:1px solid var(--line);animation:brille 1.3s ease-in-out infinite}
+body.boot #demoPill{display:none}
+.sk-hero{height:230px;border:0;background:linear-gradient(100deg,#5A48D0 30%,#7464DE 50%,#5A48D0 70%);background-size:300% 100%}.sk-mot{height:150px}.sk-row{height:120px}
+@keyframes brille{from{background-position:100% 0}to{background-position:0 0}}
+/* Apparitions douces */
+.view:not([hidden]){animation:apparait .32s ease-out both}
+@keyframes apparait{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.pdh:not([hidden]){animation:apparait .3s ease-out both}
+/* Tirer pour rafraîchir */
+.ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:35;width:40px;height:40px;margin-left:-20px;border-radius:50%;display:grid;place-items:center;background:var(--surface);color:var(--brand);box-shadow:var(--shadow);border:1px solid var(--line);opacity:0;transform:translateY(-60px);pointer-events:none}
+.ptr svg{width:20px;height:20px}
+.ptr.charge svg{animation:tourne .8s linear infinite}
+@keyframes tourne{to{transform:rotate(360deg)}}
+html{overscroll-behavior-y:contain}
+@media (prefers-reduced-motion:reduce){.view:not([hidden]),.pdh:not([hidden]),.sk,.ptr.charge svg{animation:none!important}}
 .icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--muted);text-decoration:none}
 .icon-btn svg{width:20px;height:20px}
 .place-acts{display:flex;gap:8px;flex:0 0 auto}
@@ -267,21 +325,19 @@ details.plus[open] .tiles{margin-top:10px}
 
 <div class="wrap">
   <div class="top">
-    <a class="brand" href="#meteo" aria-label="Météo en rire, accueil"><span id="mark"></span><span class="logo">Météo <em>en rire</em></span></a>
+    <a class="brand" href="#meteo" aria-label="La météo de Léo, accueil"><span id="mark"></span><span class="logo">La météo <em>de Léo</em></span></a>
     <div class="place-acts">
       <span class="pill" id="demoPill" title="Les chiffres affichés sont des exemples" style="align-self:center">Exemple</span>
+      <button class="icon-btn" type="button" id="openSearch3" aria-label="Rechercher une commune"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
       <a class="icon-btn" href="#apropos" aria-label="À propos et mentions légales"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></a>
     </div>
   </div>
 
+  <div class="ptr" id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg></div>
+  <div class="skel" aria-hidden="true"><div class="sk sk-hero"></div><div class="sk sk-mot"></div><div class="sk sk-row"></div></div>
+
   <!-- ===== MA MÉTÉO ===== -->
   <main class="view" id="v-meteo">
-    <div class="card install" id="install" hidden>
-      <div class="install-h"><span class="mm" id="markInstall"></span><div><b>Ajoute Météo en rire à ton écran d'accueil</b><div class="sub">Une icône sur ton téléphone, comme une vraie app.</div></div></div>
-      <div class="seg" role="group" aria-label="Type de téléphone"><button type="button" id="os-ios" aria-pressed="true">iPhone</button><button type="button" id="os-and" aria-pressed="false">Android</button></div>
-      <ol class="install-steps" id="installSteps"></ol>
-      <button class="close" type="button" id="installClose">C'est fait, ou plus tard</button>
-    </div>
     <article class="card hero" id="hero" aria-live="polite">
       <div class="place">
         <button class="place-btn" type="button" id="openSearch" aria-haspopup="dialog">
@@ -312,6 +368,15 @@ details.plus[open] .tiles{margin-top:10px}
       <div class="facts" id="facts"></div>
     </article>
 
+    <section class="card pdh" id="pdh" aria-live="polite" hidden>
+      <div class="pdh-h">
+        <span class="pdh-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg></span>
+        <div class="pdh-t"><b id="pdhTitre"></b><span class="sub" id="pdhSous"></span></div>
+      </div>
+      <div class="pdh-bars" id="pdhBars" aria-hidden="true"></div>
+      <div class="pdh-axe" id="pdhAxe" aria-hidden="true"><span>Maint.</span><span>+30 min</span><span>+1 h</span><span>+1 h 30</span><span>+2 h</span></div>
+    </section>
+
     <div class="alert" id="alertBox" role="alert" hidden>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3L2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.01"/></svg>
       <div>
@@ -322,7 +387,7 @@ details.plus[open] .tiles{margin-top:10px}
     </div>
 
     <div class="mot" id="motBox">
-      <span class="k">Le mot du jour</span>
+      <span class="k">Le sourire du jour</span>
       <p id="mot"></p>
       <div class="acts">
         <small>Écrit avec le sourire, chiffres sérieux.</small>
@@ -330,6 +395,12 @@ details.plus[open] .tiles{margin-top:10px}
       </div>
     </div>
 
+    <div class="card install" id="install" hidden>
+      <div class="install-h"><span class="mm" id="markInstall"></span><div><b>Ajoute La météo de Léo à ton écran d'accueil</b><div class="sub">Une icône sur ton téléphone, comme une vraie app.</div></div></div>
+      <div class="seg" role="group" aria-label="Type de téléphone"><button type="button" id="os-ios" aria-pressed="true">iPhone</button><button type="button" id="os-and" aria-pressed="false">Android</button></div>
+      <ol class="install-steps" id="installSteps"></ol>
+      <button class="close" type="button" id="installClose">C'est fait, ou plus tard</button>
+    </div>
     <section>
       <div class="sec-h"><h2 id="hoursTitle">Heure par heure</h2><span class="sub" id="hoursDay"></span></div>
       <div class="card hours" id="hours"></div>
@@ -341,9 +412,14 @@ details.plus[open] .tiles{margin-top:10px}
     </section>
 
     <section>
-      <div class="sec-h"><h2>Les conseils du jour</h2></div>
+      <div class="sec-h"><h2 id="tipsTitre">Les conseils du jour</h2></div>
       <div class="card tips" id="tips"></div>
     </section>
+
+    <div class="card saviez" id="saviezBox" hidden>
+      <span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>Le saviez-vous ?</span>
+      <p id="saviez"></p>
+    </div>
 
     <details class="plus" id="plus">
       <summary><span>Plus de détails</span></summary>
@@ -351,7 +427,7 @@ details.plus[open] .tiles{margin-top:10px}
     </details>
 
     <div class="share-card">
-      <span class="sub">Tu aimes Météo en rire ?</span>
+      <span class="sub">Tu aimes La météo de Léo ?</span>
       <button class="btn-brand" type="button" id="shareApp">Partager l'app</button>
     </div>
   </main>
@@ -378,12 +454,14 @@ details.plus[open] .tiles{margin-top:10px}
   <main class="view" id="v-apropos" hidden>
     <a class="back" href="#meteo">← Retour à la météo</a>
     <div>
-      <h2 style="font-size:1.3rem">À propos de Météo en rire</h2>
+      <h2 style="font-size:1.3rem">À propos de La météo de Léo</h2>
       <div class="sub">Des prévisions sérieuses, racontées avec le sourire.</div>
     </div>
     <div class="card prose">
       <h3>Le principe</h3>
-      <p>Météo en rire donne chaque jour la météo des communes des Bouches-du-Rhône et de quelques communes voisines. Les chiffres sont précis ; le commentaire, lui, est là pour vous faire sourire. Mieux vaut en rire, même quand il pleut.</p>
+      <p>La météo de Léo donne chaque jour la météo des communes des Bouches-du-Rhône et de quelques communes voisines. Les chiffres sont précis ; le commentaire, lui, est là pour vous faire sourire, même quand il pleut.</p>
+      <h3 style="margin:14px 0 4px;font-size:1rem">Derrière La météo de Léo</h3>
+      <p>Moi, c'est Léo, un habitant des Bouches-du-Rhône passionné de météo. J'ai créé cette app pour que la météo du 13 donne le sourire chaque matin. Je ne suis pas météorologue : les prévisions viennent des modèles de Météo-France, je les rends simples, locales et agréables à lire. L'app est gratuite, sans pub et sans inscription.</p>
       <h3>D'où viennent les prévisions ?</h3>
       <p>Les prévisions viennent d'Open-Meteo, qui s'appuie sur les modèles de Météo-France (AROME et ARPEGE). Elles sont mises à jour automatiquement toutes les heures. Les vigilances renvoient vers le site officiel de Météo-France.</p>
       <h3>Quand il y a une vigilance</h3>
@@ -392,8 +470,8 @@ details.plus[open] .tiles{margin-top:10px}
     <div class="card prose">
       <h3>Mentions légales</h3>
       <ul>
-        <li>Éditeur : Météoenrire, projet non commercial.</li>
-        <li>Contact : <a href="https://www.instagram.com/meteoenrire/" target="_blank" rel="noopener">@meteoenrire</a></li>
+        <li>Éditeur : La météo de Léo, projet non commercial.</li>
+        <li>Contact : <a href="https://www.instagram.com/lameteodeleo/" target="_blank" rel="noopener">@lameteodeleo</a></li>
         <li>Hébergement : GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis</li>
         <li>Données météo : Open-Meteo, sous licence CC BY 4.0, dont les modèles de Météo-France</li>
       </ul>
@@ -404,7 +482,7 @@ details.plus[open] .tiles{margin-top:10px}
         <li>Votre commune et vos favoris sont enregistrés uniquement sur votre téléphone.</li>
         <li>La localisation n'est utilisée que si vous touchez « Me localiser », pour trouver la commune la plus proche. Elle n'est ni enregistrée ni transmise.</li>
       </ul>
-      <p class="sub">© Météo en rire, tous droits réservés. Les textes, le logo et le design de l'app ne peuvent pas être réutilisés sans autorisation.</p>
+      <p class="sub">© La météo de Léo, tous droits réservés. Les textes, le logo et le design de l'app ne peuvent pas être réutilisés sans autorisation.</p>
     </div>
     <form class="code-acces" id="codeForm" autocomplete="off">
       <label for="codeAcces">Accès éditeur</label>
@@ -463,7 +541,7 @@ details.plus[open] .tiles{margin-top:10px}
   </main>
 
   <footer>
-    <span>Prévisions : <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>, dont les modèles de Météo-France (licence CC BY 4.0). Vigilances : <a href="https://vigilance.meteofrance.fr" target="_blank" rel="noopener">Météo-France</a>.</span>
+    <span>Prévisions : <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>, avec les modèles AROME et ARPEGE de Météo-France (licence CC BY 4.0). Vigilances officielles : <a href="https://vigilance.meteofrance.fr" target="_blank" rel="noopener">vigilance.meteofrance.fr</a>.</span>
     <span id="foot"></span>
     <span><a href="#apropos">À propos et mentions légales</a></span>
   </footer>
@@ -491,9 +569,9 @@ details.plus[open] .tiles{margin-top:10px}
 </nav>
 
 <script>
-const NOM="Météo en rire", PSEUDO="@meteoenrire", CLE="meteoenrire";
+const NOM="La météo de Léo", PSEUDO="@lameteodeleo", CLE="meteoenrire";
 /* Logo : le degré complice (un « ° » qui devient un œil, un clin d'œil et un sourire) */
-const MARK='<svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#5B4FC4"/><g transform="translate(5.8,6.8) scale(.82)"><circle cx="23" cy="22" r="8" fill="none" stroke="#F2B705" stroke-width="5"/><path d="M15 38q17 15 34 0" fill="none" stroke="#F2B705" stroke-width="5" stroke-linecap="round"/><circle cx="43" cy="22" r="3.2" fill="#FFFFFF"/></g></svg>';
+const MARK='<svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#4B3BB8"/><g transform="translate(5.8,6.8) scale(.82)"><g transform="translate(-0.85,3.85)"><circle cx="23" cy="22" r="8" fill="none" stroke="#FFC21A" stroke-width="5"/><line x1="9.50" y1="22.00" x2="4.50" y2="22.00" stroke="#FFC21A" stroke-width="3.6" stroke-linecap="round"/><line x1="13.45" y1="12.45" x2="9.92" y2="8.92" stroke="#FFC21A" stroke-width="3.6" stroke-linecap="round"/><line x1="23.00" y1="8.50" x2="23.00" y2="3.50" stroke="#FFC21A" stroke-width="3.6" stroke-linecap="round"/><line x1="32.55" y1="12.45" x2="36.08" y2="8.92" stroke="#FFC21A" stroke-width="3.6" stroke-linecap="round"/><path d="M16.25 39.5q17 15 34 0" fill="none" stroke="#FFC21A" stroke-width="5" stroke-linecap="round"/><path d="M42.0 24q5.5-6.5 11 0" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/></g></g></svg>';
 document.getElementById("mark").innerHTML=MARK;
 /* Coordonnées (démo) pour « Me localiser » ; la version en ligne aura celles de toutes les communes */
 const COORDS={"Marseille":[43.296,5.370],"Aix-en-Provence":[43.530,5.447],"Arles":[43.677,4.628],"Martigues":[43.405,5.048],"Aubagne":[43.293,5.571],"Istres":[43.515,4.990],"Salon-de-Provence":[43.640,5.097],"Vitrolles":[43.460,5.249],"Marignane":[43.416,5.215],"La Ciotat":[43.175,5.605],"Miramas":[43.582,5.002],"Gardanne":[43.455,5.469],"Cassis":[43.215,5.538],"Tarascon":[43.806,4.660],"Saintes-Maries-de-la-Mer":[43.452,4.429],"Saint-Rémy-de-Provence":[43.789,4.832],"Le Puy-Sainte-Réparade":[43.663,5.435],"Trets":[43.448,5.684],"Châteaurenard":[43.883,4.855],"Pertuis":[43.694,5.502],"Saint-Maximin-la-Sainte-Baume":[43.453,5.862],"Cadenet":[43.735,5.375],"Allauch":[43.336,5.482],"Venelles":[43.598,5.483],"Lambesc":[43.654,5.262],"Eyguières":[43.695,5.031],"Saint-Martin-de-Crau":[43.639,4.813],"Fontvieille":[43.727,4.709],"Avignon":[43.949,4.806],"Lauris":[43.747,5.312],"Pélissanne":[43.632,5.151],"Berre-l'Étang":[43.477,5.168],"Fos-sur-Mer":[43.437,4.945],"Les Pennes-Mirabeau":[43.410,5.310],"Bouc-Bel-Air":[43.452,5.414],"Rognes":[43.663,5.347],"Peyrolles-en-Provence":[43.646,5.584],"Fuveau":[43.453,5.562],"Auriol":[43.371,5.634],"Port-de-Bouc":[43.405,4.987],"Rousset":[43.483,5.620],"Éguilles":[43.569,5.355],"Mallemort":[43.730,5.180],"Sénas":[43.745,5.078],"Orgon":[43.791,5.039],"Noves":[43.877,4.902],"Graveson":[43.851,4.773]};
@@ -549,7 +627,7 @@ function iconParts(t){
 const TYPES=["lune","nuitNuageux","soleil","nuageux","mistral","vent","pluie","gel","brouillard","neige","chaleur","orage"];
 const ICONS={};TYPES.forEach(t=>ICONS[t]='<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">'+iconParts(t).map(([d,k])=>'<path d="'+d+'" stroke="'+PAL[k]+'"/>').join("")+'</g></svg>');
 const LIB={lune:"Nuit claire",nuitNuageux:"Nuit nuageuse",soleil:"Ensoleillé",nuageux:"Éclaircies",mistral:"Mistral",vent:"Vent fort",pluie:"Pluie",gel:"Gelée matinale",brouillard:"Brouillard",neige:"Neige",chaleur:"Très chaud",orage:"Orages"};
-/* Classement des vraies prévisions (codes météo WMO d'Open-Meteo) en types Météo en rire.
+/* Classement des vraies prévisions (codes météo WMO d'Open-Meteo) en types de l'app.
    Le mistral = vent de secteur nord à nord-ouest (290° à 20°) avec rafales d'au moins 40 km/h. Sinon, rafales de 55 km/h et plus = « vent ». */
 function classer(code,raf,dirDeg,tmax,tmin){
   let t=code<=1?"soleil":code<=3?"nuageux":(code===45||code===48)?"brouillard":(code>=71&&code<=77)||code===85||code===86?"neige":code>=95?"orage":(code>=51&&code<=67)||(code>=80&&code<=82)?"pluie":"nuageux";
@@ -570,7 +648,6 @@ const SMALL={wind:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
    Règles du ton : humour bienveillant, références locales, chiffres exacts, jamais de blague en vigilance. */
 const BANQUE={
  soleil:[
-  "Ciel bleu et soleil généreux à {v}. Même les cigales envisagent de faire des heures sup'.",
   "Grand beau temps à {v}, {max}° au compteur. Le seul risque du jour : une terrasse trop confortable.",
   "Pas un nuage sur {v}. Si vous cherchiez une excuse pour rester enfermé, il n'y en a pas aujourd'hui.",
   "{max}° et du soleil à {v}. Les lunettes de soleil sortent, les excuses rentrent.",
@@ -578,7 +655,6 @@ const BANQUE={
   "À {v}, le ciel a mis sa plus belle tenue : bleu uni, sans un pli.",
   "Soleil à {v} : la journée idéale pour dire « je sors cinq minutes » et rentrer trois heures après.",
   "Ciel parfaitement dégagé à {v}. Les nuages ont posé un jour de congé.",
-  "Grand soleil à {v}. Les lézards ont déjà réservé les meilleures pierres.",
   "{max}° sous le soleil de {v}. Le genre de journée où même le lundi a l'air sympathique.",
   "Beau temps à {v}. Pensez à regarder le ciel : il est gratuit, et il est superbe.",
   "Soleil généreux à {v}. Votre pull va passer la journée sur votre bras.",
@@ -587,14 +663,54 @@ const BANQUE={
   "Journée lumineuse à {v}. Les plantes vertes vous remercient d'ouvrir les volets.",
   "Pas de pluie, pas de vent, pas de nuage à {v}. Le ciel a fait le ménage pour vous.",
   "Soleil à {v} : un temps à manger dehors, même si c'est un sandwich sur un banc.",
-  "{v} sous le soleil, {max}° l'après-midi. Le parasol se demande s'il va enfin servir.",
   "Beau fixe à {v}. Le seul nuage du jour sera celui de votre café.",
   "À {v}, le soleil est en avance sur son planning. On le laisse faire.",
   "Ciel sans faute à {v}. Si la météo était un examen, ce serait 20 sur 20.",
   "Grand beau à {v}. Les boulistes sont déjà en train de mesurer.",
   "Soleil sur {v} toute la journée. Même les pessimistes vont avoir du mal.",
   "{max}° et ciel bleu à {v}. Les chats ont trouvé leur rayon de soleil, faites pareil.",
-  "Belle journée à {v}. Le ciel est d'un bleu qui ferait rougir une carte postale."
+  "Belle journée à {v}. Le ciel est d'un bleu qui ferait rougir une carte postale.",
+  "Soleil franc sur {v}. Le genre de ciel qui donne envie de prendre le chemin le plus long.",
+  "Ciel bleu à {v}, {max}° l'après-midi. Si on vous demande comment ça va, vous pouvez dire : très bien.",
+  "À {v}, le soleil s'est levé de bonne humeur. C'est contagieux.",
+  "Beau temps à {v}. Les volets s'ouvrent, les fenêtres respirent, les plantes applaudissent.",
+  "Grand soleil sur {v}. Les ombres sont nettes, les idées aussi.",
+  "Pas l'ombre d'un nuage sur {v}. Enfin, si : la vôtre, sur le trottoir.",
+  "À {v}, le ciel est tellement bleu qu'on dirait un fond d'écran.",
+  "Soleil à {v}. Le banc du parc vous attend, il a gardé votre place.",
+  "Belle lumière sur {v} aujourd'hui. Même les façades ont l'air plus jolies.",
+  "Ciel dégagé à {v}. On ne pourra pas accuser la météo, aujourd'hui.",
+  "Soleil sur {v}. Le marché sera plein, les paniers aussi.",
+  "{max}° et grand beau à {v}. C'est le jour où l'on se dit : on a de la chance d'habiter ici.",
+  "À {v}, le soleil distribue de la vitamine D gratuitement. Servez-vous.",
+  "Ciel limpide à {v}. Les avions laissent de jolis traits blancs, le reste est bleu.",
+  "Beau temps garanti à {v}. Le seul suspense : terrasse ou balade ?",
+  "Soleil radieux à {v}. Votre plante verte réclame une place près de la fenêtre.",
+  "Ciel bleu sur {v}. Même votre voiture a l'air propre.",
+  "À {v}, aucune excuse météo pour reporter le footing. Désolé.",
+  "Le soleil a pris ses quartiers à {v}. Il ne bougera pas de la journée.",
+  "Belle journée à {v}. Les grands-parents vont dire que c'est un temps de saison, ou pas.",
+  "{v} sous le soleil. La journée a de bonnes chances d'être belle, côté ciel en tout cas.",
+  "Soleil à {v}. Les pétanqueurs vont devoir trouver une autre excuse que la météo.",
+  "Ciel sans nuage à {v}. Les lunettes de soleil ont enfin du travail.",
+  "À {v}, le ciel est d'humeur provençale : bleu, lumineux et un peu fier.",
+  "Grand beau à {v}. Si vous travaillez, ouvrez au moins la fenêtre.",
+  "[H]Soleil d'hiver à {v} : il ne chauffe pas fort, mais qu'est-ce qu'il est beau.",
+  "[H]Ciel bleu à {v}, {max}° au mieux. Le soleil fait de son mieux, l'écharpe aussi.",
+  "[H]Beau temps à {v}. Le genre de journée d'hiver qui fait oublier qu'on est en hiver, à l'ombre près.",
+  "[H]À {v}, le soleil se couche tôt, mais il se donne à fond jusque-là.",
+  "[H]Soleil bas et lumière dorée à {v}. Les photographes appellent ça l'heure magique, toute la journée.",
+  "[H]Ciel bleu et air frais à {v}. Le combo parfait pour une balade bien couverte.",
+  "[H]Grand soleil à {v}. En plein hiver, ça a le goût d'un petit cadeau.",
+  "[E]Soleil sur {v}. Les cigales ont repris le travail, elles ne font jamais grève.",
+  "[E]Ciel bleu à {v}. Les glaciers du quartier vont avoir une belle journée.",
+  "[E]Beau temps à {v}. La crème solaire n'est pas en option.",
+  "[E]{max}° sous le soleil de {v}. L'apéro à l'ombre est fortement recommandé, avec ou sans alcool.",
+  "[E]Soleil généreux à {v}. Les serviettes de plage sont prêtes, les épaules aussi : crème !",
+  "[E]Grand soleil à {v}. Le barbecue du soir se prépare déjà dans les têtes.",
+  "[E]À {v}, le soleil brille et les lézards ont réservé les meilleures pierres.",
+  "[E]Ciel bleu à {v}. Le parasol se demande s'il va enfin servir.",
+  "[E]Ciel bleu et soleil généreux à {v}. Même les cigales envisagent de faire des heures sup'."
  ],
  nuageux:[
   "Ciel mi-figue mi-raisin à {v}. Le soleil joue à cache-cache et gagne une partie sur deux.",
@@ -616,7 +732,37 @@ const BANQUE={
   "À {v}, le ciel a mis un voile. Rien de dramatique, juste un peu de pudeur.",
   "Temps mitigé sur {v}. Idéal pour ceux qui n'aiment pas les extrêmes.",
   "Nuages et soleil se partagent {v} aujourd'hui. Un bel exemple de colocation.",
-  "Ciel hésitant à {v}. Comme vous devant le rayon des glaces."
+  "Ciel hésitant à {v}. Comme vous devant le rayon des glaces.",
+  "Ciel gris clair à {v}. Pas de quoi dramatiser, juste de quoi garder une veste.",
+  "À {v}, les nuages ont décidé de rester un peu. Ils ne sont pas méchants.",
+  "Temps couvert sur {v}. Le soleil est derrière, il attend son tour.",
+  "Nuages en nombre à {v}. On appelle ça un ciel de réflexion.",
+  "Ciel voilé sur {v}. La lumière est douce, idéale pour les selfies sans plisser les yeux.",
+  "À {v}, le ciel a choisi le gris perle aujourd'hui. Élégant, à sa façon.",
+  "Éclaircies timides à {v}. Il faut savoir les attraper au vol.",
+  "Ciel couvert à {v}. Pas de pluie prévue pour autant : on garde le moral.",
+  "Quelques nuages se promènent sur {v}. Ils ne font que regarder.",
+  "À {v}, ciel mi-gris, mi-bleu. Tout dépend de quel côté vous regardez.",
+  "Ciel nuageux sur {v}. Le soleil fait du télétravail aujourd'hui.",
+  "Un ciel de traîne à {v}. Les nuages traînent, mais ils finiront par partir.",
+  "Temps gris à {v}. Parfait pour ceux qui trouvent que le soleil, ça éblouit.",
+  "Nuages au-dessus de {v}. Les photographes adorent : ça fait des ciels dramatiques.",
+  "À {v}, le soleil passe de temps en temps, comme un voisin qui dit bonjour.",
+  "Ciel changeant sur {v}. Le parapluie peut rester à la maison, la veste non.",
+  "Temps couvert à {v}, {max}° au mieux. Un temps à se faire un bon thé.",
+  "Le ciel de {v} est un peu bougon aujourd'hui. Ne lui en voulez pas.",
+  "À {v}, les nuages ont pris la journée, mais ils laissent passer quelques rayons.",
+  "Ciel en demi-teinte sur {v}. Une journée sans excès, et c'est bien aussi.",
+  "Nuages sur {v}. On ne voit pas le soleil, mais on sait qu'il est là.",
+  "Ciel gris sur {v}. Au moins, pas besoin de lunettes de soleil pour lire dehors.",
+  "À {v}, le ciel a mis une couverture. Faites comme lui, ce soir.",
+  "Grisaille passagère à {v}. Le mot important, c'est passagère.",
+  "Ciel voilé à {v}. Les couleurs sont plus douces, l'humeur peut l'être aussi.",
+  "[E]Quelques nuages à {v}. Ils font un peu d'ombre, et franchement, en été, c'est un service.",
+  "[E]Ciel nuageux à {v}. Les cigales chantent un peu moins fort, par respect.",
+  "[H]Ciel gris à {v}. Un temps de plaid, de soupe et de série.",
+  "[H]Temps couvert sur {v}. L'hiver fait son travail, sans zèle.",
+  "[H]Nuages sur {v} et {max}° au mieux. Le pull est votre allié de la journée."
  ],
  mistral:[
   "Le mistral est de retour à {v} et il a des choses à dire. Laissez le parapluie à la maison, il ne survivrait pas.",
@@ -643,7 +789,39 @@ const BANQUE={
   "À {v}, le mistral fait danser les platanes. Spectacle gratuit, tenue chaude conseillée.",
   "Mistral en action sur {v}. Les poubelles du quartier préparent leur grande évasion.",
   "Le mistral est à {v}. Ce n'est pas un temps de pique-nique, sauf pour les serviettes en papier aventurières.",
-  "Ciel lavé par le mistral à {v}. Le soleil brille, mais il a mis une doudoune."
+  "Le mistral est arrivé à {v}. Il ne frappe pas à la porte, il la claque.",
+  "Mistral à {v}, rafales à {raf} km/h. Laissez les chapeaux à la maison, sauf s'ils sont vissés.",
+  "À {v}, le mistral fait sa tournée. Les parasols restent fermés, c'est plus prudent.",
+  "Mistral bien établi à {v}. Il a souvent tendance à rester quelques jours.",
+  "Le mistral souffle sur {v}. Les chats restent à l'intérieur, et ce sont les plus malins.",
+  "Rafales de mistral à {v}. Les feuilles des platanes font des courses de vitesse.",
+  "Mistral à {v} : le ciel est propre, l'air est vif, et les cheveux en bataille.",
+  "À {v}, le mistral est d'humeur bavarde. Il siffle dans les volets toute la journée.",
+  "Mistral sur {v}. Si vous avez étendu du linge, il est sec. Ou dans le jardin du voisin.",
+  "Le mistral s'installe à {v}. Fermez bien la boîte aux lettres, le courrier aime voyager.",
+  "{raf} km/h de mistral à {v}. Le vélo dans le bon sens, c'est un vélo électrique gratuit.",
+  "Mistral à {v} : idéal pour sécher, déconseillé pour coiffer.",
+  "À {v}, le mistral a sorti la grosse soufflerie. Les bâches et les pots doivent être attachés.",
+  "Mistral sur {v}. Les fenêtres sifflent, les portes claquent, la maison chante.",
+  "Le mistral passe par {v}. Il n'achète rien, mais il touche à tout.",
+  "Mistral à {v}. Les poussières s'envolent, les allergiques aux pollens aussi un peu.",
+  "À {v}, le mistral rend le ciel si clair qu'on voit les montagnes au loin.",
+  "Mistral à {raf} km/h sur {v}. On ne pique-nique pas, on se met à l'abri du vent.",
+  "Le mistral est là à {v}. Les éoliennes travaillent, vous pouvez vous reposer.",
+  "Mistral sur {v} : ressenti plus frais que le thermomètre. Croyez le vent, pas le chiffre.",
+  "À {v}, le mistral fait du rangement par le vide. Vérifiez ce qui traîne sur le balcon.",
+  "Mistral en rafales à {v}. Garez-vous loin des branches mortes.",
+  "Mistral à {v}. Pour tenir une conversation dehors, il faudra parler plus fort que lui.",
+  "Le mistral a pris possession de {v}. Il rendra les lieux dans un jour ou deux, ou trois.",
+  "Mistral à {v}. Le seul jour où porter des lunettes, c'est surtout contre la poussière.",
+  "[H]Mistral d'hiver à {v} : {max}° sur le papier, beaucoup moins sur les joues.",
+  "[H]Mistral glacial sur {v}. Le bonnet n'est pas une option, c'est une nécessité.",
+  "[H]À {v}, le mistral transforme une petite fraîcheur en vrai froid. Couvrez bien le cou.",
+  "[H]Mistral et ciel bleu à {v}. Le soleil brille, mais il a mis une doudoune.",
+  "[E]Mistral d'été à {v} : il rafraîchit, mais il attise aussi le risque d'incendie. Aucune flamme dehors.",
+  "[E]Mistral à {v}. La mer se rafraîchit d'un coup : la baignade sera vivifiante.",
+  "[E]À {v}, le mistral fait baisser la chaleur. Les ventilateurs prennent un jour de repos.",
+  "[E]Mistral sur {v}. Les serviettes de plage vont jouer aux cerfs-volants."
  ],
  vent:[
   "Vent soutenu à {v}, jusqu'à {raf} km/h. Ce n'est pas le mistral, mais il fait bien son imitation.",
@@ -652,15 +830,29 @@ const BANQUE={
   "Vent fort sur {v}. Le parapluie est déconseillé, sauf pour faire du parachute.",
   "À {v}, le vent vient d'ailleurs aujourd'hui. Il apporte un peu d'humidité et beaucoup d'enthousiasme.",
   "Coup de vent sur {v}. Les feuilles mortes jouent au chat et à la souris.",
-  "Vent marin à {v} : air plus doux, mais ciel souvent plus gris.",
   "Ça souffle sur {v}. Si vous perdez votre chapeau, il est peut-être déjà dans la commune voisine.",
-  "Vent d'est à {v}. Le mistral regarde ça de loin, un peu jaloux.",
   "{raf} km/h de rafales à {v}. Journée idéale pour les cerfs-volants, moins pour les coiffures.",
   "Vent soutenu à {v}. Les arbres font des révérences toute la journée.",
   "À {v}, le vent a des choses à dire et il parle fort. Fermez bien les fenêtres.",
   "Rafales à {v}. Garez-vous loin des branches fragiles, juste au cas où.",
   "Le vent se lève à {v}. Il ne fera pas tomber le moral, seulement quelques chaises de jardin.",
-  "Vent fort à {v}. Les éoliennes sont ravies, vous un peu moins."
+  "Vent fort à {v}. Les éoliennes sont ravies, vous un peu moins.",
+  "Vent soutenu à {v}. Les sacs plastique tentent leur chance, ne les aidez pas.",
+  "À {v}, le vent pousse fort. Les vélos dans le bon sens vont adorer.",
+  "Rafales à {raf} km/h sur {v}. Rentrez ce qui traîne sur la terrasse.",
+  "Vent fort à {v}. Le genre de journée où la porte d'entrée fait sa loi.",
+  "Ça souffle à {v}. Les cheveux longs, c'est le jour de l'élastique.",
+  "Vent sur {v}. Les branches dansent, les antennes aussi.",
+  "À {v}, le vent a pris de l'élan. Tenez bien votre portière.",
+  "Rafales sur {v}. Les poubelles ont des envies de voyage.",
+  "Vent soutenu à {v}. Le linge sèche vite, pensez aux pinces.",
+  "[sud]Vent du sud à {v}. Il apporte de l'air doux et souvent des nuages venus de la mer.",
+  "[sud]Vent marin à {v} : air plus doux, mais ciel souvent plus gris.",
+  "[sud]Vent du sud sur {v}. L'air est plus humide, les cheveux bouclés le savent déjà.",
+  "[est]Vent d'est à {v}. Le mistral regarde ça de loin, un peu jaloux.",
+  "[est]Vent d'est sur {v}. Il arrive souvent avec de l'humidité et des nuages.",
+  "[ouest]Vent d'ouest à {v}. Ce n'est pas le mistral, mais il souffle fort quand même.",
+  "[ouest]Vent d'ouest sur {v}. Il vient de loin et il a de l'énergie à revendre."
  ],
  pluie:[
   "Oui, il pleut à {v}. Non, ce n'est pas une rumeur. Sortez le parapluie acheté en 2019.",
@@ -683,7 +875,35 @@ const BANQUE={
   "Ciel chargé et pluie à {v}. Le parapluie oublié au bureau va vous manquer.",
   "À {v}, la pluie tombe sans se presser. Vous non plus, sur la route.",
   "Gouttes en série à {v}. Bonne nouvelle : la poussière ne tiendra pas.",
-  "Il pleut à {v}. Le canapé lance officiellement sa campagne de recrutement."
+  "Il pleut à {v}. Le canapé lance officiellement sa campagne de recrutement.",
+  "Pluie à {v}. Les parapluies colorés vont égayer les rues.",
+  "Il pleut sur {v}. Les jardins font le plein, vous pouvez faire une pause.",
+  "À {v}, la pluie joue du tambour sur les toits. Ambiance cocooning garantie.",
+  "Pluie à {v} : un temps à rester sous la couette, ou à sortir avec de vraies chaussures.",
+  "Averses sur {v}. Gardez le parapluie près de la porte, il va servir.",
+  "Il pleut à {v}. Les essuie-glaces reprennent du service.",
+  "Pluie sur {v}. Rappel utile : sur route mouillée, on double les distances.",
+  "À {v}, le ciel a ouvert les vannes. Les plantes ne diront pas non.",
+  "Pluie à {v}. Le moment idéal pour le rangement qu'on repousse depuis un mois.",
+  "Il pleut sur {v}. Les flaques sont de retour, les bottes en caoutchouc aussi.",
+  "À {v}, la pluie lave les rues. Elle le fait gratuitement, mais pas en silence.",
+  "Pluie à {v}, {max}° au maximum. Un temps à se faire un bon plat qui mijote.",
+  "Journée pluvieuse à {v}. Les escargots ont organisé une grande sortie.",
+  "Il pleut à {v}. Si vous sortez, prévoyez de quoi vous sécher en arrivant.",
+  "Pluie sur {v}. Les bouchons se rallongent souvent : partez un peu plus tôt.",
+  "À {v}, la pluie s'est installée. Elle n'a pas l'air pressée de partir.",
+  "Pluie au programme à {v}. Le parapluie pliant au fond du sac, c'est le bon réflexe.",
+  "Averses à {v}. Entre deux, le ciel fait des pauses : profitez-en pour sortir.",
+  "Il pleut à {v}. La Provence se rappelle qu'elle a aussi des nuages.",
+  "Pluie sur {v}. Les terrasses sont vides, les salons de thé sont pleins.",
+  "À {v}, ça tombe aujourd'hui. Les sols secs vont enfin boire un peu.",
+  "Il pleut sur {v}. On ne se promène pas, on se dépêche avec style.",
+  "Pluie à {v}. Évitez de vous garer dans les endroits qui se transforment en lac.",
+  "[H]Pluie froide sur {v}. La combinaison gagnante : imperméable et pull dessous.",
+  "[H]Il pleut à {v} et il fait frais. Le chocolat chaud est fortement recommandé.",
+  "[E]Averse d'été à {v}. Ça rafraîchit l'air, et ça sent bon la terre mouillée.",
+  "[E]Pluie à {v}. La nature avait soif, elle dit merci.",
+  "Pluie sur {v}. Si vous voyez un arc-en-ciel entre deux averses, prenez-le en photo."
  ],
  orage:[
   "Orages possibles à {v} cet après-midi. Le ciel va faire du bruit : regardez le spectacle depuis l'intérieur.",
@@ -697,7 +917,17 @@ const BANQUE={
   "Ciel lourd à {v}, orages en fin de journée. Le linge, c'est maintenant ou demain.",
   "Risque orageux à {v}. Le tonnerre gronde, mais il n'a pas forcément raison.",
   "Orages sur {v} : spectaculaire depuis la fenêtre, déconseillé depuis le jardin.",
-  "Le ciel de {v} fait les gros yeux cet après-midi. Restez prudents, la soirée sera plus calme."
+  "Le ciel de {v} fait les gros yeux cet après-midi. Restez prudents, la soirée sera plus calme.",
+  "Risque d'orage à {v}. À la première rafale ou au premier grondement, on rentre.",
+  "Orages possibles sur {v}. Débranchez ce qui craint les surtensions si l'orage se rapproche.",
+  "Temps orageux à {v}. Évitez les arbres isolés et les hauteurs pendant l'orage.",
+  "À {v}, le ciel s'électrise. Une journée à garder un œil sur la fenêtre.",
+  "Orages en vue sur {v}. Les averses peuvent être brèves mais intenses.",
+  "Ciel menaçant sur {v}. On remet la randonnée et la sortie en mer à un autre jour.",
+  "Risque orageux à {v}. Les animaux sentent l'orage avant nous : faites-leur confiance.",
+  "Orages possibles à {v}. Ne traversez jamais une route inondée, même si elle a l'air peu profonde.",
+  "À {v}, le tonnerre pourrait se faire entendre. Comptez les secondes après l'éclair, à l'intérieur.",
+  "Ciel d'orage sur {v}. Le spectacle est beau, à condition de le regarder à l'abri."
  ],
  gel:[
   "Ce matin à {v}, le pare-brise a gelé et le café a la cote. Prévoyez cinq minutes de grattage.",
@@ -717,7 +947,19 @@ const BANQUE={
   "Gelée sur {v}. Pensez aux animaux dehors et aux plantes fragiles.",
   "Il fait frisquet à {v}. Les gants retrouvent enfin leur utilité.",
   "À {v}, le thermomètre est passé sous zéro cette nuit. Le soleil s'occupe du dégel.",
-  "Ciel clair et nuit froide à {v}. Le genre de matin où l'on voit sa respiration."
+  "Ciel clair et nuit froide à {v}. Le genre de matin où l'on voit sa respiration.",
+  "Petit matin gelé à {v}. Les trottoirs à l'ombre restent glissants plus longtemps.",
+  "{min}° au lever du jour à {v}. Démarrez doucement, la route aussi peut être froide.",
+  "Gelée à {v}. Les jardins ont des airs de pâtisserie givrée.",
+  "À {v}, il a gelé cette nuit. Prévoyez de quoi gratter avant de partir.",
+  "Froid piquant ce matin à {v}. Gants, bonnet, et on marche d'un bon pas.",
+  "Gel matinal à {v}. Pensez à l'eau des animaux dehors, elle a peut-être gelé.",
+  "{min}° à {v} ce matin. Le soleil réchauffe vite, mais seulement au soleil.",
+  "Nuit froide sur {v}. Les plantes en pot apprécieront un abri ou un voile.",
+  "À {v}, matinée glaciale puis {max}° l'après-midi. Mettez plusieurs couches, retirez-les au fil du jour.",
+  "Gelée blanche sur {v}. Ça brille joliment, et ça glisse aussi.",
+  "Il gèle à {v} au réveil. Les pare-brise sont blancs, les doigts aussi.",
+  "Matin polaire à {v}, enfin, version provençale. Couvrez-vous quand même."
  ],
  brouillard:[
   "Brouillard au lever du jour à {v}. On ne voit pas loin, mais ça se lève en fin de matinée.",
@@ -731,7 +973,17 @@ const BANQUE={
   "Visibilité réduite à {v}. Les phares, c'est fait pour être allumé.",
   "Brume matinale sur {v}. Elle fait la grasse matinée, puis elle s'en va.",
   "À {v}, le brouillard donne un air romantique à la ville. Les automobilistes trouvent ça moins drôle.",
-  "Ciel en coton ce matin à {v}. Patience, l'après-midi sera plus clair."
+  "Ciel en coton ce matin à {v}. Patience, l'après-midi sera plus clair.",
+  "Brouillard ce matin à {v}. On voit peu, alors on se fait bien voir : feux allumés.",
+  "À {v}, le brouillard a recouvert le paysage. Il se lève souvent avec le soleil.",
+  "Matinée cotonneuse à {v}. Les distances de sécurité, c'est maintenant qu'elles comptent.",
+  "Brume sur {v} au réveil. Le café et un peu de patience, le ciel va s'éclaircir.",
+  "Brouillard à {v}. Les piétons et les cyclistes : vêtements clairs, c'est plus sûr.",
+  "Ciel bas et brouillard à {v}. Le monde s'arrête à cent mètres, pour quelques heures.",
+  "À {v}, le brouillard fait durer la nuit un peu plus longtemps. Prudence sur la route.",
+  "Brouillard matinal sur {v}. Ambiance mystère, mais pas de suspense : il va se lever.",
+  "Brouillard givrant possible à {v} ce matin. Les ponts et les zones à l'ombre peuvent glisser.",
+  "Matin brumeux à {v}. On ralentit, on allume, on arrive."
  ],
  neige:[
   "De la neige à {v} ! Assez rare pour être photographiée, assez glissante pour être prudent.",
@@ -745,7 +997,14 @@ const BANQUE={
   "Flocons en Provence à {v}. Un évènement à vivre au chaud, si possible.",
   "Neige sur {v} : la balade sera belle, si vos chaussures accrochent.",
   "À {v}, la neige fait une visite surprise. Elle ne reste jamais longtemps, profitez-en.",
-  "Ciel blanc et flocons sur {v}. Le chocolat chaud est officiellement recommandé."
+  "Ciel blanc et flocons sur {v}. Le chocolat chaud est officiellement recommandé.",
+  "Neige possible à {v}. Si elle tient, mieux vaut reporter les déplacements non indispensables.",
+  "Flocons sur {v}. Les routes en pente peuvent devenir piégeuses : prudence.",
+  "À {v}, la neige s'invite. Un spectacle rare, à admirer bien chaussé.",
+  "Neige à {v}. Les enfants vont réclamer un bonhomme de neige, préparez les gants.",
+  "Il neige sur {v}. Pensez aux personnes âgées du voisinage, elles peuvent avoir besoin d'un coup de main.",
+  "Neige à {v} : la Provence en blanc, c'est beau, et c'est rare. Restez prudents.",
+  "Flocons à {v}. Vérifiez l'état des routes avant de partir."
  ],
  chaleur:[
   "{max}° à {v} cet après-midi. Les cigales sont en pleine forme, vous un peu moins.",
@@ -762,7 +1021,19 @@ const BANQUE={
   "Chaud devant à {v}. Si vous croisez une ombre libre, ne la laissez pas filer.",
   "Été en pleine forme à {v}. Buvez de l'eau régulièrement, même sans avoir soif.",
   "À {v}, la chaleur s'installe. L'accès aux massifs peut être réglementé : renseignez-vous avant de partir.",
-  "Journée très chaude en vue à {v}. Prenez des nouvelles des personnes fragiles autour de vous."
+  "Journée très chaude en vue à {v}. Prenez des nouvelles des personnes fragiles autour de vous.",
+  "Chaleur à {v}. On sort tôt le matin, on rentre avant midi, on ressort le soir.",
+  "{max}° à {v}. Les rideaux fermés côté soleil font gagner de précieux degrés.",
+  "Il fait très chaud à {v}. Un linge humide sur la nuque, ça marche vraiment.",
+  "À {v}, la chaleur s'installe. Évitez le sport aux heures chaudes.",
+  "Journée chaude à {v}. Ne laissez jamais un enfant ou un animal dans une voiture, même cinq minutes.",
+  "{max}° à {v}. Le bon réflexe : de l'eau régulièrement, même sans soif.",
+  "Chaleur sur {v}. Les fenêtres s'ouvrent la nuit, se ferment le jour.",
+  "À {v}, on cherche l'ombre comme un trésor. Les platanes sont des héros.",
+  "Forte chaleur à {v}. Les lieux climatisés sont vos amis : médiathèque, musée, cinéma.",
+  "Il fait chaud à {v}. Un appel aux voisins âgés, c'est deux minutes et ça compte.",
+  "Chaleur à {v}. Les chiens marchent sur le bitume brûlant : promenade tôt ou tard.",
+  "{max}° à {v}. L'heure de la sieste vient de devenir officielle."
  ]
 };
 
@@ -940,18 +1211,85 @@ const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const fmt=d=>cap(d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}));
 const dayName=i=>i===0?"Auj.":i===1?"Demain":cap(dayDate(i).toLocaleDateString("fr-FR",{weekday:"short"}).replace(".",""));
 
+/* ---------- Surprises : dates du calendrier, journées extrêmes, phrases rares ---------- */
+const CALENDRIER={
+ "01-01":["Bonne année à {v} ! Première météo de l'année : {max}° au plus chaud. On commence doucement, comme tout le monde ce matin.","1er janvier à {v} : le ciel a l'air aussi reposé que vous. Bonne année !"],
+ "02-02":["Chandeleur à {v} : {max}° au maximum. Si la crêpe tient dans la poêle, la journée tiendra aussi.","À la Chandeleur, l'hiver se meurt ou prend vigueur, dit le dicton. À {v}, il hésite encore."],
+ "02-14":["Saint-Valentin à {v} : {max}° au plus chaud. Le cœur, lui, n'a pas besoin de prévisions.","14 février à {v} : prévoyez un manteau pour deux, c'est plus romantique."],
+ "03-20":["Printemps officiel à {v} ! Les amandiers étaient au courant avant nous.","Premier jour du printemps à {v} : les cigales ne sont pas encore réveillées, mais elles s'étirent."],
+ "04-01":["1er avril à {v} : {max}° au plus chaud. Ce n'est pas une blague, promis. Celle-là est ailleurs.","Aujourd'hui, la météo de {v} ne vous fera pas de poisson. Le ciel, on ne sait pas."],
+ "05-01":["1er mai à {v} : jour de muguet et de grasse matinée. Le soleil, lui, travaille quand même.","Fête du travail à {v} : la météo, elle, ne fait jamais le pont."],
+ "06-21":["Fête de la musique à {v} : {max}° pour l'échauffement. Le mistral fait les chœurs s'il est invité.","Plus long jour de l'année à {v} : de quoi profiter des terrasses jusque tard."],
+ "07-14":["14 juillet à {v} : {max}° au plus chaud. Le feu d'artifice, ce soir, c'est le seul éclair autorisé.","Fête nationale à {v} : bal, pétanque et crème solaire. Dans cet ordre ou pas."],
+ "08-15":["15 août à {v} : la France est en vacances, la chaleur aussi, mais elle reste chez nous.","Mi-août à {v} : la meilleure place de la plage se réserve à 7 h du matin."],
+ "09-01":["Rentrée à {v} : les cartables sont prêts, l'été joue les prolongations.","1er septembre à {v} : l'été n'a pas lu le calendrier scolaire."],
+ "10-31":["Halloween à {v} : {min}° ce matin. Le seul vrai frisson de la journée.","31 octobre à {v} : les citrouilles sont de sortie, les doudounes pas encore."],
+ "11-11":["11 novembre à {v} : un jour de mémoire. La météo se fait discrète.","11 novembre à {v} : pensée pour celles et ceux d'hier. Couvrez-vous pour les cérémonies."],
+ "12-21":["Plus court jour de l'année à {v}. Dès demain, on regagne des minutes de soleil.","Solstice d'hiver à {v} : la nuit est longue, mais c'est la dernière à gagner."],
+ "12-24":["Réveillon à {v} : {max}° au plus chaud. Le Père Noël vérifie le mistral avant de partir.","24 décembre à {v} : treize desserts au menu, zéro reste prévu."],
+ "12-25":["Joyeux Noël à {v} ! Si le traîneau tangue, c'est sûrement le mistral.","Noël à {v} : {max}° au plus chaud. Parfait pour une petite marche digestive."],
+ "12-31":["Dernier jour de l'année à {v} : merci d'avoir suivi la météo avec le sourire. À l'année prochaine !","31 décembre à {v} : prévision pour minuit, des bises et des vœux. Fiabilité : excellente."]
+};
+// Journées hors du commun (hors vigilance, gérée à part et sans humour)
+function extreme(m){
+  if(m.raf>=90) return ["Rafales jusqu'à {raf} km/h à {v}. Si votre poubelle a déménagé, cherchez du côté de la commune voisine.","Rafales à {raf} km/h à {v} : journée record pour les cheveux en pétard. Rangez le salon de jardin.","À {v}, les rafales montent à {raf} km/h. Même les platanes s'accrochent."];
+  if(m.max>=37) return ["{max}° à {v}. Même les cigales demandent la clim. Hydratez-vous et restez à l'ombre aux heures chaudes.","À {v}, le thermomètre grimpe à {max}°. Journée idéale pour admirer le soleil… depuis l'intérieur.","{max}° annoncés à {v} : on ne se presse pas, on boit de l'eau, on pense aux voisins âgés."];
+  if(m.min<=-4) return ["{min}° au petit matin à {v}. Les Lillois rigolent, les Provençaux sortent trois pulls.","À {v}, {min}° au réveil : le pare-brise demandera de la patience et un grattoir."];
+  if(m.pl>=30) return ["{pl} mm de pluie attendus à {v}. Les jardins sont ravis, les chaussures beaucoup moins.","Grosse journée de pluie à {v} : {pl} mm. On évite les passages inondables, même pour un raccourci."];
+  return null;
+}
+const RARES=["Petit secret : la météo de {v} a été vérifiée deux fois aujourd'hui. Par nous, et par la cigale du coin.","Bravo, vous êtes tombé sur la phrase rare du mois. Partagez-la, elle ne revient pas souvent.","Info exclusive : à {v}, le ciel prévoit d'être là toute la journée. Fiabilité maximale.","La météo de {v} vous souhaite une belle journée. C'est tout. Parfois, ça suffit."];
+
+const SAVIEZ=[{"t": "Le ciel est bleu parce que les molécules de l'air dispersent beaucoup plus la lumière bleue que la lumière rouge du Soleil.", "s": "https://www.meteo.be/fr/infos/faq/phenomenes-meteorologiques/pourquoi-le-ciel-est-il-bleu", "m": "soleil"}, {"t": "Au coucher du soleil, sa lumière traverse une couche d'air environ 12 fois plus épaisse qu'à midi. Le bleu est dispersé en route : il ne reste que l'orange et le rouge.", "s": "https://www.meteo.be/fr/infos/faq/phenomenes-meteorologiques/pourquoi-le-ciel-se-colore-t-il-en-rouge", "m": "soleil"}, {"t": "Un nuage paraît blanc quand il est fin et gris quand il est épais : ses gouttelettes renvoient toutes les couleurs, mais la lumière le traverse de moins en moins.", "s": "https://www.meteo.be/fr/infos/faq/phenomenes-meteorologiques/pourquoi-les-nuages-sont-ils-gris", "m": "nuageux"}, {"t": "Pour voir un arc-en-ciel, il faut toujours avoir le soleil dans le dos et de la pluie devant soi.", "s": "https://www.meteo.be/fr/infos/faq/phenomenes-meteorologiques/comment-larc-en-ciel-apparait-il", "m": "pluie"}, {"t": "Dans un double arc-en-ciel, les couleurs du second arc sont inversées. La bande sombre entre les deux s'appelle la bande d'Alexandre, du nom d'un philosophe grec.", "s": "https://www.meteo.be/fr/infos/faq/phenomenes-particuliers/j-ai-vu-un-double-arc-en-ciel", "m": "pluie"}, {"t": "On parle de brouillard quand on voit à moins d'un kilomètre, et de brume quand la visibilité est entre 1 et 5 kilomètres.", "s": "https://www.meteo.be/fr/infos/faq/phenomenes-meteorologiques/quelle-est-la-difference-entre-la-brume-et-le-brouillard", "m": "brouillard"}, {"t": "La bonne odeur de terre après une averse a un nom : le pétrichor. Elle vient de substances accumulées dans le sol sec, libérées par les premières gouttes.", "s": "https://www.meteo.be/fr/infos/faq/phenomenes-meteorologiques/dou-vient-lodeur-agreable-lors-dune-averse", "m": "pluie"}, {"t": "Pour savoir à quelle distance est un orage, comptez les secondes entre l'éclair et le tonnerre : environ 3 secondes correspondent à 1 kilomètre.", "s": "https://www.techno-science.net/fr/definitions/tonnerre", "m": "orage"}, {"t": "Un éclair peut chauffer l'air jusqu'à environ 30 000 °C, plusieurs fois plus que la surface du Soleil.", "s": "https://www.meteomedia.com/fr/nouvelles/science/earth-science/5-secrets-electrisants-a-propos-des-eclairs", "m": "orage"}, {"t": "Chez les cigales, seuls les mâles chantent. Leur son vient de deux membranes, les cymbales, qui claquent des centaines de fois par seconde.", "s": "https://luberon.fr/tourisme/sorties-en-luberon/actu+7-choses-a-savoir-sur-les-cigales+755.html", "mois": [6, 7, 8, 9]}, {"t": "Les cigales se taisent quand la température descend sous 22 °C environ. Leur silence le soir n'est donc pas de la paresse.", "s": "https://luberon.fr/tourisme/sorties-en-luberon/actu+7-choses-a-savoir-sur-les-cigales+755.html", "mois": [6, 7, 8, 9]}, {"t": "Une cigale vit de 4 à 6 ans, mais elle en passe presque tout le temps sous terre, sous forme de larve, à se nourrir de la sève des racines.", "s": "https://luberon.fr/tourisme/sorties-en-luberon/actu+7-choses-a-savoir-sur-les-cigales+755.html", "mois": [6, 7, 8, 9]}, {"t": "Le mot « mistral » vient du latin magistralis, « dominant », lui-même tiré de magister, « le maître ». Un nom bien mérité.", "s": "https://www.etymonline.com/word/Mistral", "m": "mistral"}, {"t": "Les flamants roses doivent leur couleur à leur alimentation : de petites crevettes, les artémias, riches en pigments.", "s": "https://www.futura-sciences.com/planete/definitions/zoologie-flamant-rose-12617/"}, {"t": "Le Parc national des Calanques a été créé le 18 avril 2012. C'est le seul parc national d'Europe à la fois terrestre, marin et aux portes d'une grande ville.", "s": "https://www.marseille-tourisme.com/offres/parc-national-des-calanques-marseille-8eme-fr-3382785/"}, {"t": "Le 5 octobre 1688, un édit royal a fixé les règles du savon de Marseille : uniquement des huiles d'olive pures, sans graisse animale.", "s": "https://www.techno-science.net/glossaire-definition/Savon-de-Marseille.html"}, {"t": "Paul Cézanne a représenté la montagne Sainte-Victoire dans plus de 80 œuvres, peintures à l'huile et aquarelles.", "s": "https://en.wikipedia.org/wiki/Mont_Sainte-Victoire_(C%C3%A9zanne)"}, {"t": "Le point culminant de la Sainte-Victoire est le pic des Mouches, à 1 011 mètres. Le massif s'étend sur 12 kilomètres.", "s": "https://provence-alpes-cotedazur.com/decouvrir/espaces-naturels/patrimoine-naturel/montagne-sainte-victoire-pourrieres-fr-3261423/"}, {"t": "Marseille, l'antique Massalia, a été fondée vers 600 avant J.-C. par des Grecs venus de Phocée. D'où son surnom de cité phocéenne.", "s": "https://kartable.fr/ressources/histoire/etude-de-cas/la-fondation-de-marseille/4843"}, {"t": "Selon la légende de la fondation de Marseille, le Grec Protis aurait épousé Gyptis, fille du roi gaulois local, qui offrit un terrain pour bâtir la ville.", "s": "https://kartable.fr/ressources/histoire/etude-de-cas/la-fondation-de-marseille/4843"}, {"t": "L'échelle de Beaufort, qui mesure la force du vent de 0 à 12, a été créée en 1805 par un amiral britannique. Le degré 12, c'est l'ouragan : plus de 118 km/h.", "s": "https://www.futura-sciences.com/planete/definitions/meteorologie-echelle-beaufort-3622/", "m": "vent"}, {"t": "Le santon de Provence en argile est attribué au Marseillais Jean-Louis Lagnel (1764-1822), à la fin du XVIIIe siècle.", "s": "https://www.marseille-tourisme.com/decouvrez-marseille/traditions/les-santons-en-provence/", "mois": [11, 12, 1]}, {"t": "La foire aux santons de Marseille existe depuis le lendemain de la Révolution. Elle se tient chaque année de fin novembre à début janvier.", "s": "https://www.marseille-tourisme.com/decouvrez-marseille/traditions/les-santons-en-provence/", "mois": [11, 12, 1]}, {"t": "La pétanque est née à La Ciotat en 1907. Son nom vient de l'expression « pieds tanqués » : on joue les pieds plantés au sol, sans élan.", "s": "https://provence-alpes-cotedazur.com/decouvrir/art-de-vivre/la-petanque/"}, {"t": "Les flocons en forme d'étoile ont toujours six branches : cela vient de la forme de la molécule d'eau. Le photographe Wilson Bentley, qui en a photographié des milliers, n'en a jamais trouvé deux identiques.", "s": "https://www.espace-sciences.org/archives/comment-se-forment-les-flocons-de-neige", "m": "neige", "mois": [11, 12, 1, 2, 3]}, {"t": "Les gros épisodes de pluie méditerranéens arrivent surtout en automne : la mer encore chaude s'évapore et rencontre les premières masses d'air froid.", "s": "https://www.provence7.com/portails/nature-en-provence/episodes-mediterraneens-en-provence/", "mois": [9, 10, 11]}, {"t": "Le Parc naturel régional de Camargue a été créé en 1970. Près de 300 espèces d'oiseaux fréquentent la Camargue, sur une grande route de migration.", "s": "https://provence-alpes-cotedazur.com/decouvrir/espaces-naturels/les-parcs-naturels-regionaux/camargue/"}];
+/* Le saviez-vous ? : une anecdote vérifiée par jour, la même pour tout le monde, en lien avec le temps quand c'est possible */
+// Typographie française : espaces insécables avant : ; ! ? » et après «, pour éviter les retours à la ligne orphelins
+const insec=t=>t.replace(/« /g,"«\u00a0").replace(/ (»|:|;|!|\?)/g,"\u00a0$1");
+function saviezDuJour(m,jour){
+  const d=dayDate(jour), n=Math.floor(d.getTime()/864e5), mois=d.getMonth()+1;
+  const ok=SAVIEZ.filter(x=>!x.mois||x.mois.includes(mois));
+  const lies=ok.filter(x=>x.m&&x.m===m.type);
+  // Un jour sur deux, une anecdote liée au temps du jour s'il y en a ; sinon on suit l'ordre de la liste, sans répétition avant la fin du cycle
+  if(lies.length&&n%2===0) return lies[(n/2|0)%lies.length];
+  return ok[n%ok.length];
+}
 function motDuJour(c,m,jour){
   const d=dayDate(jour), jourN=Math.floor(d.getTime()/864e5), h=hash(c.n), tirage=hash(c.n+d.toDateString());
-  const remplir=t=>t.replace(/\{v\}/g,c.n).replace(/\{max\}/g,m.max).replace(/\{min\}/g,m.min).replace(/\{raf\}/g,m.raf).replace(/\{pl\}/g,m.pl);
+  const art=(p,n)=>{if(/^[sS]ur$/.test(p))return p+" "+n.replace(/^L(es?) /,"l$1 ");if(/^[dD]e$/.test(p)&&/^[AEIOUYÉÈÊÎHaeiouyéh]/.test(n))return (p==="De"?"D'":"d'")+n;
+    const L=/^Les /.test(n)?"s":/^Le /.test(n)?"":null;if(L===null)return p+" "+n;const r=n.replace(/^Les? /,""),mj=/^[ÀD]/.test(p);
+    return (/^[àÀ]$/.test(p)?(mj?"Au":"au"):(mj?"Du":"du")).replace(/u$/,L?"ux":"u").replace(/^([Dd])ux$/,"$1es")+" "+r};
+  const remplir=t=>t.replace(/(^|[^\p{L}])([àÀ]|[dD]e|[sS]ur) \{v\}/gu,(x,a,p)=>a+art(p,c.n)).replace(/\{v\}/g,c.n).replace(/\{max\}/g,m.max).replace(/\{min\}/g,m.min).replace(/\{raf\}/g,m.raf).replace(/\{pl\}/g,m.pl);
+  const ex=extreme(m); if(ex) return remplir(ex[(jourN+h)%ex.length]);
+  const cle=String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"), ca=CALENDRIER[cle];
+  if(ca&&!["orage","neige"].includes(m.type)) return remplir(ca[(jourN+h)%ca.length]);
+  if(tirage%31===7) return remplir(RARES[(jourN+h)%RARES.length]);
+  // Saison et direction du vent : on ne garde que les phrases vraies aujourd'hui
+  const mois=d.getMonth()+1, ete=mois>=5&&mois<=9, hiver=mois>=11||mois<=3;
+  const dirOK=tag=>{const g=m.deg;if(g==null)return false;return tag==="est"?g>=45&&g<135:tag==="sud"?g>=135&&g<225:tag==="ouest"?g>=225&&g<290:true};
+  const valide=t=>{const tags=(t.match(/^(\[[a-z]+\])+/i)||[""])[0].toLowerCase();
+    if(tags.includes("[e]")&&!ete)return false; if(tags.includes("[h]")&&!hiver)return false;
+    for(const k of ["est","sud","ouest"]) if(tags.includes("["+k+"]")&&!dirOK(k))return false;
+    const x=t.replace(/^(\[[a-z]+\])+/i,"");
+    if(!ete&&/cigale|plage|baignade|bronz|tong|maillot|crème solaire|parasol|glacier|barbecue/i.test(x))return false;
+    if(!hiver&&/doudoune|bonnet|écharpe|chauffage|raclette|grattoir|chocolat chaud/i.test(x))return false;
+    if(/givr/i.test(x)&&m.min>0)return false;
+    return true};
+  const net=t=>t.replace(/^(\[[a-z]+\])+/i,"");
   const sp=SPECIAL[c.s]&&SPECIAL[c.s][m.type];
-  if(sp&&tirage%4===0) return remplir(sp);
+  if(sp&&tirage%4===0&&valide(sp)) return remplir(sp);
   const sa=SAISON[d.getMonth()+1];
-  if(sa&&tirage%7===0&&!["orage","neige","chaleur"].includes(m.type)) return remplir(sa[(jourN+h)%sa.length]);
-  const list=BANQUE[m.type]||BANQUE.nuageux;
-  return remplir(list[(jourN+h)%list.length]);
+  if(sa&&tirage%7===0&&["soleil","nuageux"].includes(m.type)){const ok=sa.filter(valide);if(ok.length) return remplir(net(ok[(jourN+h)%ok.length]))}
+  let list=(BANQUE[m.type]||BANQUE.nuageux).filter(valide);
+  if(!list.length) list=(BANQUE[m.type]||BANQUE.nuageux).filter(t=>!/^\[/.test(t));
+  // Rotation : une phrase ne revient qu'après que toutes les autres du même type sont passées
+  return remplir(net(list[(jourN+h)%list.length]));
 }
 /* ---------- Conseils du jour : concrets, chiffrés, adaptés à la commune et au jour ---------- */
 const CICO={
+ pluie:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>',
+ soir:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
+ feu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-3.5 2.5-5 .5 2 1.5 2.5 2.5 2.5 0-3-1-5.5 0-7.5z"/></svg>',
+ change:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h13M13 7l5 5-5 5"/></svg>',
+ nuit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
  tenue:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 3l3 2 3-2 5 3-2 4-2-1v12H8V9l-2 1-2-4z"/></svg>',
  sortir:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
  linge:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7a2 2 0 1 1 2-2M12 7v2L3 16h18l-9-7"/></svg>',
@@ -964,7 +1302,7 @@ const CICO={
  pollen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="10" r="2.5"/><path d="M12 5.5V3M12 17v4M16.5 10H19M5 10h2.5M15.2 6.8l1.8-1.8M7 15l1.8-1.8M15.2 13.2l1.8 1.8M7 5l1.8 1.8"/></svg>',
  mer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 9c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 14c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 19c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/></svg>'
 };
-const CAT={tenue:"S'habiller",sortir:"Sortir",linge:"Linge",jardin:"Jardin",route:"Sur la route",sante:"Santé",alerte:"Vigilance",soleil:"Soleil",air:"Qualité de l'air",pollen:"Pollens",mer:"La mer"};
+const CAT={soir:"Cette nuit",feu:"Risque d'incendie",pluie:"Dans les 2 heures",change:"À venir",nuit:"En fin de journée",tenue:"S'habiller",sortir:"Sortir",linge:"Linge",jardin:"Jardin",route:"Sur la route",sante:"Santé",alerte:"Vigilance",soleil:"Soleil",air:"Qualité de l'air",pollen:"Pollens",mer:"La mer"};
 function creneaux(c,m){
   let slots=[];
   if(enReel()){
@@ -982,80 +1320,163 @@ function meilleurCreneau(c,m){
   const tri=jour.slice().sort((a,b)=>note(a)-note(b));
   return {best:tri[0],toutMouille:jour.every(mouille),seul:jour.length===1};
 }
-function conseils(m,c){
+function conseils(m,c,profondeur){
   const t=[], add=(cat,txt,warn)=>t.push({cat,txt,warn:!!warn});
-  // Vigilance : uniquement la sécurité
+  const reelOK=enReel(), maintenant=new Date(), hNow=maintenant.getHours();
+  const varie=(...v)=>v[(hash(c.n+dayDate(st.jour).toDateString()+v[0].length)>>>0)%v.length];   // formulations qui tournent d'un jour à l'autre
+  // Le soir, les conseils parlent de demain (la journée est presque finie)
+  if(!profondeur&&st.jour===0&&hNow>=18&&reelOK&&!m.alert){
+    const m2=reel(c,1);
+    if(m2){const sauve=st.jour;st.jour=1;let r;try{r=conseils(m2,c,1)}finally{st.jour=sauve}
+      const soir=[];const ph=prochainesHeures(c);
+      if(ph){const nuit=ph.filter(x=>!x.demain||x.h<7);const pl=nuit.find(x=>x.prob>=60||["pluie","orage"].includes(x.type));
+        if(pl) soir.push({cat:"soir",txt:"Pluie probable cette nuit (vers "+pl.h+" h) : rentrez le linge et les coussins de jardin.",warn:false});}
+      return {liste:soir.concat(r.liste).slice(0,3),titre:"Les conseils pour demain"};
+    }
+  }
+  // Vigilance : uniquement la sécurité et les consignes officielles
   if(m.alert){
-    add("alerte",m.alert.titre+" : suivez les consignes officielles et limitez vos déplacements.",1);
+    add("alerte",m.alert.titre+" : suivez les consignes officielles sur vigilance.meteofrance.fr et limitez vos déplacements.",1);
     if(m.type==="chaleur") add("sante","Buvez souvent, restez au frais entre 12 h et 17 h, et prenez des nouvelles des personnes fragiles.",1);
     if(m.type==="orage"||m.pl>=20) add("route","Ne vous engagez jamais sur une route inondée, même en voiture.",1);
     if(m.raf>=70) add("jardin","Rentrez ou attachez le mobilier de jardin, les pots et les trampolines.",1);
     const mv=merDuJour(c,m);if(mv&&mv.vague>=2) add("mer","Mer forte, vagues jusqu'à "+fr(mv.vague)+" m : restez loin des digues et des rochers.",1);
-    return t.slice(0,3);
+    return {liste:t.slice(0,3),titre:"Les conseils du jour"};
   }
-  // Santé et route d'abord, quand c'est utile
-  if(m.max>=33) add("sante","Grosse chaleur : buvez régulièrement et évitez l'effort entre 12 h et 17 h.",1);
-  if(m.type==="neige") add("route","Neige possible : évitez la route si vous le pouvez, sinon roulez très doucement.",1);
-  else if(m.type==="brouillard") add("route","Brouillard le matin : feux de croisement allumés et distances doublées.");
-  else if(m.min<=1) add("route","Pare-brise givré au réveil : prévoyez 5 minutes de grattage.");
-  else if(m.pl>=10||m.type==="orage") add("route","Chaussée glissante : levez le pied et allumez vos feux.");
+  // Pluie dans les 2 heures (prévision AROME au quart d'heure)
+  const v=st.jour===0&&LIVE[c.n]&&LIVE[c.n].pluie;let finPluie=false;
+  if(v){
+    const n=v.map(x=>x.mm>=0.05), hm=d=>d.getHours()+" h "+String(d.getMinutes()).padStart(2,"0"), deb=n.indexOf(true);
+    if(deb>0) add("pluie","Pluie attendue vers "+hm(v[deb].t)+" : si vous sortez, prenez un parapluie ou partez avant.");
+    else if(deb===0){const fin=n.indexOf(false);if(fin>0){finPluie=true;add("pluie","La pluie devrait s'arrêter vers "+hm(v[fin].t)+" : si vous pouvez attendre, attendez.")}}
+  }
+  // Été, vent et temps sec : le risque d'incendie est la priorité locale
+  {const mo=dayDate(st.jour).getMonth()+1;if(mo>=6&&mo<=9&&m.raf>=40&&m.pl<1) add("feu","Vent et sécheresse : risque d'incendie élevé. Aucun feu ni mégot dehors, et vérifiez l'accès aux massifs avant une balade.",1)}
+  // Santé et route
+  if(m.max>=35) add("sante","Forte chaleur ("+m.max+"°) : buvez régulièrement, évitez l'effort entre 12 h et 17 h et prenez des nouvelles des personnes fragiles.",1);
+  else if(m.max>=32) add("sante","Chaleur ("+m.max+"°) : buvez régulièrement et évitez l'effort aux heures les plus chaudes.",1);
+  if(m.type==="neige") add("route","Neige possible : évitez la route si vous le pouvez, sinon roulez très doucement et gardez vos distances.",1);
+  else if(m.min<=0&&m.pl>=0.5) add("route","Pluie et températures négatives : risque de verglas, surtout sur les ponts et à l'ombre.",1);
+  else if(m.type==="brouillard") add("route",varie("Brouillard le matin : feux de croisement allumés et distances doublées.","Brouillard au réveil : roulez feux allumés et laissez de l'espace devant vous."));
+  else if(m.min<=1&&m.raf<40) add("route",varie("Jusqu'à "+m.min+"° au petit matin : prévoyez 5 minutes pour dégivrer le pare-brise.","Pare-brise probablement givré au réveil ("+m.min+"°) : un peu d'avance ne fera pas de mal."));
+  else if(m.pl>=10||m.type==="orage") add("route","Chaussée mouillée : levez le pied et allumez vos feux.");
   else if(m.raf>=70) add("route","Rafales à "+m.raf+" km/h : prudence à vélo, à moto et avec un véhicule haut.");
+  // Ce qui change : c'est souvent l'information la plus utile
+  if(reelOK){
+    const ref=st.jour===0?reel(c,1):reel(c,st.jour-1), quand=(st.jour===1&&profondeur)?"Par rapport à aujourd'hui,":"Par rapport à la veille,";
+    if(ref){
+      const dT=st.jour===0?ref.max-m.max:m.max-ref.max;
+      if(st.jour===0&&dT<=-5) add("change","Demain, "+(-dT)+"° de moins au plus chaud ("+ref.max+"°) : ressortez une couche de plus.");
+      else if(st.jour===0&&dT>=5) add("change","Demain, "+dT+"° de plus au plus chaud ("+ref.max+"°) : vous pourrez alléger la tenue.");
+      else if(st.jour>0&&Math.abs(dT)>=5) add("change",quand+" "+(dT>0?dT+"° de plus":(-dT)+"° de moins")+" au plus chaud.");
+      if(st.jour===0&&ref.type==="mistral"&&m.type!=="mistral") add("change","Le mistral se lève demain (rafales jusqu'à "+ref.raf+" km/h) : rangez dès ce soir ce qui craint le vent.");
+      else if(st.jour===0&&["pluie","orage"].includes(ref.type)&&!["pluie","orage"].includes(m.type)&&ref.prob>=60) add("change","Pluie attendue demain"+(ref.pl>=1?" ("+fr(ref.pl)+" mm)":"")+" : le linge, c'est plutôt aujourd'hui.");
+    }
+    // Le vent qui forcit dans la journée (prévision heure par heure)
+    if(st.jour===0){const ph=prochainesHeures(c);if(ph){const auj=ph.filter(x=>!x.demain&&x.h<=20);const fort=auj.findIndex(x=>x.raf>=50);
+      if(fort>1&&auj[0].raf<35) add("change","Le vent forcit vers "+auj[fort].h+" h (rafales à "+auj[fort].raf+" km/h) : profitez du calme avant.")}}
+  }
   // Tenue : le matin et l'après-midi, d'après les températures ressenties
-  const habit=f=>f>=26?"t-shirt et short":f>=20?"un t-shirt":f>=14?"un pull léger":f>=8?"un manteau de mi-saison":"un manteau chaud, écharpe et bonnet";
+  const habit=f=>f>=26?"t-shirt et short":f>=20?"un t-shirt":f>=15?"un pull léger":f>=11?"une veste":f>=6?"un manteau":"un manteau chaud, écharpe et bonnet";
   let matin=m.min;
-  if(enReel()){const hr=heuresReelles(c,st.jour);if(hr&&hr[1])matin=hr[1].t;else if(hr&&hr[0])matin=hr[0].t}
+  if(reelOK){const hr=heuresReelles(c,st.jour);if(hr&&hr[1])matin=hr[1].t;else if(hr&&hr[0])matin=hr[0].t}
   else matin=tAt(m,8);
-  const aprem=m.feel;
-  let tenue=(aprem-matin>=7&&habit(matin)!==habit(aprem))?"Le matin ("+matin+"°) : "+habit(matin)+". L'après-midi ("+aprem+"°) : "+habit(aprem)+" suffit.":"Tenue du jour : "+habit(Math.min(aprem,matin+4))+".";
-  if(m.raf>=50) tenue+=" Ajoutez un coupe-vent : ça souffle.";
+  const aprem=m.feel, apresMidiPasse=st.jour===0&&hNow>=15;
+  let tenue=apresMidiPasse?"D'ici ce soir : "+habit(Math.min(aprem,matin+3))+".":
+    (aprem-matin>=7&&habit(matin)!==habit(aprem))?"Le matin ("+matin+"°) : "+habit(matin)+". L'après-midi ("+aprem+"°) : "+habit(aprem)+" suffit.":
+    varie("Tenue du jour : "+habit(Math.min(aprem,matin+4))+".","Pour la journée : "+habit(Math.min(aprem,matin+4))+".");
+  // Le ressenti avec le vent : le mistral fait paraître bien plus froid que le thermomètre
+  if(m.max-m.feel>=4&&m.raf>=40) tenue+=" Avec le vent, on ressent "+m.feel+"° alors que le thermomètre affiche "+m.max+"° : couvrez-vous plus que prévu.";
+  else if(m.raf>=50&&m.feel<24) tenue+=" Ajoutez un coupe-vent : ça souffle.";
   if(m.type==="neige") tenue+=" Gants, et chaussures qui accrochent.";
   else if(m.pl>=1||m.prob>=50) tenue+=m.raf>=50?" Laissez le parapluie, préférez une capuche.":" Prenez un parapluie.";
   add("tenue",tenue);
-  // Meilleur moment pour sortir
-  const mc=meilleurCreneau(c,m);
-  if(mc){
-    if(mc.toutMouille) add("sortir",st.jour===0?"Pluie jusqu'au soir : une sortie à l'abri sera plus agréable.":"Journée humide : prévoyez une activité à l'abri.");
-    else{const b=mc.best;add("sortir",(st.jour===0&&b.h===new Date().getHours()?"C'est maintenant le meilleur moment pour sortir":"Meilleur moment pour sortir : vers "+b.h+" h")+" ("+b.t+"°"+(b.prob<20?", au sec":"")+").")}
-  }else if(st.jour===0) add("sortir","Le soleil est couché : pour prévoir votre sortie de demain, touchez « Demain » dans les 7 jours.");
-  // Soleil : indice UV et heures où se protéger
+  // Soleil : indice UV (échelle de l'OMS) et heures où se protéger
   if(m.uv>=6){
     const cr=(m.uvDe!=null&&m.uvA!=null)?" de "+m.uvDe+" h à "+m.uvA+" h":"";
     add("soleil",m.uv>=11?"Indice UV extrême ("+m.uv+")"+cr+" : restez à l'ombre aux heures chaudes, crème indice 50.":
       m.uv>=8?"Indice UV très élevé ("+m.uv+")"+cr+" : évitez le soleil de 12 h à 16 h, crème toutes les 2 heures.":
-      m.uv>=6?"Indice UV élevé ("+m.uv+")"+cr+" : crème, lunettes et chapeau.":
-      "Indice UV modéré ("+m.uv+")"+cr+" : lunettes de soleil, et crème si vous restez dehors longtemps.",m.uv>=8);
+      "Indice UV élevé ("+m.uv+")"+cr+" : crème, lunettes et chapeau.",m.uv>=8);
   }
-  // Qualité de l'air et pollens (données par secteur)
+  // Qualité de l'air (indice européen) et pollens
   const air=airDuJour(c,m);
   if(air&&air.aqi>=60){const [lbl,cl]=AQI(air.aqi);add("air","Qualité de l'air "+lbl.toLowerCase()+(air.o3>=120?" (ozone)":air.pm>=25?" (particules fines)":"")+" : évitez le sport intense"+(air.o3>=120?" l'après-midi":"")+", surtout si vous êtes sensible.",cl==="mauvais")}
   const pf=air&&pollenFort(air.pol);
-  if(pf&&pf.niv===2) add("pollen","Pollens "+POLNOM[pf.k]+" "+(pf.niv===2?"élevés":"modérés")+" : si vous êtes allergique, lunettes de soleil dehors et aérez plutôt le soir.");
+  if(pf&&pf.niv===2) add("pollen","Pollens "+POLNOM[pf.k]+" élevés : si vous êtes allergique, lunettes de soleil dehors et aérez plutôt le soir.");
   // La mer, pour les communes de la côte
   const mv=merDuJour(c,m);
   if(mv){
     const eau=mv.eau!=null?"eau à "+mv.eau+"°":"";
     let txt=mv.vague>=2?"Mer forte, vagues jusqu'à "+fr(mv.vague)+" m : restez loin des digues et des rochers.":
       mv.vague>=1.2?"Mer agitée, vagues jusqu'à "+fr(mv.vague)+" m"+(eau?", "+eau:"")+" : baignade et sorties en petit bateau déconseillées.":
-      mv.vague>=0.5?"Mer un peu agitée (vagues de "+fr(mv.vague)+" m)"+(eau?", "+eau:"")+".":
-      "Mer calme"+(eau?", "+eau:"")+(mv.eau!=null&&mv.eau>=21&&!["pluie","orage"].includes(m.type)?" : belle journée pour la baignade.":mv.eau!=null&&mv.eau<17?" : fraîche pour se baigner.":".");
+      "Mer calme"+(eau?", "+eau:"")+(mv.eau!=null&&mv.eau>=21&&!["pluie","orage"].includes(m.type)?" : belle journée pour la baignade.":".");
     if(mv.vague>=1.2||(mv.eau!=null&&mv.eau>=21)) add("mer",txt,mv.vague>=2);
   }
-  // Linge
-  if(m.pl>=1||m.prob>=50) add("linge",st.jour===0?"On étend à l'intérieur aujourd'hui.":"On étendra à l'intérieur ce jour-là.");
-  else if(m.raf>=35) add("linge","Sec en un temps record : pensez juste aux pinces.");
-  else if(m.max>=15) add("linge","Bonne journée pour étendre dehors.");
-  else add("linge","Séchage lent dehors : préférez le début d'après-midi.");
-  // Jardin, seulement quand il y a quelque chose à dire
+  // En hiver, la nuit tombe tôt : être vu en rentrant
+  if(st.jour===0){const sn=soleil(dayDate(0)), cou=enMin(sn.coucher);if(cou<=17*60+45&&hNow>=13&&hNow*60<cou) add("nuit","Nuit à "+sn.coucher+" : si vous rentrez à pied ou à vélo, vêtement clair et éclairage.")}
+  // Meilleur moment pour sortir, quand la journée n'est pas uniforme
+  const mc=meilleurCreneau(c,m);
+  if(mc&&!mc.seul){
+    if(mc.toutMouille){if(!finPluie) add("sortir",m.type==="neige"?"Neige ou pluie toute la journée : limitez les sorties et privilégiez les activités à l'abri.":st.jour===0?"Pluie jusqu'au soir : une sortie à l'abri sera plus agréable.":"Journée humide : prévoyez une activité à l'abri.")}
+    else if(m.prob>=30||m.raf>=40||m.max-m.min>=10){const b=mc.best;add("sortir",(st.jour===0&&b.h===hNow?"C'est maintenant le meilleur moment pour sortir":"Meilleur moment pour sortir : vers "+b.h+" h")+" ("+b.t+"°"+(b.prob<20?", au sec":"")+").")}
+  }
+  // Linge et jardin, seulement quand il y a quelque chose d'utile à dire
+  if(m.pl>=1||m.prob>=60) add("linge",st.jour===0?"On étend à l'intérieur aujourd'hui.":"On étendra à l'intérieur ce jour-là.");
+  else if(m.raf>=35&&m.raf<70) add("linge","Linge sec en un temps record : pensez juste aux pinces.");
+  else if(m.max>=18&&m.prob<20) add("linge","Belle journée pour étendre dehors.");
   if(m.min<=2) add("jardin","Risque de gel : protégez les plantes fragiles avec un voile.");
   else if(m.pl>=5) add("jardin","La pluie arrose pour vous : inutile de sortir l'arrosoir.");
   else if(m.max>=28) add("jardin","Arrosez plutôt le soir, après 19 h, pour moins d'évaporation.");
-  else if(m.raf>=60) add("jardin","Rentrez ou attachez les pots et le mobilier de jardin.");
-  // Version essentielle : les alertes d'abord, puis la tenue, puis le plus utile du jour ; 3 conseils au maximum
-  const ordre=["alerte","sante","route","tenue","mer","soleil","air","pollen","sortir","linge","jardin"];
-  return t.map((x,i)=>({x,i})).sort((a,b)=>(b.x.warn-a.x.warn)||(ordre.indexOf(a.x.cat)-ordre.indexOf(b.x.cat))||(a.i-b.i)).map(o=>o.x).slice(0,3);
+  // L'essentiel : la sécurité d'abord, puis ce qui est propre à aujourd'hui ; 3 conseils au maximum
+  const ordre=["alerte","feu","pluie","soir","sante","route","change","tenue","mer","soleil","air","pollen","nuit","sortir","linge","jardin"];
+  const liste=t.map((x,i)=>({x,i})).sort((a,b)=>(b.x.warn-a.x.warn)||(ordre.indexOf(a.x.cat)-ordre.indexOf(b.x.cat))||(a.i-b.i)).map(o=>o.x).slice(0,3);
+  return {liste,titre:st.jour===0?"Les conseils du jour":"Les conseils de ce jour-là"};
 }
 const uvLabel=u=>u<=2?"Faible":u<=5?"Modéré":u<=7?"Élevé":u<=10?"Très élevé":"Extrême";
 const arrow=deg=>deg==null?"":'<svg class="arrow" viewBox="0 0 16 16" aria-hidden="true" style="transform:rotate('+(deg+180)+'deg)"><path d="M8 2l4 10-4-2.5L4 12z" fill="currentColor"/></svg>';
+
+/* ---------- Le « Maintenant » en direct ----------
+   À l'ouverture, l'app demande à Open-Meteo les conditions actuelles de la commune affichée
+   (mises à jour tous les quarts d'heure), sans attendre la mise à jour horaire du site. */
+const LIVE={},LIVEP={};
+async function liveMaintenant(c,force){
+  if(!/^https?:$/.test(location.protocol)||LIVEP[c.n]||!COORDS[c.n]) return;
+  const l=LIVE[c.n];if(!force&&l&&Date.now()-l.recu<10*6e4) return;
+  LIVEP[c.n]=true;
+  try{
+    const [la,lo]=COORDS[c.n], ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),7000);
+    // Modèles Météo-France (AROME) : conditions actuelles + pluie au quart d'heure sur 2 h
+    const r=await fetch("https://api.open-meteo.com/v1/forecast?latitude="+la+"&longitude="+lo+"&models=meteofrance_seamless&current=temperature_2m,apparent_temperature,weather_code,wind_gusts_10m,wind_direction_10m&minutely_15=precipitation&past_minutely_15=1&forecast_minutely_15=9&timezone=Europe%2FParis",{signal:ctl.signal,cache:"no-store"});
+    clearTimeout(to);if(!r.ok) throw 0;
+    const j=await r.json(), k=j.current, enDate=t=>{const [d,h]=t.split("T"),[Y,M,J]=d.split("-").map(Number),[H,Mi]=h.split(":").map(Number);return new Date(Y,M-1,J,H,Mi)};
+    const v={recu:Date.now()};
+    if(k&&k.temperature_2m!=null&&k.weather_code!=null){v.t=enDate(k.time);v.cur=[k.temperature_2m,k.apparent_temperature??k.temperature_2m,k.weather_code,Math.round(k.wind_gusts_10m||0),k.wind_direction_10m??0]}
+    const m=j.minutely_15;
+    if(m&&m.time&&m.precipitation){
+      const now=Date.now(), pts=m.time.map((t,i)=>({t:enDate(t),mm:m.precipitation[i]})).filter(x=>x.mm!=null&&x.t.getTime()>now-15*6e4);
+      if(pts.length>=6) v.pluie=pts.slice(0,8);
+    }
+    if(!v.cur&&!v.pluie) throw 0;
+    if(!v.cur&&l&&l.cur){v.cur=l.cur;v.t=l.t}
+    LIVE[c.n]=v;
+    if(COMMUNES[st.c]&&COMMUNES[st.c].n===c.n) render();
+  }catch(e){}finally{LIVEP[c.n]=false}
+}
+/* Pluie dans l'heure : 8 quarts d'heure, intensité en mm par quart d'heure */
+function renderPluie(c){
+  const box=$("pdh"), v=LIVE[c.n];
+  if(st.jour!==0||!v||!v.pluie){box.hidden=true;return}
+  const niv=mm=>mm<0.05?0:mm<0.25?1:mm<1?2:3, mots=["","faible","modérée","forte"], hm=d=>d.getHours()+" h "+String(d.getMinutes()).padStart(2,"0");
+  const P=v.pluie, n=P.map(x=>niv(x.mm)), premier=n.findIndex(x=>x>0), maxN=Math.max(...n);
+  let titre,sous;
+  if(premier<0){titre="Pas de pluie d'ici 2 heures";sous="Prévision Météo-France au quart d'heure"}
+  else if(premier===0){const fin=n.findIndex(x=>x===0);titre="Pluie "+mots[n[0]]+" en ce moment"+(maxN>n[0]?", "+mots[maxN]+" par moments":"");sous=fin>0?"Fin prévue vers "+hm(P[fin].t):"Elle devrait durer au moins 2 heures"}
+  else{const dans=Math.max(5,Math.round((P[premier].t-Date.now())/6e4/5)*5);titre="Pluie vers "+hm(P[premier].t)+(maxN>=2?", "+mots[maxN]+" par moments":"");sous="Dans "+(dans<60?dans+" min":"environ "+(dans/60).toFixed(0).replace(".",",")+" h")+" · prévision Météo-France"}
+  $("pdhTitre").textContent=titre;$("pdhSous").textContent=sous;
+  $("pdhBars").innerHTML=n.map(x=>'<i class="l'+x+'"></i>').join("");
+  box.classList.toggle("sec",premier<0);box.hidden=false;
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&COMMUNES[st.c]&&enReel())liveMaintenant(COMMUNES[st.c])});
 
 /* ---------- Rendu : Ma météo ---------- */
 function render(){
@@ -1066,11 +1487,14 @@ function render(){
   $("hero").dataset.t=m.type;
   $("heroIco").innerHTML=ICONS[m.type];
   $("cond").textContent=LIB[m.type];
-  const cur=enReel()&&DATA.par[c.n]&&DATA.par[c.n].cur;
+  const vif=LIVE[c.n];let cur=enReel()&&DATA.par[c.n]&&DATA.par[c.n].cur, quand=null;
+  if(enReel()&&vif&&vif.t>DATA.maj){cur=vif.cur;quand=vif.t}
+  if(st.jour===0&&enReel()) liveMaintenant(c);
+  renderPluie(c);
   if(st.jour===0&&cur){
     const now=new Date();let tNow=classer(cur[2],cur[3],cur[4],cur[0],cur[0]);
     if(estNuit(now,now.getHours()*60+now.getMinutes())) tNow=versNuit(tNow);
-    $("tempLbl").textContent="Maintenant · relevé de "+DATA.maj.getHours()+" h";$("temp").textContent=Math.round(cur[0])+"°";
+    $("tempLbl").textContent=quand?"Maintenant · "+quand.getHours()+" h "+String(quand.getMinutes()).padStart(2,"0"):"Maintenant · "+DATA.maj.getHours()+" h";$("temp").textContent=Math.round(cur[0])+"°";
     $("hero").dataset.t=tNow;$("heroIco").innerHTML=ICONS[tNow];$("cond").textContent=LIB[tNow];
     m=Object.assign({},m,{feel:Math.round(cur[1])});
   }
@@ -1078,22 +1502,23 @@ function render(){
   else{$("tempLbl").textContent="Maximale";$("temp").textContent=m.max+"°"}
   $("facts").innerHTML='<span>Min <b>'+m.min+'°</b></span><span>Max <b>'+m.max+'°</b></span><span>Ressenti <b>'+m.feel+'°</b></span>';
   if(m.alert){$("alertBox").hidden=false;$("motBox").hidden=true;$("alertTitle").textContent=m.alert.titre;$("alertList").innerHTML=m.alert.cons.map(x=>"<li>"+x+"</li>").join("")}
-  else{$("alertBox").hidden=true;$("motBox").hidden=false;$("mot").textContent=motDuJour(c,m,st.jour)}
+  else{$("alertBox").hidden=true;$("motBox").hidden=false;$("mot").textContent=insec(motDuJour(c,m,st.jour))}
+  {const sv=saviezDuJour(m,st.jour),bx=$("saviezBox");if(sv&&!m.alert){$("saviez").textContent=insec(sv.t);bx.hidden=false}else bx.hidden=true}
   // heures
   const prochaines=(enReel()&&st.jour===0)?prochainesHeures(c):null;
   $("hoursTitle").textContent=prochaines?"Les prochaines heures":"Heure par heure";
   $("hoursDay").textContent=prochaines?"24 heures à venir":st.jour===0?"Aujourd'hui":fmt(dayDate(st.jour));
   const hr=(enReel()&&!prochaines)?heuresReelles(c,st.jour):null;
-  if(prochaines) $("hours").innerHTML=prochaines.map(x=>'<div class="hour"><small>'+x.lbl+'</small>'+ICONS[x.type]+'<b>'+x.t+'°</b><span class="p">'+(x.prob>=20?x.prob+" %":"")+'</span></div>').join("");
+  if(prochaines) $("hours").innerHTML=prochaines.map(x=>'<div class="hour"><small>'+x.lbl+'</small>'+ICONS[x.type]+'<b>'+x.t+'°</b><span class="p" title="Risque de pluie">'+(x.prob>=20?SMALL.drop+x.prob+" %":"")+'</span></div>').join("");
   else if(hr) $("hours").innerHTML=hr.map((x,i)=>{
     const hh=7+i*2;if(!x)return "";
     if(estNuit(dayDate(st.jour),hh*60)) x=Object.assign({},x,{type:versNuit(x.type)});
-    const p=(x.prob>=20)?x.prob+" %":"";
+    const p=(x.prob>=20)?SMALL.drop+x.prob+" %":"";
     return '<div class="hour"><small>'+hh+' h</small>'+ICONS[x.type]+'<b>'+x.t+'°</b><span class="p">'+p+'</span></div>';
   }).join("");
   else $("hours").innerHTML=heures(m,st.jour,st.scen).map((ic,i)=>{
     const hh=7+i*2, ht=tAt(m,hh);
-    const p=(ic==="pluie"||ic==="orage")?Math.min(98,m.prob+((hash(c.n)>>i)%8))+" %":"";
+    const p=(ic==="pluie"||ic==="orage")?SMALL.drop+Math.min(98,m.prob+((hash(c.n)>>i)%8))+" %":"";
     return '<div class="hour"><small>'+hh+' h</small>'+ICONS[ic]+'<b>'+ht+'°</b><span class="p">'+p+'</span></div>';
   }).join("");
   // 7 jours
@@ -1111,7 +1536,8 @@ function render(){
   const tAir=airDuJour(c,m), tMer=merDuJour(c,m);
   if(tAir){const [lbl]=AQI(tAir.aqi), pf=pollenFort(tAir.pol);$("tiles").insertAdjacentHTML("beforeend",'<div class="card tile"><span class="k">'+CICO.air+"Qualité de l'air</span><span class=\"v\">"+lbl+'</span><span class="d">Indice européen '+tAir.aqi+(pf?" · pollens "+POLNOM[pf.k].replace(/^d'|^de /,"")+" "+(pf.niv===2?"élevés":"modérés"):" · pollens faibles")+'</span></div>')}
   if(tMer){$("tiles").insertAdjacentHTML("beforeend",'<div class="card tile"><span class="k">'+CICO.mer+'La mer</span><span class="v">'+(tMer.eau!=null?tMer.eau+"°":"–")+'</span><span class="d">Vagues jusqu\'à '+fr(tMer.vague)+' m · '+tMer.zone+'</span></div>')}
-  $("tips").innerHTML=conseils(m,c).map(x=>'<div class="tip'+(x.warn?" warn":"")+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+x.txt+'</span></div></div>').join("");
+  const cs=conseils(m,c);$("tipsTitre").textContent=cs.titre;
+  $("tips").innerHTML=cs.liste.map(x=>'<div class="tip'+(x.warn?" warn":"")+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+insec(x.txt)+'</span></div></div>').join("");
   let maj=enReel()?new Date(DATA.maj):new Date();if(!enReel())maj.setMinutes(0,0,0);if(st.stale)maj=new Date(maj.getTime()-5*36e5);
   const age=Math.floor((Date.now()-maj)/36e5), hMaj=maj.getHours()+" h "+String(maj.getMinutes()).padStart(2,"0");
   $("foot").textContent="Mis à jour à "+hMaj+" · "+COMMUNES.length+" communes couvertes";
@@ -1178,7 +1604,7 @@ function renderMap(){
 let LMAP=null,LCOUCHE=null,LFOND=null,leafletPret=null;
 function chargerLeaflet(){
   if(leafletPret) return leafletPret;
-  const permis=!window.claude&&(location.protocol==="https:"||location.hostname==="localhost");
+  const permis=(location.protocol==="https:"||location.hostname==="localhost");
   leafletPret=!permis?Promise.resolve(false):window.L?Promise.resolve(true):new Promise(res=>{
     const css=document.createElement("link");css.rel="stylesheet";css.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(css);
     const js=document.createElement("script");js.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
@@ -1278,21 +1704,27 @@ function openSearch(){lastFocus=document.activeElement;sheet.hidden=false;docume
 function closeSearch(){sheet.hidden=true;document.body.style.overflow="";if(lastFocus)lastFocus.focus()}
 function group(title,items){
   if(!items.length)return "";
-  return '<div class="grp">'+title+'</div>'+items.map((x,j)=>'<button type="button" role="option" class="opt'+(items.length===1?" only":j===items.length-1?" last":"")+'" data-i="'+x.i+'"><span>'+x.c.n+'</span><small>'+SECTEURS[x.c.s].short+'</small></button>').join("");
+  const t=normQ(q.value);
+  return '<div class="grp">'+title+'</div>'+items.map((x,j)=>{let tp="";if(enReel()){const m=reel(x.c,0);if(m)tp='<span class="ot">'+(ICONS[m.type]||"")+m.max+'°</span>'}
+    return '<button type="button" role="option" class="opt'+(items.length===1?" only":j===items.length-1?" last":"")+'" data-i="'+x.i+'"><span>'+surligner(x.c.n,t)+'</span><span class="od"><small>'+SECTEURS[x.c.s].short+'</small>'+tp+'</span></button>'}).join("");
 }
+const RECENTS_CLE="mer-recents";let recents=[];try{recents=JSON.parse(localStorage.getItem(RECENTS_CLE)||"[]")}catch(e){}
+const normQ=t=>norm(t).replace(/(^| )ste( |$)/g,"$1sainte$2").replace(/(^| )st( |$)/g,"$1saint$2").replace(/(^| )stes( |$)/g,"$1saintes$2");
+const surligner=(n,t)=>{if(!t)return n;const k=norm(n),i=k.indexOf(t);if(i<0||k.length!==n.length)return n;return n.slice(0,i)+"<mark>"+n.slice(i,i+t.length)+"</mark>"+n.slice(i+t.length)};
 function list(){
-  const t=norm(q.value);hi=-1;
+  const t=normQ(q.value);hi=-1;
   if(!t){
-    const favs=st.favs.map(n=>({c:COMMUNES[idx(n)],i:idx(n)}));
+    const favs=st.favs.filter(n=>idx(n)>=0).map(n=>({c:COMMUNES[idx(n)],i:idx(n)}));
+    const rec=recents.filter(n=>!st.favs.includes(n)&&idx(n)>=0).slice(0,3).map(n=>({c:COMMUNES[idx(n)],i:idx(n)}));
     const pop=["Marseille","Aix-en-Provence","Arles","Martigues","Aubagne","Salon-de-Provence","La Ciotat","Istres"].filter(n=>!st.favs.includes(n)&&idx(n)>=0).map(n=>({c:COMMUNES[idx(n)],i:idx(n)}));
-    slist.innerHTML=group("Mes favoris",favs)+group("Communes les plus consultées",pop)+'<div class="sub" style="margin:14px 4px">Tape quelques lettres pour trouver l\'une des '+COMMUNES.length+' communes.</div>';
+    slist.innerHTML=group("Mes favoris",favs)+group("Récemment consultées",rec)+group("Communes les plus consultées",pop.filter(x=>!recents.slice(0,3).includes(x.c.n)))+'<div class="sub" style="margin:14px 4px">Tape quelques lettres pour trouver l\'une des '+COMMUNES.length+' communes.</div>';
   }else{
     const hits=COMMUNES.map((c,i)=>({c,i,k:norm(c.n)})).filter(x=>x.k.includes(t)).sort((a,b)=>(a.k.startsWith(t)?0:1)-(b.k.startsWith(t)?0:1)||a.k.localeCompare(b.k)).slice(0,40);
     slist.innerHTML=hits.length?group("Résultats",hits):'<div class="sub" style="margin:14px 4px">Aucune commune ne correspond. Vérifie l\'orthographe : l\'app couvre les Bouches-du-Rhône et quelques communes voisines.</div>';
   }
   opts=[...slist.querySelectorAll(".opt")];
 }
-function choose(i){st.c=+i;st.jour=0;closeSearch();if(location.hash!=="#meteo"&&location.hash!=="")location.hash="#meteo";else render()}
+function choose(i){const nn=COMMUNES[+i]&&COMMUNES[+i].n;if(nn){recents=[nn,...recents.filter(x=>x!==nn)].slice(0,6);try{localStorage.setItem(RECENTS_CLE,JSON.stringify(recents))}catch(e){}}st.c=+i;st.jour=0;closeSearch();if(location.hash!=="#meteo"&&location.hash!=="")location.hash="#meteo";else render()}
 q.addEventListener("input",list);
 q.addEventListener("keydown",e=>{
   if(e.key==="ArrowDown"){e.preventDefault();hi=Math.min(opts.length-1,hi+1)}
@@ -1305,6 +1737,7 @@ slist.addEventListener("click",e=>{const o=e.target.closest(".opt");if(o)choose(
 sheet.addEventListener("keydown",e=>{if(e.key==="Escape")closeSearch()});
 $("openSearch").addEventListener("click",openSearch);
 $("openSearch2").addEventListener("click",openSearch);
+$("openSearch3").addEventListener("click",openSearch);
 $("closeSearch").addEventListener("click",closeSearch);
 function locMsg(t){const e=$("locMsg");e.textContent=t;e.hidden=!t;if(t)setTimeout(()=>{if(e.textContent===t)e.hidden=true},6000)}
 $("locate").addEventListener("click",()=>{
@@ -1328,7 +1761,7 @@ $("share").addEventListener("click",e=>copyText($("mot").textContent+" — "+NOM
 (()=>{const b=document.createElement("button");b.type="button";b.className="chip";b.dataset.k="__reel";b.textContent="Prévisions réelles";b.addEventListener("click",()=>{if(!DATA){flash(b,"Pas encore disponibles");return}st.demo=false;$("demoPill").hidden=true;markScen();buildSlides()});$("scen").appendChild(b)})();
 Object.entries(SCEN).forEach(([k,s])=>{const b=document.createElement("button");b.type="button";b.className="chip";b.dataset.k=k;b.textContent=s.label;b.addEventListener("click",()=>{st.scen=k;st.demo=true;$("demoPill").hidden=false;save();markScen();buildSlides()});$("scen").appendChild(b)});
 const markScen=()=>document.querySelectorAll("#scen .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k==="__reel"?String(enReel()):String(!enReel()&&b.dataset.k===st.scen)));
-const B={ink:"#132639",bg:"#EEF3F8",sun:"#F2B705",sunInk:"#433100",brand:"#5B4FC4",white:"#FFFFFF",muted:"#5B6F83",alert:"#B3261E",cool:"#3A79B3"};
+const B={ink:"#1D1838",bg:"#F3F1FA",sun:"#FFC21A",sunInk:"#433100",brand:"#4B3BB8",white:"#FFFFFF",muted:"#655F86",alert:"#B3261E",cool:"#4A6FD1"};
 const FD='"Bricolage Grotesque", Arial, sans-serif', FB='"Nunito Sans", Arial, sans-serif';
 function wrapText(ctx,text,x,y,maxW,lh,maxLines){
   const words=text.split(" ");let line="",lines=[];
@@ -1340,18 +1773,18 @@ function wrapText(ctx,text,x,y,maxW,lh,maxLines){
 }
 function rr(ctx,x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h)}
 function cIcon(ctx,t,x,y,s,dark,pal){
-  const P=pal||(dark?{sun:"#F5C433",cloud:"#C9D6E3",rain:"#7EB6E9",wind:"#A99FF5",hot:"#FF8C82"}:{sun:"#E0A400",cloud:"#5B6F83",rain:"#3A79B3",wind:"#5B4FC4",hot:"#B3261E"});
+  const P=pal||(dark?{sun:"#F5C433",cloud:"#C9D6E3",rain:"#7EB6E9",wind:"#A99FF5",hot:"#FF8C82"}:{sun:"#E0A400",cloud:"#5B6F83",rain:"#3A79B3",wind:"#4B3BB8",hot:"#B3261E"});
   ctx.save();ctx.translate(x,y);ctx.scale(s/48,s/48);ctx.lineWidth=3.4;ctx.lineCap="round";ctx.lineJoin="round";
   iconParts(t).forEach(([d,k])=>{ctx.strokeStyle=P[k];ctx.stroke(new Path2D(d))});
   ctx.restore();
 }
-function logoCanvas(x,px,py,size,color,accent){x.font="800 "+size+"px "+FD;x.fillStyle=color;x.fillText("Météo ",px,py);const w=x.measureText("Météo ").width;x.fillStyle=accent;x.fillText("en rire",px+w,py)}
+function logoCanvas(x,px,py,size,color,accent){x.font="800 "+size+"px "+FD;x.fillStyle=color;x.fillText("La météo ",px,py);const w=x.measureText("La météo ").width;x.fillStyle=accent;x.fillText("de Léo",px+w,py)}
 function slideCover(){
   const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;const x=cv.getContext("2d");
   const al=SCEN[st.scen].alert;
   x.fillStyle=al?B.alert:B.ink;x.fillRect(0,0,1080,1350);
   drawMark(x,950,118,150,true);
-  logoCanvas(x,70,140,72,B.white,al?B.white:"#A99FF5");
+  logoCanvas(x,70,140,72,B.white,al?B.white:B.sun);
   x.fillStyle=B.white;x.globalAlpha=.85;x.font="700 32px "+FB;x.fillText(fmt(today)+" · Bouches-du-Rhône",70,196);x.globalAlpha=1;
   const pos={arles:[70,280],salon:[395,250],voisins:[720,280],berre:[230,510],aix:[555,500],mc:[395,730]};
   for(const [k,[px,py]] of Object.entries(pos)){
@@ -1366,7 +1799,7 @@ function slideCover(){
   const c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,0);
   const txt=al?(al.titre+". "+al.cons[0]):motDuJour(c,m,0);
   x.fillStyle=al?B.white:B.sun;rr(x,70,990,940,250,36);x.fill();
-  x.fillStyle=al?B.alert:B.sunInk;x.font="800 26px "+FB;x.fillText(al?"VIGILANCE":"LE MOT DU JOUR",110,1046);
+  x.fillStyle=al?B.alert:B.sunInk;x.font="800 26px "+FB;x.fillText(al?"VIGILANCE":"LE SOURIRE DU JOUR",110,1046);
   x.font="600 40px "+FD;wrapText(x,txt,110,1104,860,50,3);
   x.fillStyle=B.white;x.globalAlpha=.75;x.font="700 26px "+FB;x.fillText(PSEUDO+" · Toutes les communes : lien en bio",70,1300);x.globalAlpha=1;
   return cv;
@@ -1392,7 +1825,7 @@ function slideSecteur(k,n){
   const c=COMMUNES[idx(s.v[0])], m=meteo(c,st.scen,0);
   const txt=al?al.cons.slice(0,2).join(" "):(SPECIAL[k]&&SPECIAL[k][m.type])||motDuJour(c,m,0);
   x.fillStyle=al?B.alert:B.sun;rr(x,70,960,940,270,36);x.fill();
-  x.fillStyle=al?B.white:B.sunInk;x.font="800 26px "+FB;x.fillText(al?al.titre.toUpperCase():"LE MOT DU SECTEUR",110,1016);
+  x.fillStyle=al?B.white:B.sunInk;x.font="800 26px "+FB;x.fillText(al?al.titre.toUpperCase():"LE SOURIRE DU SECTEUR",110,1016);
   x.font="600 40px "+FD;wrapText(x,txt,110,1074,860,50,3);
   x.fillStyle=B.muted;x.font="700 25px "+FB;x.fillText("Rafales "+m.raf+" km/h · Pluie "+m.pl+" mm · Toutes les communes : lien en bio",70,1296);
   return cv;
@@ -1402,7 +1835,7 @@ function slideStory(){
   const al=SCEN[st.scen].alert;
   x.fillStyle=al?B.alert:B.ink;x.fillRect(0,0,1080,1920);
   drawMark(x,135,190,130,true);
-  logoCanvas(x,230,210,70,B.white,al?B.white:"#A99FF5");
+  logoCanvas(x,230,210,70,B.white,al?B.white:B.sun);
   x.fillStyle=B.white;x.globalAlpha=.85;x.font="700 34px "+FB;x.fillText(fmt(today),70,330);x.globalAlpha=1;
   x.font="800 64px "+FD;x.fillText(al?al.titre:"La météo du 13",70,420);
   ORDRE.forEach((k,i)=>{
@@ -1416,16 +1849,15 @@ function slideStory(){
   const c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,0);
   const txt=al?al.cons.slice(0,2).join(" "):motDuJour(c,m,0);
   x.fillStyle=al?B.white:B.sun;rr(x,70,1230,940,290,40);x.fill();
-  x.fillStyle=al?B.alert:B.sunInk;x.font="800 28px "+FB;x.fillText(al?"CONSIGNES":"LE MOT DU JOUR",112,1292);
+  x.fillStyle=al?B.alert:B.sunInk;x.font="800 28px "+FB;x.fillText(al?"CONSIGNES":"LE SOURIRE DU JOUR",112,1292);
   x.font="600 44px "+FD;wrapText(x,txt,112,1354,856,54,3);
   x.fillStyle=B.white;x.globalAlpha=.6;x.font="700 28px "+FB;x.textAlign="center";x.fillText(PSEUDO,540,1860);x.textAlign="left";x.globalAlpha=1;
   return cv;
 }
-/* Bouton « Enregistrer » : outil de Claude dans l'aperçu, lien de téléchargement classique sur le site */
+/* Bouton « Enregistrer » : lien de téléchargement */
 function boutonEnregistrer(cv,file,type){
   if(dl){const b=document.createElement("button");b.type="button";b.className="sbtn";b.textContent="Enregistrer";
     b.addEventListener("click",()=>cv.toBlob(async blob=>{try{await dl.save({filename:file,data:blob});flash(b,"Enregistrée")}catch(e){if(e&&e.code==="declined")return;flash(b,"Appui long sur l'image")}},type,.92));return b}
-  if(window.claude) return null;
   const a=document.createElement("a");a.className="sbtn";a.textContent="Enregistrer";a.download=file;a.href="#";a.style.textDecoration="none";a.style.color="inherit";
   cv.toBlob(blob=>{a.href=URL.createObjectURL(blob)},type,.92);return a;
 }
@@ -1441,20 +1873,21 @@ async function buildSlides(){
   try{await Promise.all(['800 60px "Bricolage Grotesque"','600 40px "Bricolage Grotesque"','800 30px "Nunito Sans"','700 30px "Nunito Sans"'].map(f=>document.fonts.load(f)))}catch(e){}
   const day=today.toISOString().slice(0,10);
   const box=$("slides");box.innerHTML="";
-  [slideCover(),...ORDRE.map((k,i)=>slideSecteur(k,i+2))].forEach((cv,i)=>addSlide(box,cv,"Image "+(i+1)+" / 7",CLE+"-"+day+"-"+(i+1)+".jpg"));
-  const sb=$("storyBox");sb.innerHTML="";addSlide(sb,slideStory(),"Story du jour",CLE+"-"+day+"-story.jpg","story");
+  [slideCover(),...ORDRE.map((k,i)=>slideSecteur(k,i+2))].forEach((cv,i)=>addSlide(box,cv,"Image "+(i+1)+" / 7","lameteodeleo-"+day+"-"+(i+1)+".jpg"));
+  const sb=$("storyBox");sb.innerHTML="";addSlide(sb,slideStory(),"Story du jour","lameteodeleo-"+day+"-story.jpg","story");
   const al=SCEN[st.scen].alert, c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,0);
   const lines=ORDRE.map(k=>{const cc=COMMUNES[idx(SECTEURS[k].v[0])],mm=meteo(cc,st.scen,0);return "• "+SECTEURS[k].n+" : "+mm.max+"°, "+LIB[mm.type].toLowerCase()});
-  $("caption").value=(al?("⚠️ "+al.titre+" sur les Bouches-du-Rhône.\n\n"+al.cons.join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr"):(motDuJour(c,m,0)+"\n\n"+lines.join("\n")+"\n\nTa commune n'est pas dans la liste ? La météo des "+COMMUNES.length+" communes : lien en bio.\nEt chez vous, il fait quoi ? 👇"))+"\n\n#meteo #provence #bouchesdurhone #marseille #aixenprovence #mistral #meteoenrire"+(al?"":" #humour");
+  $("caption").value=(al?("⚠️ "+al.titre+" sur les Bouches-du-Rhône.\n\n"+al.cons.join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr"):(motDuJour(c,m,0)+"\n\n"+lines.join("\n")+"\n\nTa commune n'est pas dans la liste ? La météo des "+COMMUNES.length+" communes : lien en bio.\nEt chez vous, il fait quoi ? 👇"))+"\n\n#meteo #provence #bouchesdurhone #marseille #aixenprovence #mistral #lameteodeleo"+(al?"":" #humour");
 }
 /* Logo en image : icône d'app (carrée) et photo de profil Instagram (ronde) */
 function drawMark(x,cx,cy,s,bg){
   if(bg){x.fillStyle=B.brand;rr(x,cx-s/2,cy-s/2,s,s,s*.25);x.fill();s=s*.82;cy+=s*.03}
-  // Le degré complice : un « ° » qui devient un œil, un clin d'œil et un sourire
-  x.save();x.translate(cx-s/2,cy-s/2);x.scale(s/64,s/64);x.lineCap="round";
+  // Le degré complice : un « ° » en soleil, un clin d'œil et un sourire
+  x.save();x.translate(cx-s/2,cy-s/2);x.scale(s/64,s/64);x.translate(-0.85,3.85);x.lineCap="round";
   x.strokeStyle=B.sun;x.lineWidth=5;x.beginPath();x.arc(23,22,8,0,7);x.stroke();
-  x.beginPath();x.moveTo(15,38);x.quadraticCurveTo(32,53,49,38);x.stroke();
-  x.fillStyle=B.white;x.beginPath();x.arc(43,22,3.2,0,7);x.fill();
+  x.beginPath();x.moveTo(16.25,39.5);x.quadraticCurveTo(33.25,54.5,50.25,39.5);x.stroke();
+  x.lineWidth=3.6;[180,135,90,45].forEach(d=>{const r=d*Math.PI/180;x.beginPath();x.moveTo(23+13.5*Math.cos(r),22-13.5*Math.sin(r));x.lineTo(23+18.5*Math.cos(r),22-18.5*Math.sin(r));x.stroke()});
+  x.strokeStyle=B.white;x.lineWidth=4;x.beginPath();x.moveTo(42,24);x.quadraticCurveTo(47.5,17.5,53,24);x.stroke();
   x.restore();
 }
 function assetCanvas(kind){
@@ -1472,25 +1905,25 @@ async function buildAssets(){
     const cv=assetCanvas(k), d=document.createElement("div");d.className="card asset";
     const img=document.createElement("img");img.className=cls;img.alt=label;img.src=cv.toDataURL("image/png");
     const sp=document.createElement("span");sp.textContent=label;d.append(img,sp);
-    const eb=boutonEnregistrer(cv,CLE+"-"+k+".png","image/png");if(eb)d.appendChild(eb);
+    const eb=boutonEnregistrer(cv,"lameteodeleo-"+k+".png","image/png");if(eb)d.appendChild(eb);
     box.appendChild(d);
   });
   assetsBuilt=true;
 }
 /* ---------- Kit de lancement Instagram ---------- */
 const KIT={
- bio:"Des prévisions sérieuses, racontées avec le sourire ☀️\nLa météo des Bouches-du-Rhône chaque matin à 7 h\n👇 L'app gratuite",
+ bio:"La météo du 13, commune par commune ☀️\nDes prévisions sérieuses, le sourire en plus 😉\n👇 L'app gratuite",
  pins:[
-  {titre:"C'est quoi Météo en rire ?",points:["La météo de toutes les communes du 13 et de quelques voisines.","Des prévisions fiables, issues des modèles de Météo-France.","Un mot du jour pour commencer avec le sourire.","Zéro humour en cas de vigilance : la sécurité d'abord.","Gratuit, sans inscription : lien en bio."],
-   legende:"Bienvenue sur Météo en rire ☀️\n\nChaque matin à 7 h, la météo de ta commune, avec des chiffres sérieux et un mot du jour pour sourire. Et quand la météo devient dangereuse, on range les blagues et on donne les consignes.\n\nL'app est gratuite : lien en bio.\n\n#meteo #bouchesdurhone #provence #meteoenrire"},
-  {titre:"Installer l'app en 30 secondes",points:["iPhone : ouvre le lien dans Safari.","Touche Partager, puis « Sur l'écran d'accueil ».","Android : ouvre le lien dans Chrome.","Touche ⋮, puis « Installer ».","Et voilà : Météo en rire est sur ton téléphone."],
-   legende:"Météo en rire sur ton écran d'accueil, comme une vraie app 📲\n\nPas de téléchargement, pas d'inscription : deux gestes et c'est fait. Le lien est dans la bio.\n\nTu bloques ? Écris-nous en commentaire, on t'aide.\n\n#meteo #provence #meteoenrire"},
-  {titre:"Le mistral, expliqué en rire",points:["Il descend du nord et du nord-ouest par la vallée du Rhône.","Il chasse les nuages : ciel bleu garanti, chapeau non garanti.","Ses rafales peuvent dépasser 90 km/h.","Il rend le ressenti bien plus froid que le thermomètre.","Le dicton dit qu'il souffle 3, 6 ou 9 jours. Le dicton ne signe jamais de contrat."],
-   legende:"Le mistral, notre colocataire le plus bruyant 🌬️\n\nTu as une anecdote de mistral ? Un parasol envolé, une porte claquée ? Raconte-nous en commentaire, les meilleures passeront en story.\n\n#mistral #provence #bouchesdurhone #meteoenrire"}
+  {titre:"C'est quoi La météo de Léo ?",points:["La météo de toutes les communes du 13 et de quelques voisines.","Des prévisions fiables, issues des modèles de Météo-France.","Le sourire du jour pour bien commencer la journée.","Zéro humour en cas de vigilance : la sécurité d'abord.","Gratuit, sans inscription : lien en bio."],
+   legende:"Bienvenue sur La météo de Léo ☀️\n\nChaque matin à 7 h, la météo de ta commune, avec des chiffres sérieux et le sourire du jour. Et quand la météo devient dangereuse, on range les blagues et on donne les consignes.\n\nL'app est gratuite : lien en bio.\n\n#meteo #bouchesdurhone #provence #lameteodeleo"},
+  {titre:"Installer l'app en 30 secondes",points:["iPhone : ouvre le lien dans Safari.","Touche Partager, puis « Sur l'écran d'accueil ».","Android : ouvre le lien dans Chrome.","Touche ⋮, puis « Installer ».","Et voilà : La météo de Léo est sur ton téléphone."],
+   legende:"La météo de Léo sur ton écran d'accueil, comme une vraie app 📲\n\nPas de téléchargement, pas d'inscription : deux gestes et c'est fait. Le lien est dans la bio.\n\nTu bloques ? Écris-nous en commentaire, on t'aide.\n\n#meteo #provence #lameteodeleo"},
+  {titre:"Le mistral, expliqué avec le sourire",points:["Il descend du nord et du nord-ouest par la vallée du Rhône.","Il chasse les nuages : ciel bleu garanti, chapeau non garanti.","Ses rafales peuvent dépasser 90 km/h.","Il rend le ressenti bien plus froid que le thermomètre.","Le dicton dit qu'il souffle 3, 6 ou 9 jours. Le dicton ne signe jamais de contrat."],
+   legende:"Le mistral, notre colocataire le plus bruyant 🌬️\n\nTu as une anecdote de mistral ? Un parasol envolé, une porte claquée ? Raconte-nous en commentaire, les meilleures passeront en story.\n\n#mistral #provence #bouchesdurhone #lameteodeleo"}
  ],
- rythme:["Chaque jour à 7 h : le carrousel et la story du jour.","Chaque dimanche à 18 h : un Reel « La semaine en rire ».","En cas de vigilance : une story sobre, dès l'annonce.","Chaque semaine : répondre aux commentaires et partager en story les meilleurs."],
- reels:["« La semaine en rire » : les 7 jours à venir en 15 secondes, avec le mot de chaque jour.","Le mistral en action : une vidéo des platanes qui dansent, une phrase du jour par-dessus.","« Devine la température » : sondage en story le samedi, réponse dans le Reel du dimanche.","Même endroit, deux météos : une vue de Marseille sous le mistral, puis sous la pluie.","Les dictons provençaux de la météo : vrai ou faux ?"],
- hashtags:"#meteo #provence #bouchesdurhone #marseille #aixenprovence #arles #mistral #meteoenrire"
+ rythme:["Chaque jour à 7 h : le carrousel et la story du jour.","Chaque dimanche à 18 h : un Reel « La semaine de Léo ».","En cas de vigilance : une story sobre, dès l'annonce.","Chaque semaine : répondre aux commentaires et partager en story les meilleurs."],
+ reels:["« La semaine de Léo » : les 7 jours à venir en 15 secondes, avec le sourire de chaque jour.","Le mistral en action : une vidéo des platanes qui dansent, une phrase du jour par-dessus.","« Devine la température » : sondage en story le samedi, réponse dans le Reel du dimanche.","Même endroit, deux météos : une vue de Marseille sous le mistral, puis sous la pluie.","Les dictons provençaux de la météo : vrai ou faux ?"],
+ hashtags:"#meteo #provence #bouchesdurhone #marseille #aixenprovence #arles #mistral #lameteodeleo"
 };
 function slidePin(i){
   const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;const x=cv.getContext("2d"), pin=KIT.pins[i];
@@ -1568,21 +2001,45 @@ window.addEventListener("hashchange",()=>{studioOuvert=false;route()});
   f.addEventListener("submit",e=>{e.preventDefault();verifier()});
 })();
 document.querySelectorAll("#v-studio .back").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();studioOuvert=false;if(location.hash==="#meteo"||!location.hash)route();else location.hash="#meteo"}));
+/* Rafraîchir : nouvelles prévisions + conditions en direct */
+let dernierChargement=0;
+async function rafraichir(){
+  try{
+    const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),7000);
+    const r=await fetch("data/meteo.json?t="+Date.now(),{signal:ctl.signal,cache:"no-store"});clearTimeout(to);
+    if(r.ok){chargerDonnees(await r.json());dernierChargement=Date.now()}
+  }catch(e){}
+  const c=COMMUNES[st.c];if(c&&enReel()) await liveMaintenant(c,true);
+  route();
+}
+(function(){
+  const ptr=$("ptr");let y0=null,dy=0,occupe=false;
+  const actif=()=>!occupe&&window.scrollY<=0&&$("sheet").hidden&&!document.body.classList.contains("boot");
+  addEventListener("touchstart",e=>{y0=actif()&&e.touches.length===1?e.touches[0].clientY:null;dy=0},{passive:true});
+  addEventListener("touchmove",e=>{if(y0==null)return;dy=Math.max(0,e.touches[0].clientY-y0);if(window.scrollY>0){y0=null;return}
+    const k=Math.min(1,dy/80);ptr.style.opacity=k;ptr.style.transform="translateY("+(Math.min(dy,90)*.6-30)+"px) rotate("+(k*270)+"deg)"},{passive:true});
+  addEventListener("touchend",async()=>{if(y0==null)return;y0=null;
+    if(dy<80){ptr.style.opacity=0;ptr.style.transform="";return}
+    occupe=true;ptr.classList.add("charge");ptr.style.transform="translateY(24px)";
+    await Promise.all([rafraichir(),new Promise(r=>setTimeout(r,600))]);
+    ptr.classList.remove("charge");ptr.style.opacity=0;ptr.style.transform="";occupe=false});
+  // Retour sur l'app après un moment : on recharge les prévisions
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&dernierChargement&&Date.now()-dernierChargement>20*6e4&&!document.body.classList.contains("boot"))rafraichir()});
+})();
 async function demarrer(){
   try{
     const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),7000);
     const r=await fetch("data/meteo.json?t="+Math.floor(Date.now()/6e5),{signal:ctl.signal,cache:"no-store"});clearTimeout(to);
     if(!r.ok) throw new Error("HTTP "+r.status);
-    chargerDonnees(await r.json());
+    chargerDonnees(await r.json());dernierChargement=Date.now();
   }catch(e){DATA=null}
   document.body.classList.remove("boot");
   route();
 }
 document.body.classList.add("boot");
 demarrer();
-(async()=>{try{if(window.claude&&claude.use){dl=await claude.use("downloads");if(dl&&studioOuvert){assetsBuilt=false;kitBuilt=false;buildAssets();buildKit();buildSlides()}}}catch(e){}})();
 </script>
 
-<script>if("serviceWorker" in navigator&&!window.claude&&location.protocol==="https:")window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+<script>if("serviceWorker" in navigator&&location.protocol==="https:")window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </body>
 </html>
