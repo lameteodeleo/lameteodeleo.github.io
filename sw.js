@@ -1,6 +1,6 @@
 // La météo de Léo : service worker minimal.
 // Il rend l'app installable comme une vraie app et garde la dernière version pour l'afficher hors connexion.
-const CACHE = "lameteodeleo-v1";
+const CACHE = "lameteodeleo-v2";
 const BASE = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -17,8 +17,10 @@ self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
   const cle = url.pathname.endsWith("/data/meteo.json") ? url.origin + url.pathname : e.request;
+  // La page et les prévisions : on redemande toujours la dernière version (sans la copie gardée par le navigateur)
+  const frais = e.request.mode === "navigate" || url.pathname.endsWith("/") || url.pathname.endsWith(".html") || url.pathname.endsWith("/data/meteo.json");
   e.respondWith(
-    fetch(e.request)
+    (frais ? fetch(url.href, { cache: "no-cache", credentials: "same-origin" }) : fetch(e.request))
       .then(r => { if (r.ok) { const copie = r.clone(); caches.open(CACHE).then(c => c.put(cle, copie)); } return r; })
       .catch(() => caches.match(cle, { ignoreSearch: true }))
   );
