@@ -3,7 +3,7 @@ name: Mise à jour météo
 
 on:
   schedule:
-    - cron: "7 * * * *"
+       - cron: "0 */2 * * *"
   push:
     branches: [main]
   workflow_dispatch:
