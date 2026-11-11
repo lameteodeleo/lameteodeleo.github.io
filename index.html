@@ -25,6 +25,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="https://lameteodeleo.github.io/apple-touch-icon.png">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="a3212f59-b8e9-486f-9e0f-d7256926be65" data-domains="lameteodeleo.github.io"></script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "La météo de Léo", "url": "https://lameteodeleo.github.io/", "description": "La météo des Bouches-du-Rhône, commune par commune : prévisions heure par heure et à 7 jours, mistral, pluie dans l'heure.", "applicationCategory": "WeatherApplication", "operatingSystem": "Android, iOS, Web", "inLanguage": "fr", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}, "image": "https://lameteodeleo.github.io/icons/partage.png", "areaServed": {"@type": "AdministrativeArea", "name": "Bouches-du-Rhône"}}</script>
 </head>
@@ -533,6 +534,7 @@ details.plus[open] .tiles{margin-top:10px}
         <li>Aucune inscription, aucun compte, aucune publicité.</li>
         <li>Votre commune et vos favoris restent sur votre appareil.</li>
         <li>La localisation ne sert que si vous touchez « Me localiser », pour trouver la commune la plus proche. Elle n'est ni enregistrée ni transmise.</li>
+        <li>Les visites sont comptées de façon anonyme, sans cookie.</li>
         <li>Comme tout site, l'app passe par des serveurs qui reçoivent l'adresse IP de votre appareil. Je n'y ai pas accès.</li>
       </ul>
       <p class="sub">© La météo de Léo, tous droits réservés. Les textes, le logo et le design de l'app ne peuvent pas être réutilisés sans autorisation.</p>
@@ -2080,7 +2082,7 @@ window.addEventListener("hashchange",()=>{studioOuvert=false;route()});
   const verifier=()=>{
     const v=inp.value.replace(/\D/g,"");inp.value=v;
     if(v.length<4){msg.textContent="";return}
-    if(hash("meteoenrire:"+v)===2627100762){inp.value="";msg.textContent="";inp.blur();studioOuvert=true;route()}
+    if(hash("meteoenrire:"+v)===2627100762){inp.value="";msg.textContent="";inp.blur();studioOuvert=true;try{localStorage.setItem("umami.disabled","1")}catch(e){}route()}
     else{msg.textContent="Code incorrect.";inp.select()}
   };
   inp.addEventListener("input",verifier);
