@@ -600,6 +600,7 @@ details.plus[open] .tiles{margin-top:10px}
         <li>Pour la story : enregistre la story du jour, puis ajoute le sticker « Lien » vers l'app dans la zone libre en bas.</li>
       </ol>
     </section>
+    <p class="alert" id="demoAvert" style="margin:0 0 12px" hidden><span><b>Mode démonstration : ces chiffres sont inventés.</b> Pour publier, choisis « Prévisions réelles » dans « Situation de démonstration », plus bas.</span></p>
     <div class="chips" id="postJour" role="group" aria-label="Jour du post"><button class="chip" type="button" data-j="0">Aujourd'hui</button><button class="chip" type="button" data-j="1">Demain</button></div>
     <div class="slides" id="slides"></div>
     <section>
@@ -1416,7 +1417,7 @@ function conseils(m,c,profondeur){
   else if(m.min<=1&&m.raf<40&&!matinPasse) add("route",varie("Jusqu'à "+m.min+"° au petit matin : prévoyez 5 minutes pour dégivrer le pare-brise.","Pare-brise probablement givré au réveil ("+m.min+"°) : un peu d'avance ne fera pas de mal."));
   else if(m.pl>=30) add("route","Fortes pluies ("+Math.round(m.pl)+" mm) : routes glissantes, et ne traversez jamais un passage inondé.",1);
   else if(m.pl>=10||m.type==="orage") add("route","Chaussée mouillée"+quandPluie+" : levez le pied et allumez vos feux.");
-  else if(m.raf>=70) add("route","Rafales à "+m.raf+" km/h : prudence à vélo, à moto et avec un véhicule haut.");
+  else if(m.raf>=60) add("route","Rafales jusqu'à "+m.raf+" km/h : prudence à vélo, à moto et avec un véhicule haut.");
   // Ce qui change : c'est souvent l'information la plus utile
   if(reelOK){
     const ref=st.jour===0?reel(c,1):reel(c,st.jour-1), quand=(st.jour===1&&profondeur)?"Par rapport à aujourd'hui,":"Par rapport à la veille,";
@@ -1444,13 +1445,16 @@ function conseils(m,c,profondeur){
   if(reelOK){const hr=heuresReelles(c,st.jour);if(hr&&hr[1])matin=hr[1].t;else if(hr&&hr[0])matin=hr[0].t;
     const ap=hr?[hr[3],hr[4],hr[5]].filter(Boolean).map(x=>x.t):[];if(ap.length)tAprem=Math.min(m.max,Math.max(...ap))}
   else matin=tAt(m,8);
-  const vent=Math.max(0,m.max-m.feel), aprem=tAprem-vent, apresMidiPasse=st.jour===0&&hNow>=15;
+  // Effet du vent l'après-midi : estimé d'après les rafales prévues de 13 h à 17 h (environ 2° à 40 km/h, 3° à 55, 4° à 70)
+  let rafAprem=m.raf;
+  if(reelOK){const brut=DATA.par[c.n]&&DATA.par[c.n].h&&DATA.par[c.n].h[st.jour];const g=brut?[brut[3],brut[4],brut[5]].filter(e=>e&&e[3]!=null).map(e=>e[3]):[];if(g.length)rafAprem=Math.max(...g)}
+  const vent=reelOK?(tAprem<=18?(rafAprem>=70?4:rafAprem>=55?3:rafAprem>=40?2:0):0):Math.max(0,m.max-m.feel), aprem=tAprem-vent, apresMidiPasse=st.jour===0&&hNow>=15;
   let soirT=null;if(apresMidiPasse){const ph=prochainesHeures(c);if(ph){const s2=ph.filter(x=>!x.demain&&x.h<=22);if(s2.length)soirT=Math.min(...s2.map(x=>x.t))-(m.raf>=40?3:0)}}
   let tenue=apresMidiPasse?"D'ici ce soir"+(soirT!=null?" ("+soirT+"°)":"")+" : "+habit(soirT!=null?soirT:Math.min(aprem,matin+3))+".":
     (aprem-matin>=7&&habit(matin)!==habit(aprem))?"Le matin ("+matin+"°) : "+habit(matin)+". L'après-midi ("+aprem+"°) : "+habit(aprem)+(/ et /.test(habit(aprem))?" suffisent.":" suffit."):
     (st.jour===1?"Tenue de demain ("+matin+"° le matin, "+tAprem+"° l'après-midi) : "+habit(Math.min(aprem,matin+4))+".":varie("Tenue du jour : "+habit(Math.min(aprem,matin+4))+".","Pour la journée : "+habit(Math.min(aprem,matin+4))+"."));
   // Le ressenti avec le vent : le mistral fait paraître bien plus froid que le thermomètre
-  if(vent>=4&&m.raf>=40) tenue+=" Avec le vent, on ressent "+aprem+"° alors que le thermomètre affiche "+tAprem+"° : couvrez-vous plus que prévu.";
+  if(vent>=3&&m.raf>=40) tenue+=" Avec le vent, on ressent environ "+aprem+"° pour "+tAprem+"° au thermomètre : couvrez-vous plus que prévu.";
   else if(m.raf>=50&&m.feel<24) tenue+=" Ajoutez un coupe-vent : ça souffle.";
   if(m.type==="neige") tenue+=" Gants, et chaussures qui accrochent.";
   else if(pluieJour&&!finPluie) tenue+=m.raf>=50?" Laissez le parapluie, préférez une capuche.":perPluie==="matin"?" Parapluie utile le matin.":perPluie==="aprem"?" Parapluie utile l'après-midi.":perPluie==="jour"?" Parapluie utile toute la journée.":" Prenez un parapluie.";
@@ -2026,7 +2030,7 @@ function slideCover(j){
   const sous=al?"Suivez les consignes officielles.":(R.sec?"Et "+AUSSI[R.sec]+" par endroits.":"Sur tout le département.");
   x.fillText(sous,70,790+nb*108-28);x.globalAlpha=1;
   // Trois chiffres : le plus chaud, le vent, la pluie
-  const cases=[["AU PLUS CHAUD",R.chaud.m.max+"°"],["RAFALES JUSQU'À",R.vent.m.raf+" km/h"],["PLUIE",R.pluie.m.pl>=0.3?"jusqu'à "+mm(R.pluie.m.pl):"aucune"]];
+  const cases=[["TEMPÉRATURE MAX",R.chaud.m.max+"°"],["RAFALES MAX",R.vent.m.raf+" km/h"],["PLUIE",R.pluie.m.pl>=0.3?"jusqu'à "+mm(R.pluie.m.pl):"aucune"]];
   cases.forEach(([lab,val],i)=>{const px=70+i*320;
     x.fillStyle="rgba(255,255,255,.1)";rr(x,px,1030,300,170,28);x.fill();
     x.fillStyle=B.white;x.globalAlpha=.75;x.font="800 22px "+FB;x.fillText(lab,px+24,1080);x.globalAlpha=1;
@@ -2194,7 +2198,14 @@ function boutonEnregistrer(cv,file,type){
   const a=document.createElement("a");a.className="sbtn";a.textContent="Enregistrer";a.download=file;a.href="#";a.style.textDecoration="none";a.style.color="inherit";
   cv.toBlob(blob=>{a.href=URL.createObjectURL(blob)},type,.92);return a;
 }
+/* En démonstration, les chiffres sont inventés : chaque image est barrée pour ne jamais être publiée par erreur */
+function marquerDemo(cv){
+  if(enReel())return;const x=cv.getContext("2d"),W=cv.width,H=cv.height;
+  x.save();x.translate(W/2,H/2);x.rotate(-Math.PI/7);x.fillStyle="rgba(179,38,30,.9)";x.fillRect(-W,-70,W*2,140);
+  x.fillStyle="#fff";x.font="800 58px "+FD;x.textAlign="center";x.fillText("DÉMONSTRATION · NE PAS PUBLIER",0,20);x.restore();
+}
 function addSlide(box,cv,label,file,cls){
+  marquerDemo(cv);
   const d=document.createElement("div");d.className="slide"+(cls?" "+cls:"");
   const img=document.createElement("img");img.alt=label;img.src=cv.toDataURL("image/jpeg",.92);
   const meta=document.createElement("div");meta.className="meta";const sp=document.createElement("span");sp.textContent=label;meta.appendChild(sp);
@@ -2213,6 +2224,7 @@ async function buildSlides(){
   const J=postJour, dj=dayDate(J), day=dj.getFullYear()+"-"+String(dj.getMonth()+1).padStart(2,"0")+"-"+String(dj.getDate()).padStart(2,"0");
   document.querySelectorAll("#postJour .chip").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.j===J)));
   const box=$("slides");box.innerHTML="";
+  {const av=$("demoAvert");if(av)av.hidden=enReel()}
   [slideCover(J),slideCarte(J),slideSecteurs(J),slideJournee(J),slideConseils(J),slideSuite(J),slideFin(J)].forEach((cv,i)=>addSlide(box,cv,"Image "+(i+1)+" / 7","lameteodeleo-"+day+"-"+(i+1)+".jpg"));
   const sb=$("storyBox");sb.innerHTML="";addSlide(sb,slideStory(),"Story du jour","lameteodeleo-"+day+"-story.jpg","story");
   const R=bilanDep(J), al=R.al, c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,J);

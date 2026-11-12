@@ -96,6 +96,24 @@ const JOURS_MF = 3;
 const HEURES = [7, 9, 11, 13, 15, 17, 19, 21];
 const r1 = v => v == null ? null : Math.round(v * 10) / 10;
 
+// Maximale et minimale d'une journée, à la manière de Météo-France : la maximale se cherche de 7 h à 6 h le lendemain,
+// la minimale de 19 h la veille à 19 h. Une douceur à minuit, juste avant un coup de mistral, n'est donc plus comptée
+// comme « maximale » d'une journée froide. Renvoie null s'il manque trop d'heures.
+function extremes(h, date) {
+  if (!h || !h.time || !h.temperature_2m) return null;
+  const jour = new Date(date + "T00:00:00Z"), cle = (d, hh) => new Date(jour.getTime() + d * 864e5).toISOString().slice(0, 10) + "T" + String(hh).padStart(2, "0") + ":00";
+  const pos = {}; h.time.forEach((t, k) => { pos[t] = k; });
+  const lire = t => { const k = pos[t]; return k == null || h.temperature_2m[k] == null || Number.isNaN(h.temperature_2m[k]) ? null : h.temperature_2m[k]; };
+  const hautes = [], basses = [];
+  for (let hh = 7; hh <= 23; hh++) hautes.push(lire(cle(0, hh)));
+  for (let hh = 0; hh <= 6; hh++) hautes.push(lire(cle(1, hh)));
+  for (let hh = 19; hh <= 23; hh++) basses.push(lire(cle(-1, hh)));
+  for (let hh = 0; hh <= 19; hh++) basses.push(lire(cle(0, hh)));
+  const H = hautes.filter(v => v != null), B = basses.filter(v => v != null);
+  if (H.length < 12 || B.length < 12) return null;
+  return { max: Math.max(...H), min: Math.min(...B) };
+}
+
 // Remplace par les valeurs Météo-France quand elles existent (une valeur absente garde celle du modèle global)
 const vu = v => v != null && !Number.isNaN(v);
 function appliquerMF(x, p) {
@@ -109,9 +127,10 @@ function appliquerMF(x, p) {
       if (k >= JOURS_MF) return;
       const J = x.d.find(j => j[0] === date); if (!J) return;
       if (!vu(d.temperature_2m_max[k]) || !vu(d.temperature_2m_min[k])) return;
+      const ex = extremes(h, date) || { max: d.temperature_2m_max[k], min: d.temperature_2m_min[k] };
       // Garde-fou : un écart énorme avec le modèle global signale une donnée incomplète
-      if (Math.abs(d.temperature_2m_max[k] - J[2]) > 8 || Math.abs(d.temperature_2m_min[k] - J[3]) > 8) return;
-      J[2] = r1(d.temperature_2m_max[k]); J[3] = r1(d.temperature_2m_min[k]);
+      if (Math.abs(ex.max - J[2]) > 8 || Math.abs(ex.min - J[3]) > 8) return;
+      J[2] = r1(ex.max); J[3] = r1(ex.min);
       if (vu(d.weather_code[k])) J[1] = d.weather_code[k];
       if (vu(d.wind_gusts_10m_max[k])) J[4] = Math.round(d.wind_gusts_10m_max[k]);
       if (vu(d.precipitation_sum[k])) J[6] = r1(d.precipitation_sum[k]);
@@ -165,9 +184,9 @@ async function traiterLot(lot) {
     rep.forEach((p, j) => {
       const x = lot[j], d = p.daily, h = p.hourly, c = p.current;
       x.cur = [r1(c.temperature_2m), r1(c.apparent_temperature), c.weather_code, Math.round(c.wind_gusts_10m), c.wind_direction_10m];
-      x.d = d.time.map((date, k) => [date, d.weather_code[k], r1(d.temperature_2m_max[k]), r1(d.temperature_2m_min[k]),
+      x.d = d.time.map((date, k) => { const ex = extremes(h, date); return [date, d.weather_code[k], r1(ex ? ex.max : d.temperature_2m_max[k]), r1(ex ? ex.min : d.temperature_2m_min[k]),
         Math.round(d.wind_gusts_10m_max[k] ?? 0), d.wind_direction_10m_dominant[k], r1(d.precipitation_sum[k] ?? 0),
-        d.precipitation_probability_max[k], r1(d.uv_index_max[k]), r1(d.apparent_temperature_max[k])]);
+        d.precipitation_probability_max[k], r1(d.uv_index_max[k]), r1(d.apparent_temperature_max[k])]; });
       const pos = {}; h.time.forEach((t, k) => { pos[t] = k; });
       // Pour chaque jour : première et dernière heure où l'indice UV atteint 3 (protection conseillée)
       x.d.forEach((jour, k) => {
@@ -261,12 +280,13 @@ function controler(liste, aujourdhui) {
         if (!nombre(pl) || pl < 0 || pl > 500) pb.push(date + " : pluie " + pl);
         if (prob != null && (prob < 0 || prob > 100)) pb.push(date + " : probabilité " + prob);
         if (uv != null && (uv < 0 || uv > 16)) pb.push(date + " : UV " + uv);
-        // Cohérence : la maximale du jour ne peut pas être sous une température de la journée, ni la minimale au-dessus
-        const heures = [];
-        if (x.h && x.h[k]) for (const e of x.h[k]) if (e && nombre(e[0])) heures.push(e[0]);
-        if (x.n24) for (const e of x.n24) if (e[0].slice(0, 10) === date && nombre(e[1])) heures.push(e[1]);
-        if (heures.length) {
-          const hMax = Math.max(...heures), hMin = Math.min(...heures);
+        // Cohérence : la maximale ne peut pas être sous une température prévue entre 7 h et minuit,
+        // ni la minimale au-dessus d'une température prévue entre minuit et 19 h (mêmes règles que le calcul)
+        const hautes = [], basses = [];
+        if (x.h && x.h[k]) x.h[k].forEach((e, i) => { if (e && nombre(e[0])) { hautes.push(e[0]); if (i <= 6) basses.push(e[0]); } });
+        if (x.n24) for (const e of x.n24) if (e[0].slice(0, 10) === date && nombre(e[1])) { const hh = +e[0].slice(11, 13); if (hh >= 7) hautes.push(e[1]); if (hh <= 19) basses.push(e[1]); }
+        if (hautes.length && basses.length) {
+          const hMax = Math.max(...hautes), hMin = Math.min(...basses);
           if (hMax - max > 6 || min - hMin > 6) pb.push(date + " : heures et journée incohérentes (" + hMin + " à " + hMax + " contre " + min + " à " + max + ")");
           else { if (hMax > max) { J[2] = hMax; corrections++; } if (hMin < min) { J[3] = hMin; corrections++; } }
         }
