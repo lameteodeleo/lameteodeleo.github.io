@@ -1062,17 +1062,20 @@ function horaireV(p,jour){
   return "de "+heureV(d)+" à "+heureV(a);
 }
 const etV=l=>l.length<2?l.join(""):l.slice(0,-1).join(", ")+" et "+l[l.length-1];
+// Un phénomène dont l'heure de fin est passée n'est plus annoncé
+const pasFini=p=>!(p.a&&new Date(p.a)<=new Date());
 function alerteVig(c,jour){
   const v=vigPour(c,jour);if(!v||v.c<3||!v.phen)return null;
-  const forts=v.phen.filter(p=>p.c>=3);if(!forts.length)return null;
-  const max=forts.filter(p=>p.c===v.c), autres=forts.filter(p=>p.c<v.c);
+  const forts=v.phen.filter(p=>p.c>=3&&pasFini(p));if(!forts.length)return null;
+  const niv=Math.max(...forts.map(p=>p.c)), max=forts.filter(p=>p.c===niv), autres=forts.filter(p=>p.c<niv);
   const cons=forts.slice(0,3).map(p=>cap(p.nom)+" ("+COULV[p.c]+") : "+(horaireV(p,jour)||"aujourd'hui")+".");
   for(const p of forts) for(const t of (CONSIGNES[p.nom]||[])) if(cons.length<5&&!cons.includes(t)) cons.push(t);
-  return {titre:"Vigilance "+COULV[v.c]+" "+etV(max.map(p=>p.nom))+(autres.length?" et orange "+etV(autres.map(p=>p.nom)):""),cons,niveau:v.c,vig:true};
+  return {titre:"Vigilance "+COULV[niv]+" "+etV(max.map(p=>p.nom))+(autres.length?" et orange "+etV(autres.map(p=>p.nom)):""),cons,niveau:niv,vig:true};
 }
 function vigJaune(c,jour){
-  const v=vigPour(c,jour);if(!v||v.c!==2||!v.phen)return null;
-  const j=v.phen.filter(p=>p.c===2);if(!j.length)return null;
+  const v=vigPour(c,jour);if(!v||!v.phen)return null;
+  if(v.phen.some(p=>p.c>=3&&pasFini(p)))return null;
+  const j=v.phen.filter(p=>p.c===2&&pasFini(p));if(!j.length)return null;
   const h=j.length===1?horaireV(j[0],jour):"";
   return "Vigilance jaune "+etV(j.map(p=>p.nom))+(h?", "+h:"")+" : soyez attentifs. ";
 }
