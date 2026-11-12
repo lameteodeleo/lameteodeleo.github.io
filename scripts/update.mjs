@@ -327,6 +327,7 @@ async function vigilance(deps) {
   if (!res.J) throw new Error("période du jour absente");
   const resume = deps.map(d => d + " : " + ["?", "vert", "jaune", "orange", "rouge"][(res.J.deps[d] || {}).c || 0]).join(", ");
   console.log("Vigilance aujourd'hui → " + resume);
+  for (const k of ["J", "J1"]) if (res[k]) console.log(`Vigilance ${k} : du ${res[k].debut} au ${res[k].fin} · 13 : ${JSON.stringify((res[k].deps["13"] || {}).phen || [])}`);
   return res;
 }
 // Ces données sont un bonus : si elles manquent, le site est quand même publié

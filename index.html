@@ -137,6 +137,9 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 /* heures */
 .hours{display:flex;gap:4px;overflow-x:auto;padding:14px 10px;scrollbar-width:none}
 .hours::-webkit-scrollbar{display:none}
+.hwrap{position:relative}
+.hnav{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;border:1.5px solid var(--line);background:var(--brand);color:var(--surface);box-shadow:var(--shadow);display:grid;place-items:center;cursor:pointer;padding:0;z-index:2}
+.hnav svg{width:18px;height:18px}.hnav.g{left:-8px}.hnav.d{right:-8px}.hnav[hidden]{display:none}
 .hour{flex:0 0 56px;display:flex;flex-direction:column;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
 .hour small{color:var(--muted);font-size:.75rem;font-weight:700}
 .hour svg{width:30px;height:30px}
@@ -219,10 +222,10 @@ footer{line-height:1.35}
 /* onglets */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-block:6px calc(6px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 nav.tabs div{max-width:480px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-nav.tabs a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;border-radius:12px;font-weight:800;font-size:.75rem;color:var(--muted);text-decoration:none}
-nav.tabs a[aria-current="page"]{color:var(--brand)}
+nav.tabs a{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;border-radius:12px;font-weight:800;font-size:.78rem;color:color-mix(in srgb,var(--ink) 78%,transparent);text-decoration:none}
+nav.tabs a[aria-current="page"]{color:var(--ink)}
 nav.tabs svg{width:64px;height:32px;padding:4px 20px;border-radius:999px;box-sizing:border-box;transition:background .2s}
-nav.tabs a[aria-current="page"] svg{background:var(--brand-soft)}
+nav.tabs a[aria-current="page"] svg{background:var(--brand);color:var(--surface)}
 /* espace créateur */
 .back{align-self:flex-start;border:0;background:none;color:var(--brand);font-weight:800;padding:4px 0;cursor:pointer;text-decoration:none}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -445,7 +448,7 @@ details.plus[open] .tiles{margin-top:10px}
       <span class="k" id="motK">Le sourire du jour</span>
       <p id="mot"></p>
       <div class="acts">
-        <small>Pour sourire. Les chiffres, eux, sont sérieux.</small>
+        <small>Le sourire, avec des chiffres sérieux.</small>
         <button class="btn-ink" type="button" id="share">Copier</button>
       </div>
     </div>
@@ -461,7 +464,9 @@ details.plus[open] .tiles{margin-top:10px}
     </div>
     <section>
       <div class="sec-h"><h2 id="hoursTitle">Heure par heure</h2><span class="sub" id="hoursDay"></span></div>
-      <div class="card hours" id="hours"></div>
+      <div class="hwrap"><div class="card hours" id="hours"></div>
+        <button class="hnav g" id="hPrev" type="button" aria-label="Heures précédentes" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <button class="hnav d" id="hNext" type="button" aria-label="Heures suivantes" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div>
     </section>
 
     <section>
@@ -1036,17 +1041,21 @@ const CONSIGNES={
 const COULV=["","verte","jaune","orange","rouge"];
 function vigPour(c,jour){
   const V=DATA&&DATA.vigilance;if(!V||!c||!c.dep||jour>1)return null;
-  const midi=dayDate(jour);midi.setHours(12,0,0,0);
+  // La période « J » commence souvent à l'heure du bulletin (6 h ou 16 h), pas à minuit :
+  // on retient la période encore en cours qui recouvre le plus la journée demandée.
+  const j0=dayDate(jour);j0.setHours(0,0,0,0);const j1=new Date(j0);j1.setDate(j1.getDate()+1);
+  let best=null,bo=0;
   for(const k of ["J","J1"]){const P=V[k];if(!P||!P.debut||!P.fin)continue;
-    const d=new Date(P.debut),f=new Date(P.fin);
-    if(midi>=d&&midi<f&&Date.now()<f) return (P.deps&&P.deps[c.dep])||null}
-  return null;
+    const d=new Date(P.debut),f=new Date(P.fin);if(!(Date.now()<f))continue;
+    const o=Math.min(f,j1)-Math.max(d,j0);if(o>bo){bo=o;best=P}}
+  return best?((best.deps&&best.deps[c.dep])||null):null;
 }
 const heureV=d=>d.getHours()+"\u00a0h"+(d.getMinutes()?" "+String(d.getMinutes()).padStart(2,"0"):"");
 function horaireV(p,jour){
   if(!p.de||!p.a)return "";
   const d=new Date(p.de),a=new Date(p.a),j0=dayDate(jour);j0.setHours(0,0,0,0);const j1=new Date(j0);j1.setDate(j1.getDate()+1);
-  const avant=d<=j0, apres=a>=j1;
+  const enCours=jour===0&&d<=new Date()&&d>j0, avant=d<=j0||enCours, apres=a>=j1;
+  if(enCours&&apres)return "en cours";
   if(avant&&apres)return "toute la journée";
   if(avant)return "jusqu'à "+heureV(a);
   if(apres)return "à partir de "+heureV(d);
@@ -1558,7 +1567,9 @@ function render(){
   // Vigilance : celle du jour affiché ; le soir, celle de demain si elle est orange ou rouge
   const soir=st.jour===0&&new Date().getHours()>=18&&enReel(), m2=soir?reel(c,1):null;
   const alAff=m.alert||(m2&&m2.alert?Object.assign({},m2.alert,{titre:"Demain, v"+m2.alert.titre.slice(1)}):null);
-  {const vj=enReel()&&!alAff?vigJaune(c,st.jour):null, bj=$("vigJaune");bj.hidden=!vj;if(vj)$("vigJauneTxt").innerHTML=vj+'<a href="https://vigilance.meteofrance.fr" target="_blank" rel="noopener">En savoir plus</a>'}
+  {let vj=enReel()&&!alAff?vigJaune(c,st.jour):null;
+   if(!vj&&soir&&!alAff){const d1=vigJaune(c,1);if(d1)vj="Demain, v"+d1.slice(1)}
+   const bj=$("vigJaune");bj.hidden=!vj;if(vj)$("vigJauneTxt").innerHTML=vj+'<a href="https://vigilance.meteofrance.fr" target="_blank" rel="noopener">En savoir plus</a>'}
   $("alertBox").classList.toggle("orange",!!(alAff&&alAff.niveau===3));
   if(alAff){$("alertBox").hidden=false;$("motBox").hidden=true;$("alertTitle").textContent=alAff.titre;$("alertList").innerHTML=alAff.cons.map(x=>"<li>"+x+"</li>").join("")}
   else{$("alertBox").hidden=true;$("motBox").hidden=false;
@@ -1582,6 +1593,7 @@ function render(){
     const p=(ic==="pluie"||ic==="orage")?SMALL.drop+Math.min(98,m.prob+((hash(c.n)>>i)%8))+" %":"";
     return '<div class="hour"><small>'+hh+' h</small>'+ICONS[ic]+'<b>'+ht+'°</b><span class="p">'+p+'</span></div>';
   }).join("");
+  requestAnimationFrame(majHNav);
   // 7 jours
   const days=[0,1,2,3,4,5,6].map(i=>({i,m:meteo(c,st.scen,i)}));
   const gmin=Math.min(...days.map(d=>d.m.min)), gmax=Math.max(...days.map(d=>d.m.max)), span=Math.max(1,gmax-gmin);
@@ -2182,6 +2194,11 @@ function addSlide(box,cv,label,file,cls){
   d.append(img,meta);box.appendChild(d);
 }
 let dl=null;
+/* Flèches de la bande « heure par heure » : elles montrent qu'il y a d'autres heures, et font défiler */
+function majHNav(){const h=$("hours");if(!h)return;$("hPrev").hidden=h.scrollLeft<8;$("hNext").hidden=h.scrollLeft+h.clientWidth>=h.scrollWidth-8}
+$("hours").addEventListener("scroll",majHNav,{passive:true});addEventListener("resize",majHNav);
+$("hPrev").addEventListener("click",()=>$("hours").scrollBy({left:-240,behavior:"smooth"}));
+$("hNext").addEventListener("click",()=>$("hours").scrollBy({left:240,behavior:"smooth"}));
 document.querySelectorAll("#postJour .chip").forEach(b=>b.addEventListener("click",()=>{postJour=+b.dataset.j;buildSlides()}));
 async function buildSlides(){
   try{await Promise.all(['800 60px "Bricolage Grotesque"','600 40px "Bricolage Grotesque"','800 30px "Nunito Sans"','700 30px "Nunito Sans"'].map(f=>document.fonts.load(f)))}catch(e){}
