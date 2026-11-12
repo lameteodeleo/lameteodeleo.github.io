@@ -1420,15 +1420,19 @@ function conseils(m,c,profondeur){
   const sT=hiverT?{ts:24,pl:16,ve:11,ma:6}:interT?{ts:22,pl:16,ve:11,ma:6}:{ts:20,pl:15,ve:11,ma:6};
   const habit=f=>f>=26&&!hiverT?"t-shirt et short":f>=sT.ts?"un t-shirt":f>=sT.pl?(hiverT?"un pull léger ou une petite veste":"un pull léger"):f>=sT.ve?"une veste":f>=sT.ma?"un manteau":"un manteau chaud, écharpe et bonnet";
   let matin=m.min;
-  if(reelOK){const hr=heuresReelles(c,st.jour);if(hr&&hr[1])matin=hr[1].t;else if(hr&&hr[0])matin=hr[0].t}
+  // L'après-midi : la température réelle de 13 h à 17 h. La maximale du jour peut tomber la nuit
+  // (par exemple juste avant un coup de mistral) : elle ne dit alors rien de l'après-midi.
+  let tAprem=m.max;
+  if(reelOK){const hr=heuresReelles(c,st.jour);if(hr&&hr[1])matin=hr[1].t;else if(hr&&hr[0])matin=hr[0].t;
+    const ap=hr?[hr[3],hr[4],hr[5]].filter(Boolean).map(x=>x.t):[];if(ap.length)tAprem=Math.min(m.max,Math.max(...ap))}
   else matin=tAt(m,8);
-  const aprem=m.feel, apresMidiPasse=st.jour===0&&hNow>=15;
+  const vent=Math.max(0,m.max-m.feel), aprem=tAprem-vent, apresMidiPasse=st.jour===0&&hNow>=15;
   let soirT=null;if(apresMidiPasse){const ph=prochainesHeures(c);if(ph){const s2=ph.filter(x=>!x.demain&&x.h<=22);if(s2.length)soirT=Math.min(...s2.map(x=>x.t))-(m.raf>=40?3:0)}}
   let tenue=apresMidiPasse?"D'ici ce soir"+(soirT!=null?" ("+soirT+"°)":"")+" : "+habit(soirT!=null?soirT:Math.min(aprem,matin+3))+".":
     (aprem-matin>=7&&habit(matin)!==habit(aprem))?"Le matin ("+matin+"°) : "+habit(matin)+". L'après-midi ("+aprem+"°) : "+habit(aprem)+(/ et /.test(habit(aprem))?" suffisent.":" suffit."):
-    (st.jour===1?"Tenue de demain ("+matin+"° le matin, "+m.max+"° l'après-midi) : "+habit(Math.min(aprem,matin+4))+".":varie("Tenue du jour : "+habit(Math.min(aprem,matin+4))+".","Pour la journée : "+habit(Math.min(aprem,matin+4))+"."));
+    (st.jour===1?"Tenue de demain ("+matin+"° le matin, "+tAprem+"° l'après-midi) : "+habit(Math.min(aprem,matin+4))+".":varie("Tenue du jour : "+habit(Math.min(aprem,matin+4))+".","Pour la journée : "+habit(Math.min(aprem,matin+4))+"."));
   // Le ressenti avec le vent : le mistral fait paraître bien plus froid que le thermomètre
-  if(m.max-m.feel>=4&&m.raf>=40) tenue+=" Avec le vent, on ressent "+m.feel+"° alors que le thermomètre affiche "+m.max+"° : couvrez-vous plus que prévu.";
+  if(vent>=4&&m.raf>=40) tenue+=" Avec le vent, on ressent "+aprem+"° alors que le thermomètre affiche "+tAprem+"° : couvrez-vous plus que prévu.";
   else if(m.raf>=50&&m.feel<24) tenue+=" Ajoutez un coupe-vent : ça souffle.";
   if(m.type==="neige") tenue+=" Gants, et chaussures qui accrochent.";
   else if(pluieJour&&!finPluie) tenue+=m.raf>=50?" Laissez le parapluie, préférez une capuche.":perPluie==="matin"?" Parapluie utile le matin.":perPluie==="aprem"?" Parapluie utile l'après-midi.":perPluie==="jour"?" Parapluie utile toute la journée.":" Prenez un parapluie.";
