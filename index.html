@@ -2035,7 +2035,7 @@ function slideCover(j){
     x.fillStyle="rgba(255,255,255,.1)";rr(x,px,1030,300,170,28);x.fill();
     x.fillStyle=B.white;x.globalAlpha=.75;x.font="800 22px "+FB;x.fillText(lab,px+24,1080);x.globalAlpha=1;
     ajuste(x,val,252,56,"800",FD);x.fillText(val,px+24,1156)});
-  x.fillStyle=B.white;x.globalAlpha=.75;x.font="700 28px "+FB;x.fillText(PSEUDO,70,1290);x.textAlign="right";x.fillText("Faites défiler →",1010,1290);x.textAlign="left";x.globalAlpha=1;
+  x.fillStyle=B.white;x.globalAlpha=.75;x.font="700 28px "+FB;x.fillText(PSEUDO,70,1290);x.textAlign="right";x.fillText("La suite à droite →",1010,1290);x.textAlign="left";x.globalAlpha=1;
   return cv;
 }
 /* 2. La carte : le phénomène du jour, commune par commune */
@@ -2164,19 +2164,19 @@ function slideFin(j){
   drawMark(x,160,1050,110,true);
   x.fillStyle=B.white;x.font="800 44px "+FD;x.fillText(COMMUNES.length+" communes,",250,1040);x.fillText("heure par heure.",250,1094);
   x.fillStyle=B.sun;x.font="800 34px "+FB;x.fillText("Lien en bio · "+PSEUDO,110,1180);
-  x.fillStyle=B.white;x.globalAlpha=.8;x.font="700 28px "+FB;x.fillText("Enregistrez ce post, partagez-le à un voisin.",110,1226);x.globalAlpha=1;
+  x.fillStyle=B.white;x.globalAlpha=.8;x.font="700 28px "+FB;x.fillText("À enregistrer, et à partager à un voisin.",110,1226);x.globalAlpha=1;
   return cv;
 }
 function slideStory(){
   const cv=document.createElement("canvas");cv.width=1080;cv.height=1920;const x=cv.getContext("2d");
-  const J=postJour, al=bilanDep(J).al;
+  const J=postJour, RS=bilanDep(J), al=RS.al;
   x.fillStyle=al?B.alert:B.ink;x.fillRect(0,0,1080,1920);
   drawMark(x,135,190,130,true);
   logoCanvas(x,230,210,70,B.white,al?B.white:B.sun);
   x.fillStyle=B.white;x.globalAlpha=.85;x.font="700 34px "+FB;x.fillText(fmt(dayDate(J)),70,330);x.globalAlpha=1;
-  x.font="800 64px "+FD;x.fillText(al?al.titre:"Le temps du jour",70,420);
+  x.font="800 64px "+FD;{const t=al?al.titre:(TITRE[RS.dom]||"Le temps du jour");ajuste(x,t,940,64,"800",FD);x.fillText(t,70,420)}
   ORDRE.forEach((k,i)=>{
-    const c=COMMUNES[idx(SECTEURS[k].v[0])], m=meteo(c,st.scen,J), y=480+i*120;
+    const m=bilanSecteur(k,J), y=480+i*120;
     x.fillStyle="rgba(255,255,255,.1)";rr(x,70,y,940,100,26);x.fill();
     cIcon(x,m.type,96,y+18,64,true);
     x.fillStyle=B.white;x.font="700 36px "+FB;x.fillText(SECTEURS[k].n,184,y+63);
@@ -2188,7 +2188,9 @@ function slideStory(){
   x.fillStyle=al?B.white:B.sun;rr(x,70,1230,940,290,40);x.fill();
   x.fillStyle=al?B.alert:B.sunInk;x.font="800 28px "+FB;x.fillText(al?"CONSIGNES":"LE SOURIRE DU JOUR",112,1292);
   x.font="600 44px "+FD;wrapText(x,txt,112,1354,856,54,3);
-  x.fillStyle=B.white;x.globalAlpha=.6;x.font="700 28px "+FB;x.textAlign="center";x.fillText(PSEUDO,540,1860);x.textAlign="left";x.globalAlpha=1;
+  // Sous cette phrase, la place est libre pour l'autocollant « Lien » d'Instagram
+  x.fillStyle=B.white;x.font="800 40px "+FD;x.textAlign="center";x.fillText("Chaque commune, heure par heure ↓",540,1610);
+  x.globalAlpha=.6;x.font="700 28px "+FB;x.fillText(PSEUDO,540,1860);x.textAlign="left";x.globalAlpha=1;
   return cv;
 }
 /* Bouton « Enregistrer » : lien de téléchargement */
@@ -2266,14 +2268,14 @@ async function buildAssets(){
 const KIT={
  bio:"La météo des Bouches-du-Rhône, commune par commune ☀️\nDes prévisions sérieuses, le sourire en plus 😉\n👇 L'app gratuite",
  pins:[
-  {titre:"C'est quoi La météo de Léo ?",points:["La météo de toutes les communes du 13 et de quelques voisines.","Des prévisions fiables, issues des modèles de Météo-France.","Le sourire du jour pour bien commencer la journée.","Zéro humour en cas de vigilance : la sécurité d'abord.","Gratuit, sans inscription : lien en bio."],
-   legende:"Bienvenue sur La météo de Léo ☀️\n\nChaque matin à 7 h, la météo de ta commune, avec des chiffres sérieux et le sourire du jour. Et quand la météo devient dangereuse, on range les blagues et on donne les consignes.\n\nL'app est gratuite : lien en bio.\n\n#meteo #bouchesdurhone #provence #lameteodeleo"},
+  {titre:"C'est quoi La météo de Léo ?",points:["La météo de toutes les communes du 13 et de quelques voisines.","Des prévisions fiables, issues des modèles de Météo-France.","Le sourire du jour pour bien commencer la journée.","Vigilance orange ou rouge : plus de blague, seulement les consignes.","Gratuit, sans inscription : lien en bio."],
+   legende:"Bienvenue sur La météo de Léo ☀️\n\nLa météo de ta commune, avec des chiffres sérieux et le sourire du jour. Et quand Météo-France passe en vigilance orange ou rouge, les blagues s'effacent : il ne reste que les consignes.\n\nL'app est gratuite : lien en bio.\n\n#meteo #bouchesdurhone #provence #lameteodeleo"},
   {titre:"Installer l'app en 30 secondes",points:["iPhone : ouvre le lien dans Safari.","Touche Partager, puis « Sur l'écran d'accueil ».","Android : ouvre le lien dans Chrome.","Touche ⋮, puis « Installer ».","Et voilà : La météo de Léo est sur ton téléphone."],
-   legende:"La météo de Léo sur ton écran d'accueil, comme une vraie app 📲\n\nPas de téléchargement, pas d'inscription : deux gestes et c'est fait. Le lien est dans la bio.\n\nTu bloques ? Écris-nous en commentaire, on t'aide.\n\n#meteo #provence #lameteodeleo"},
+   legende:"La météo de Léo sur ton écran d'accueil, comme une vraie app 📲\n\nPas de téléchargement, pas d'inscription : deux gestes et c'est fait. Le lien est dans la bio.\n\nTu bloques ? Écris-moi en commentaire, je t'aide.\n\n#meteo #provence #lameteodeleo"},
   {titre:"Le mistral, expliqué avec le sourire",points:["Il descend du nord et du nord-ouest par la vallée du Rhône.","Il chasse les nuages : ciel bleu garanti, chapeau non garanti.","Ses rafales peuvent dépasser 90 km/h.","Il rend le ressenti bien plus froid que le thermomètre.","Le dicton dit qu'il souffle 3, 6 ou 9 jours. Le dicton ne signe jamais de contrat."],
-   legende:"Le mistral, notre colocataire le plus bruyant 🌬️\n\nTu as une anecdote de mistral ? Un parasol envolé, une porte claquée ? Raconte-nous en commentaire, les meilleures passeront en story.\n\n#mistral #provence #bouchesdurhone #lameteodeleo"}
+   legende:"Le mistral, notre colocataire le plus bruyant 🌬️\n\nTu as une anecdote de mistral ? Un parasol envolé, une porte claquée ? Raconte-la en commentaire, les meilleures passeront en story.\n\n#mistral #provence #bouchesdurhone #lameteodeleo"}
  ],
- rythme:["Chaque jour à 7 h : le carrousel et la story du jour.","Chaque dimanche à 18 h : un Reel « La semaine de Léo ».","En cas de vigilance : une story sobre, dès l'annonce.","Chaque semaine : répondre aux commentaires et partager en story les meilleurs."],
+ rythme:["Chaque matin vers 7 h : la story du jour, avec le lien vers l'app.","2 à 3 fois par semaine : le carrousel (la veille du week-end, et à chaque épisode marquant : mistral, orage, gel, forte pluie).","1 à 2 fois par semaine : un Reel court, sans visage ni voix.","Vigilance orange ou rouge : une story sobre, dès l'annonce, sans humour.","Chaque semaine : répondre aux commentaires et partager les meilleurs en story."],
  reels:["« La semaine de Léo » : les 7 jours à venir en 15 secondes, avec le sourire de chaque jour.","Le mistral en action : une vidéo des platanes qui dansent, une phrase du jour par-dessus.","« Devine la température » : sondage en story le samedi, réponse dans le Reel du dimanche.","Même endroit, deux météos : une vue de Marseille sous le mistral, puis sous la pluie.","Les dictons provençaux de la météo : vrai ou faux ?"],
  hashtags:"#meteo #provence #bouchesdurhone #marseille #aixenprovence #arles #mistral #lameteodeleo"
 };
