@@ -591,26 +591,35 @@ details.plus[open] .tiles{margin-top:10px}
       <div class="chips" style="margin-top:8px"><button class="chip" type="button" id="staleToggle" aria-pressed="false">Simuler des données non mises à jour</button></div>
     </section>
     <section>
-      <div class="sec-h"><h2>Publier le carrousel du jour</h2></div>
+      <div class="sec-h"><h2>Publier le carrousel</h2><span class="sub">7 images, 5 minutes</span></div>
       <ol class="card steps">
-        <li>Choisis le jour du post ci-dessous. Le soir, « Demain » est choisi d'office : tu prépares le post du lendemain matin.</li>
-        <li>Enregistre les 7 images, avec le bouton sous chaque image ou un appui long.</li>
-        <li>Dans Instagram : nouvelle publication, sélectionne-les dans l'ordre.</li>
-        <li>Copie la légende ci-dessous et colle-la.</li>
-        <li>Pour la story : enregistre la story du jour, puis ajoute le sticker « Lien » vers l'app dans la zone libre en bas.</li>
+        <li><b>Vérifie les données.</b> Juste au-dessus, «&nbsp;Prévisions réelles&nbsp;» doit être allumé.</li>
+        <li><b>Choisis le jour</b> avec les boutons «&nbsp;Aujourd'hui&nbsp;» et «&nbsp;Demain&nbsp;», sous cette liste. Le soir, «&nbsp;Demain&nbsp;» est déjà choisi : tu prépares le post du lendemain matin.</li>
+        <li><b>Enregistre les 7 images.</b> Sous chaque image, touche «&nbsp;Enregistrer&nbsp;», de la 1 à la 7. Elles arrivent dans la galerie de ton téléphone.</li>
+        <li><b>Copie la légende.</b> Sous les images, touche «&nbsp;Copier la légende&nbsp;».</li>
+        <li><b>Ouvre Instagram</b>, touche «&nbsp;+&nbsp;», puis «&nbsp;Publication&nbsp;».</li>
+        <li><b>Choisis les 7 images dans l'ordre.</b> Touche l'icône des deux carrés («&nbsp;sélection multiple&nbsp;»), puis l'image 1, la 2… jusqu'à la 7.</li>
+        <li><b>Colle la légende.</b> Touche «&nbsp;Suivant&nbsp;» jusqu'à l'écran de la légende, fais un appui long dans la case, puis «&nbsp;Coller&nbsp;».</li>
+        <li><b>Touche «&nbsp;Partager&nbsp;».</b></li>
       </ol>
     </section>
-    <p class="alert" id="demoAvert" style="margin:0 0 12px" hidden><span><b>Mode démonstration : ces chiffres sont inventés.</b> Pour publier, choisis « Prévisions réelles » dans « Situation de démonstration », plus bas.</span></p>
+    <p class="alert" id="demoAvert" style="margin:0 0 12px" hidden><span><b>Mode démonstration : ces chiffres sont inventés.</b> Pour publier, choisis «&nbsp;Prévisions réelles&nbsp;» dans «&nbsp;Situation de démonstration&nbsp;», plus haut.</span></p>
     <div class="chips" id="postJour" role="group" aria-label="Jour du post"><button class="chip" type="button" data-j="0">Aujourd'hui</button><button class="chip" type="button" data-j="1">Demain</button></div>
     <div class="slides" id="slides"></div>
     <section>
-      <div class="sec-h"><h2>Story du jour</h2><span class="sub">Format vertical 9:16</span></div>
-      <div class="slides" id="storyBox"></div>
-    </section>
-    <section>
-      <div class="sec-h"><h2>Légende</h2></div>
+      <div class="sec-h"><h2>Légende du carrousel</h2><span class="sub">5 hashtags, le maximum d'Instagram</span></div>
       <textarea class="caption" id="caption" aria-label="Légende du post Instagram"></textarea>
       <div style="margin-top:8px"><button class="sbtn" type="button" id="copyCap">Copier la légende</button></div>
+    </section>
+    <section>
+      <div class="sec-h"><h2>Publier la story du jour</h2><span class="sub">Chaque matin</span></div>
+      <ol class="card steps">
+        <li><b>Enregistre l'image</b> ci-dessous avec «&nbsp;Enregistrer&nbsp;».</li>
+        <li><b>Ouvre Instagram</b>, touche «&nbsp;+&nbsp;», puis «&nbsp;Story&nbsp;», et choisis l'image.</li>
+        <li><b>Ajoute le lien de l'app.</b> Touche l'icône des autocollants, puis «&nbsp;Lien&nbsp;», et colle : https://lameteodeleo.github.io</li>
+        <li><b>Place l'autocollant</b> sous la phrase «&nbsp;Chaque commune, heure par heure&nbsp;», puis touche «&nbsp;Votre story&nbsp;».</li>
+      </ol>
+      <div class="slides" id="storyBox" style="margin-top:12px"></div>
     </section>
   </main>
 
@@ -2175,6 +2184,8 @@ function slideFin(j){
   x.fillStyle=B.white;x.globalAlpha=.8;x.font="700 28px "+FB;x.fillText("À enregistrer, et à partager à un voisin.",110,1226);x.globalAlpha=1;
   return cv;
 }
+/* Instagram accepte 5 hashtags au plus : 4 fixes (le sujet et le lieu) et 1 selon le temps du jour */
+const TAG_TEMPS={mistral:"#mistral",vent:"#vent",pluie:"#pluie",orage:"#orage",neige:"#neige",gel:"#gel",brouillard:"#brouillard",chaleur:"#canicule",soleil:"#soleil"};
 function slideStory(){
   const cv=document.createElement("canvas");cv.width=1080;cv.height=1920;const x=cv.getContext("2d");
   const J=postJour, RS=bilanDep(J), al=RS.al;
@@ -2239,7 +2250,7 @@ async function buildSlides(){
   const sb=$("storyBox");sb.innerHTML="";addSlide(sb,slideStory(),"Story du jour","lameteodeleo-"+day+"-story.jpg","story");
   const R=bilanDep(J), al=R.al, c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,J);
   const lines=ORDRE.map(k=>{const b=bilanSecteur(k,J);return "• "+SECTEURS[k].n+" : "+b.min+"° à "+b.max+"°, "+LIB[b.type].toLowerCase()});
-  $("caption").value=(al?("⚠️ "+al.titre+" sur les Bouches-du-Rhône.\n\n"+al.cons.join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr"):(motDuJour(c,m,J)+"\n\n"+fmt(dj)+" : "+(TITRE[R.dom]||LIB[R.dom]).toLowerCase()+(R.sec?", et "+AUSSI[R.sec]+" par endroits":"")+".\n"+lines.join("\n")+"\n\nLa météo de chaque commune, heure par heure : lien en bio.\nEt chez vous, il fait quoi ? 👇"))+"\n\n#meteo #provence #bouchesdurhone #marseille #aixenprovence #mistral #lameteodeleo"+(al?"":" #humour");
+  $("caption").value=(al?("⚠️ "+al.titre+" sur les Bouches-du-Rhône.\n\n"+al.cons.join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr"):(motDuJour(c,m,J)+"\n\n"+fmt(dj)+" : "+(TITRE[R.dom]||LIB[R.dom]).toLowerCase()+(R.sec?", et "+AUSSI[R.sec]+" par endroits":"")+".\n"+lines.join("\n")+"\n\nLa météo de chaque commune, heure par heure : lien en bio.\nEt chez vous, il fait quoi ? 👇"))+"\n\n#meteo #provence #bouchesdurhone #marseille "+(al?"#vigilance":(TAG_TEMPS[R.dom]||"#aixenprovence"));
 }
 /* Logo en image : icône d'app (carrée) et photo de profil Instagram (ronde) */
 function drawMark(x,cx,cy,s,bg){
@@ -2285,7 +2296,7 @@ const KIT={
  ],
  rythme:["Chaque matin vers 7 h : la story du jour, avec le lien vers l'app.","2 à 3 fois par semaine : le carrousel (la veille du week-end, et à chaque épisode marquant : mistral, orage, gel, forte pluie).","1 à 2 fois par semaine : un Reel court, sans visage ni voix.","Vigilance orange ou rouge : une story sobre, dès l'annonce, sans humour.","Chaque semaine : répondre aux commentaires et partager les meilleurs en story."],
  reels:["« La semaine de Léo » : les 7 jours à venir en 15 secondes, avec le sourire de chaque jour.","Le mistral en action : une vidéo des platanes qui dansent, une phrase du jour par-dessus.","« Devine la température » : sondage en story le samedi, réponse dans le Reel du dimanche.","Même endroit, deux météos : une vue de Marseille sous le mistral, puis sous la pluie.","Les dictons provençaux de la météo : vrai ou faux ?"],
- hashtags:"#meteo #provence #bouchesdurhone #marseille #aixenprovence #arles #mistral #lameteodeleo"
+ hashtags:"#meteo #provence #bouchesdurhone #marseille #aixenprovence"
 };
 function slidePin(i){
   const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;const x=cv.getContext("2d"), pin=KIT.pins[i];
