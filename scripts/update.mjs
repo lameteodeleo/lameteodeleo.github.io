@@ -380,6 +380,11 @@ if (liste.some(x => !x.d)) {
   } catch (e) { console.warn("Reprise de la mise à jour précédente impossible : " + e.message); }
 }
 const recues = liste.filter(x => x.d);
+// Journal de contrôle : les trois plus fortes rafales d'aujourd'hui et de demain, pour repérer une valeur isolée
+for (const k of [0, 1]) {
+  const top = recues.filter(x => x.d[k]).sort((a, b) => b.d[k][4] - a.d[k][4]).slice(0, 3);
+  console.log(`Rafales les plus fortes le ${top[0] ? top[0].d[k][0] : "?"} : ` + top.map(x => `${x.n} ${x.d[k][4]} km/h (heures : ${(x.h[k] || []).map(e => e && e[3] != null ? e[3] : "-").join(" ")})`).join(" ; "));
+}
 // Journal de contrôle : quelques communes témoins, pour comparer la journée et ses heures
 for (const n of ["Marseille", "Aix-en-Provence", "Arles"]) {
   const x = liste.find(y => y.n === n); if (!x || !x.d) continue;

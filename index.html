@@ -1993,15 +1993,21 @@ function typeDominant(L){const n={};L.forEach(m=>n[m.type]=(n[m.type]||0)+1);
   const tri=Object.entries(n).sort((a,b)=>b[1]*(POIDS[b[0]]||1)-a[1]*(POIDS[a[0]]||1));
   return {dom:tri[0][0],sec:tri[1]&&tri[1][1]>=L.length*.2?tri[1][0]:null}}
 /* Bilan du département pour un jour donné */
+/* Températures « typiques » d'un groupe de communes : la valeur du milieu, pour ne pas afficher l'écart entre
+   la commune la plus chaude et la plus froide comme si c'était la journée de tout le monde */
+const mediane=t=>{const a=t.slice().sort((x,y)=>x-y);return a.length?a[Math.floor(a.length/2)]:0};
+/* Pluie : celle de la journée (7 h à 19 h) et celle tombée seulement la nuit, comptées à part */
+const pluies=M=>({jour:Math.max(0,...M.filter(m=>!m.plNuit).map(m=>m.pl)),nuit:Math.max(0,...M.filter(m=>m.plNuit).map(m=>m.pl))});
+const txtPluie=p=>p.jour>=0.3?"pluie jusqu'à "+mm(p.jour):p.nuit>=1?"pluie la nuit seulement":"pas de pluie";
 function bilanDep(j){
   const L=COMMUNES.map(c=>({nom:c.n,m:meteo(c,st.scen,j)})), M=L.map(o=>o.m), d=typeDominant(M);
-  const par=f=>L.slice().sort((a,b)=>f(a.m)-f(b.m)), T=par(m=>m.max), R=par(m=>m.raf), P=par(m=>m.pl);
-  return {L,dom:d.dom,sec:d.sec,min:Math.min(...M.map(m=>m.min)),frais:T[0],chaud:T[T.length-1],vent:R[R.length-1],pluie:P[P.length-1],
-    nbPluie:M.filter(m=>m.pl>=1).length,al:M.map(m=>m.alert).find(Boolean)||null};
+  const par=f=>L.slice().sort((a,b)=>f(a.m)-f(b.m)), T=par(m=>m.max), R=par(m=>m.raf), P=par(m=>m.plNuit?0:m.pl);
+  return {L,dom:d.dom,sec:d.sec,min:Math.min(...M.map(m=>m.min)),tMax:mediane(M.map(m=>m.max)),tMin:mediane(M.map(m=>m.min)),frais:T[0],chaud:T[T.length-1],vent:R[R.length-1],pluie:P[P.length-1],pl:pluies(M),
+    nbPluie:M.filter(m=>!m.plNuit&&m.pl>=1).length,al:M.map(m=>m.alert).find(Boolean)||null};
 }
 function bilanSecteur(k,j){
   const M=SECTEURS[k].c.map(n=>meteo(COMMUNES[idx(n)],st.scen,j));
-  return {type:typeDominant(M).dom,min:Math.min(...M.map(m=>m.min)),max:Math.max(...M.map(m=>m.max)),raf:Math.max(...M.map(m=>m.raf)),pl:Math.max(...M.map(m=>m.pl))};
+  return {type:typeDominant(M).dom,min:mediane(M.map(m=>m.min)),max:mediane(M.map(m=>m.max)),raf:Math.max(...M.map(m=>m.raf)),pl:pluies(M)};
 }
 const mm=v=>fr(v>=10?Math.round(v):v)+" mm";
 function toile(){const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;return [cv,cv.getContext("2d")]}
@@ -2030,7 +2036,7 @@ function slideCover(j){
   const sous=al?"Suivez les consignes officielles.":(R.sec?"Et "+AUSSI[R.sec]+" par endroits.":"Sur tout le département.");
   x.fillText(sous,70,790+nb*108-28);x.globalAlpha=1;
   // Trois chiffres : le plus chaud, le vent, la pluie
-  const cases=[["TEMPÉRATURE MAX",R.chaud.m.max+"°"],["RAFALES MAX",R.vent.m.raf+" km/h"],["PLUIE",R.pluie.m.pl>=0.3?"jusqu'à "+mm(R.pluie.m.pl):"aucune"]];
+  const cases=[["TEMPÉRATURE MAX",R.chaud.m.max+"°"],["RAFALES MAX",R.vent.m.raf+" km/h"],["PLUIE",R.pl.jour>=0.3?"jusqu'à "+mm(R.pl.jour):R.pl.nuit>=1?"la nuit seulement":"aucune"]];
   cases.forEach(([lab,val],i)=>{const px=70+i*320;
     x.fillStyle="rgba(255,255,255,.1)";rr(x,px,1030,300,170,28);x.fill();
     x.fillStyle=B.white;x.globalAlpha=.75;x.font="800 22px "+FB;x.fillText(lab,px+24,1080);x.globalAlpha=1;
@@ -2039,7 +2045,9 @@ function slideCover(j){
   return cv;
 }
 /* 2. La carte : le phénomène du jour, commune par commune */
-function modeCarte(R){return (R.nbPluie>=R.L.length*.25&&R.pluie.m.pl>=3)?"pluie":R.vent.m.raf>=60?"vent":"temp"}
+// La carte montre le sujet du jour : la pluie si elle est forte et étendue, sinon le vent s'il souffle, sinon les températures
+function modeCarte(R){const pluieEtendue=R.nbPluie>=R.L.length*.25;
+  return (pluieEtendue&&R.pl.jour>=10)?"pluie":R.vent.m.raf>=60?"vent":(pluieEtendue&&R.pl.jour>=3)?"pluie":"temp"}
 function slideCarte(j){
   const [cv,x]=toile(), R=bilanDep(j), mode=modeCarte(R), e=ECHELLES[mode];
   entete(x,2,mode==="temp"?"Les températures maximales":mode==="pluie"?"La pluie de la journée":"Les rafales de vent",j,R.al);
@@ -2089,7 +2097,7 @@ function slideSecteurs(j){
     x.fillStyle=B.white;rr(x,70,y,940,138,28);x.fill();
     cIcon(x,s.type,96,y+27,84,false);
     x.fillStyle=B.ink;x.font="800 38px "+FB;x.fillText(SECTEURS[k].n,206,y+62);
-    x.fillStyle=B.muted;x.font="700 27px "+FB;x.fillText("Rafales "+s.raf+" km/h · "+(s.pl>=0.3?"pluie jusqu'à "+mm(s.pl):"pas de pluie"),206,y+106);
+    x.fillStyle=B.muted;x.font="700 27px "+FB;{const t="Rafales jusqu'à "+s.raf+" km/h · "+txtPluie(s.pl);ajuste(x,t,600,27,"700",FB);x.fillText(t,206,y+106)}
     x.textAlign="right";x.fillStyle=B.ink;x.font="800 52px "+FD;x.fillText(s.max+"°",984,y+70);
     x.fillStyle=B.muted;x.font="700 28px "+FB;x.fillText("min "+s.min+"°",984,y+110);x.textAlign="left"});
   return cv;
@@ -2144,9 +2152,9 @@ function slideSuite(j){
     x.fillStyle=B.muted;x.font="800 28px "+FB;x.fillText(jour.toUpperCase(),310,y+78);
     x.fillStyle=B.ink;ajuste(x,TITRE[R.dom]||LIB[R.dom],480,50,"800",FD);x.fillText(TITRE[R.dom]||LIB[R.dom],310,y+146);
     x.fillStyle=B.muted;x.font="700 28px "+FB;
-    x.fillText("Rafales "+R.vent.m.raf+" km/h · "+(R.pluie.m.pl>=0.3?"pluie jusqu'à "+mm(R.pluie.m.pl):"pas de pluie"),310,y+200);
-    x.textAlign="right";x.fillStyle=B.ink;x.font="800 64px "+FD;x.fillText(R.chaud.m.max+"°",984,y+130);
-    x.fillStyle=B.muted;x.font="700 28px "+FB;x.fillText("min "+R.min+"°",984,y+178);x.textAlign="left"});
+    {const t="Rafales jusqu'à "+R.vent.m.raf+" km/h · "+txtPluie(R.pl);ajuste(x,t,560,28,"700",FB);x.fillText(t,310,y+200)}
+    x.textAlign="right";x.fillStyle=B.ink;x.font="800 64px "+FD;x.fillText(R.tMax+"°",984,y+130);
+    x.fillStyle=B.muted;x.font="700 28px "+FB;x.fillText("min "+R.tMin+"°",984,y+178);x.textAlign="left"});
   return cv;
 }
 /* 7. Le sourire du jour, puis le lien vers l'app */
