@@ -1048,7 +1048,12 @@ function vigPour(c,jour){
   for(const k of ["J","J1"]){const P=V[k];if(!P||!P.debut||!P.fin)continue;
     const d=new Date(P.debut),f=new Date(P.fin);if(!(Date.now()<f))continue;
     const o=Math.min(f,j1)-Math.max(d,j0);if(o>bo){bo=o;best=P}}
-  return best?((best.deps&&best.deps[c.dep])||null):null;
+  const v=best?((best.deps&&best.deps[c.dep])||null):null;
+  // Commune du bord de mer : on ajoute la vigilance du littoral (vagues-submersion)
+  if(v&&c.cote&&v.cote&&v.cote.phen&&v.cote.phen.length){
+    const phen=v.phen.slice();for(const p of v.cote.phen){const e=phen.find(q=>q.id===p.id);if(!e)phen.push(p);else if(p.c>e.c)phen[phen.indexOf(e)]=p}
+    phen.sort((a,b)=>b.c-a.c||a.id-b.id);return {c:Math.max(v.c,v.cote.c),phen}}
+  return v;
 }
 const heureV=d=>d.getHours()+"\u00a0h"+(d.getMinutes()?" "+String(d.getMinutes()).padStart(2,"0"):"");
 function horaireV(p,jour){
@@ -1101,7 +1106,7 @@ function chargerDonnees(d){
   for(const k in COORDS) delete COORDS[k];
   d.communes.slice().sort((a,b)=>a.n.localeCompare(b.n,"fr")).forEach(x=>{
     if(!SECTEURS[x.s]) return;
-    COMMUNES.push({n:x.n,s:x.s,dep:x.dep||(x.s!=="voisins"?"13":/Maximin/.test(x.n)?"83":"84")});SECTEURS[x.s].c.push(x.n);COORDS[x.n]=[x.lat,x.lon];DATA.par[x.n]=x;
+    COMMUNES.push({n:x.n,s:x.s,cote:x.cote?1:0,dep:x.dep||(x.s!=="voisins"?"13":/Maximin/.test(x.n)?"83":"84")});SECTEURS[x.s].c.push(x.n);COORDS[x.n]=[x.lat,x.lon];DATA.par[x.n]=x;
   });
   ORDRE.forEach(k=>{SECTEURS[k].v=SECTEURS[k].v.filter(n=>DATA.par[n]);SECTEURS[k].c.forEach(n=>{if(SECTEURS[k].v.length<5&&!SECTEURS[k].v.includes(n))SECTEURS[k].v.push(n)})});
   const garde=st.nom||nomActuel;

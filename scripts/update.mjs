@@ -311,23 +311,26 @@ async function vigilance(deps) {
     if (!per) { console.warn("Vigilance : période " + ech + " absente"); continue; }
     const dom = ((per.timelaps || {}).domain_ids) || [];
     const parDep = {};
+    const lire = d => (d.phenomenon_items || []).map(it => {
+      const c = +it.phenomenon_max_color_id || 1;
+      const cren = (it.timelaps_items || []).filter(t => +t.color_id === c);
+      return { id: +it.phenomenon_id, nom: PHENOMENES[+it.phenomenon_id] || null, c,
+        de: cren.length ? cren.map(t => t.begin_time).sort()[0] : null, a: cren.length ? cren.map(t => t.end_time).sort().slice(-1)[0] : null };
+    }).filter(x => x.c >= 2 && x.nom).sort((a, b) => b.c - a.c || a.id - b.id);
     for (const code of deps) {
       const d = dom.find(x => String(x.domain_id) === code);
       if (!d) { console.warn(`Vigilance ${ech} : département ${code} absent du bulletin`); continue; }
-      const phen = (d.phenomenon_items || []).map(it => {
-        const c = +it.phenomenon_max_color_id || 1;
-        const cren = (it.timelaps_items || []).filter(t => +t.color_id === c);
-        return { id: +it.phenomenon_id, nom: PHENOMENES[+it.phenomenon_id] || null, c,
-          de: cren.length ? cren.map(t => t.begin_time).sort()[0] : null, a: cren.length ? cren.map(t => t.end_time).sort().slice(-1)[0] : null };
-      }).filter(x => x.c >= 2 && x.nom).sort((a, b) => b.c - a.c || a.id - b.id);
-      parDep[code] = { c: +d.max_color_id || 1, phen };
+      parDep[code] = { c: +d.max_color_id || 1, phen: lire(d) };
+      // Le littoral a sa propre zone (code du département + « 10 ») : c'est là que figure « vagues-submersion »
+      const lit = dom.find(x => String(x.domain_id) === code + "10");
+      if (lit) parDep[code].cote = { c: +lit.max_color_id || 1, phen: lire(lit) };
     }
     res[ech] = { debut: per.begin_validity_time || null, fin: per.end_validity_time || null, deps: parDep };
   }
   if (!res.J) throw new Error("période du jour absente");
   const resume = deps.map(d => d + " : " + ["?", "vert", "jaune", "orange", "rouge"][(res.J.deps[d] || {}).c || 0]).join(", ");
   console.log("Vigilance aujourd'hui → " + resume);
-  for (const k of ["J", "J1"]) if (res[k]) console.log(`Vigilance ${k} : du ${res[k].debut} au ${res[k].fin} · 13 : ${JSON.stringify((res[k].deps["13"] || {}).phen || [])}`);
+  for (const k of ["J", "J1"]) if (res[k]) console.log(`Vigilance ${k} : du ${res[k].debut} au ${res[k].fin} · 13 : ${JSON.stringify((res[k].deps["13"] || {}).phen || [])} · littoral du 13 : ${JSON.stringify(((res[k].deps["13"] || {}).cote || {}).phen || "absent")}`);
   return res;
 }
 // Ces données sont un bonus : si elles manquent, le site est quand même publié
@@ -362,6 +365,9 @@ const qualiteAir = await bonus("Qualité de l'air", () => air(ok));
 const laMer = await bonus("Mer", mer);
 // Département de chaque commune (code INSEE), pour lui associer la bonne vigilance
 for (const x of ok) x.dep = x.dep || (x.code ? String(x.code).slice(0, 2) : x.s !== "voisins" ? "13" : ((VOISINS.find(v => norm(v[0]) === norm(x.n)) || [])[1] || "84"));
+// Communes au bord de la mer : elles reçoivent aussi la vigilance du littoral
+const BORD_DE_MER = ["Marseille", "Cassis", "La Ciotat", "Le Rove", "Ensuès-la-Redonne", "Carry-le-Rouet", "Sausset-les-Pins", "Martigues", "Port-de-Bouc", "Fos-sur-Mer", "Port-Saint-Louis-du-Rhône", "Arles", "Saintes-Maries-de-la-Mer"].map(norm);
+for (const x of ok) if (BORD_DE_MER.includes(norm(x.n))) x.cote = 1;
 const vig = await bonus("Vigilance", () => vigilance([...new Set(ok.map(x => x.dep))]));
 await mkdir("site/data", { recursive: true });
 await writeFile("site/data/meteo.json", JSON.stringify({
@@ -373,7 +379,7 @@ await writeFile("site/data/meteo.json", JSON.stringify({
   vigilance: vig,
   air: qualiteAir,
   mer: laMer,
-  communes: ok.map(({ n, s, dep, lat, lon, cur, d, h, n24 }) => ({ n, s, dep, lat: r1x(lat), lon: r1x(lon), cur, d, h, n24 }))
+  communes: ok.map(({ n, s, dep, cote, lat, lon, cur, d, h, n24 }) => ({ n, s, dep, cote, lat: r1x(lat), lon: r1x(lon), cur, d, h, n24 }))
 }));
 function r1x(v) { return Math.round(v * 1000) / 1000; }
 // Copie tous les fichiers de l'app (tout sauf les outils et le dossier « site » lui-même)
