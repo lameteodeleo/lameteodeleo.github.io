@@ -38,7 +38,7 @@
 :root{
   --bg:#F3F1FA; --surface:#FFFFFF; --surface-2:#F7F5FD; --ink:#1D1838; --muted:#655F86; --line:#E4E0F2;
   --brand:#4B3BB8; --brand-soft:#ECE9FB; --sun:#FFC21A; --sun-ink:#433100;
-  --alert:#B3261E; --alert-soft:#FCEBE9; --cool:#4A6FD1; --warm:#D9822B; --ok:#2F7D5B;
+  --alert:#B3261E; --alert-soft:#FCEBE9; --orange:#9A4F0E; --orange-soft:#FDF0E3; --jaune-soft:#FFF8D6; --jaune-line:#E3C200; --cool:#4A6FD1; --warm:#D9822B; --ok:#2F7D5B;
   --shadow:0 1px 2px rgba(19,38,57,.05),0 6px 20px rgba(19,38,57,.06);
   --f-display:"Bricolage Grotesque","Arial Rounded MT Bold",system-ui,sans-serif;
   --f-body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -46,12 +46,12 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#110F26; --surface:#1A1736; --surface-2:#211D42; --ink:#EEEBFF; --muted:#A7A1CC; --line:#2D2952;
   --brand:#A99FF5; --brand-soft:#2A2557; --sun:#F5C433; --sun-ink:#2A1F00;
-  --alert:#FF8C82; --alert-soft:#3A1D1C; --cool:#8FB0F5; --warm:#F0A55A; --ok:#6FD3A4;
+  --alert:#FF8C82; --alert-soft:#3A1D1C; --orange:#F5A55E; --orange-soft:#3A2614; --jaune-soft:#332C0E; --jaune-line:#C9AA1F; --cool:#8FB0F5; --warm:#F0A55A; --ok:#6FD3A4;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#110F26; --surface:#1A1736; --surface-2:#211D42; --ink:#EEEBFF; --muted:#A7A1CC; --line:#2D2952;
   --brand:#A99FF5; --brand-soft:#2A2557; --sun:#F5C433; --sun-ink:#2A1F00;
-  --alert:#FF8C82; --alert-soft:#3A1D1C; --cool:#8FB0F5; --warm:#F0A55A; --ok:#6FD3A4;
+  --alert:#FF8C82; --alert-soft:#3A1D1C; --orange:#F5A55E; --orange-soft:#3A2614; --jaune-soft:#332C0E; --jaune-line:#C9AA1F; --cool:#8FB0F5; --warm:#F0A55A; --ok:#6FD3A4;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}
 *{box-sizing:border-box}
 body.boot main.view{visibility:hidden}
@@ -116,6 +116,11 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .alert h3{margin:0 0 4px;color:var(--alert);font-size:.95rem;font-weight:800}
 .alert ul{margin:0;padding-left:18px;font-size:.92rem;display:flex;flex-direction:column;gap:2px}
 .alert a{color:var(--alert);font-weight:800;font-size:.85rem}
+.alert.orange{background:var(--orange-soft);border-color:var(--orange)}
+.alert.orange svg,.alert.orange h3,.alert.orange a{color:var(--orange)}
+.vigj{display:flex;gap:10px;align-items:flex-start;background:var(--jaune-soft);border:1.5px solid var(--jaune-line);border-radius:14px;padding:10px 14px;font-size:.9rem;line-height:1.35}
+.vigj i{flex:0 0 auto;width:10px;height:10px;border-radius:50%;background:#F2D600;border:1.5px solid var(--jaune-line);margin-top:5px}
+.vigj a{color:var(--ink);font-weight:700}
 /* mot du jour */
 .mot{background:var(--sun);color:var(--sun-ink);border-radius:20px 20px 20px 6px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
 .mot .k{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
@@ -430,6 +435,7 @@ details.plus[open] .tiles{margin-top:10px}
         <a href="https://vigilance.meteofrance.fr" target="_blank" rel="noopener">Consignes officielles sur vigilance.meteofrance.fr</a>
       </div>
     </div>
+    <div class="vigj" id="vigJaune" hidden><i aria-hidden="true"></i><span id="vigJauneTxt"></span></div>
 
     <div class="mot" id="motBox">
       <span class="k" id="motK">Le sourire du jour</span>
@@ -552,6 +558,7 @@ details.plus[open] .tiles{margin-top:10px}
     <div>
       <h2 style="font-size:1.3rem">Espace créateur</h2>
       <div class="sub">Réservé à toi : il s'ouvre avec ton code, en bas de la page À propos.</div>
+      <div class="sub" id="qualiteLigne" style="margin-top:6px" hidden></div>
     </div>
     <section>
       <div class="sec-h"><h2>Logo et icône</h2></div>
@@ -577,12 +584,14 @@ details.plus[open] .tiles{margin-top:10px}
     <section>
       <div class="sec-h"><h2>Publier le carrousel du jour</h2></div>
       <ol class="card steps">
+        <li>Choisis le jour du post ci-dessous. Le soir, « Demain » est choisi d'office : tu prépares le post du lendemain matin.</li>
         <li>Enregistre les 7 images, avec le bouton sous chaque image ou un appui long.</li>
         <li>Dans Instagram : nouvelle publication, sélectionne-les dans l'ordre.</li>
         <li>Copie la légende ci-dessous et colle-la.</li>
         <li>Pour la story : enregistre la story du jour, puis ajoute le sticker « Lien » vers l'app dans la zone libre en bas.</li>
       </ol>
     </section>
+    <div class="chips" id="postJour" role="group" aria-label="Jour du post"><button class="chip" type="button" data-j="0">Aujourd'hui</button><button class="chip" type="button" data-j="1">Demain</button></div>
     <div class="slides" id="slides"></div>
     <section>
       <div class="sec-h"><h2>Story du jour</h2><span class="sub">Format vertical 9:16</span></div>
@@ -1008,22 +1017,75 @@ let DATA=null;
 const DIR8=["Nord","Nord-est","Est","Sud-est","Sud","Sud-ouest","Ouest","Nord-ouest"];
 const dirTxt=d=>d==null?"Variable":DIR8[Math.round(d/45)%8];
 const enReel=()=>DATA&&!st.demo;
+/* ---------- Vigilances officielles de Météo-France ----------
+   Orange ou rouge : l'humour s'efface, seules les consignes restent. Jaune : un simple rappel. */
+const CONSIGNES={
+ "vent violent":["Limitez vos déplacements et renseignez-vous avant de partir.","Ne vous promenez pas en forêt ni au bord de la mer.","Rangez ou attachez ce qui peut s'envoler."],
+ "pluie-inondation":["Ne vous engagez jamais, à pied ou en voiture, sur une route inondée.","Éloignez-vous des cours d'eau et ne descendez pas dans les sous-sols.","Limitez vos déplacements."],
+ "orages":["Abritez-vous dans un bâtiment, loin des arbres.","Évitez les activités en plein air.","Ne vous engagez jamais sur une route inondée."],
+ "crues":["Ne vous engagez jamais sur une route ou un passage inondé.","Éloignez-vous des berges des cours d'eau.","Suivez les consignes des autorités."],
+ "neige-verglas":["Limitez vos déplacements et renseignez-vous sur l'état des routes.","Si vous devez rouler, roulez doucement et gardez vos distances.","Attention aux chutes sur les trottoirs glissants."],
+ "canicule":["Buvez régulièrement, sans attendre d'avoir soif.","Évitez les efforts et restez au frais entre 12 h et 17 h.","Prenez des nouvelles des personnes âgées ou isolées."],
+ "grand froid":["Limitez le temps passé dehors et couvrez bien la tête et les mains.","N'utilisez jamais de groupe électrogène ou de chauffage de fortune à l'intérieur.","Prenez des nouvelles des personnes âgées ou isolées."],
+ "avalanches":["Renoncez aux sorties en montagne hors des pistes ouvertes.","Suivez les consignes des stations."],
+ "vagues-submersion":["Éloignez-vous du bord de mer, des digues et des jetées.","Ne prenez pas la mer et ne vous baignez pas.","Ne stationnez pas en bord de mer."]};
+const COULV=["","verte","jaune","orange","rouge"];
+function vigPour(c,jour){
+  const V=DATA&&DATA.vigilance;if(!V||!c||!c.dep||jour>1)return null;
+  const midi=dayDate(jour);midi.setHours(12,0,0,0);
+  for(const k of ["J","J1"]){const P=V[k];if(!P||!P.debut||!P.fin)continue;
+    const d=new Date(P.debut),f=new Date(P.fin);
+    if(midi>=d&&midi<f&&Date.now()<f) return (P.deps&&P.deps[c.dep])||null}
+  return null;
+}
+const heureV=d=>d.getHours()+"\u00a0h"+(d.getMinutes()?" "+String(d.getMinutes()).padStart(2,"0"):"");
+function horaireV(p,jour){
+  if(!p.de||!p.a)return "";
+  const d=new Date(p.de),a=new Date(p.a),j0=dayDate(jour);j0.setHours(0,0,0,0);const j1=new Date(j0);j1.setDate(j1.getDate()+1);
+  const avant=d<=j0, apres=a>=j1;
+  if(avant&&apres)return "toute la journée";
+  if(avant)return "jusqu'à "+heureV(a);
+  if(apres)return "à partir de "+heureV(d);
+  return "de "+heureV(d)+" à "+heureV(a);
+}
+const etV=l=>l.length<2?l.join(""):l.slice(0,-1).join(", ")+" et "+l[l.length-1];
+function alerteVig(c,jour){
+  const v=vigPour(c,jour);if(!v||v.c<3||!v.phen)return null;
+  const forts=v.phen.filter(p=>p.c>=3);if(!forts.length)return null;
+  const max=forts.filter(p=>p.c===v.c), autres=forts.filter(p=>p.c<v.c);
+  const cons=forts.slice(0,3).map(p=>cap(p.nom)+" ("+COULV[p.c]+") : "+(horaireV(p,jour)||"aujourd'hui")+".");
+  for(const p of forts) for(const t of (CONSIGNES[p.nom]||[])) if(cons.length<5&&!cons.includes(t)) cons.push(t);
+  return {titre:"Vigilance "+COULV[v.c]+" "+etV(max.map(p=>p.nom))+(autres.length?" et orange "+etV(autres.map(p=>p.nom)):""),cons,niveau:v.c,vig:true};
+}
+function vigJaune(c,jour){
+  const v=vigPour(c,jour);if(!v||v.c!==2||!v.phen)return null;
+  const j=v.phen.filter(p=>p.c===2);if(!j.length)return null;
+  const h=j.length===1?horaireV(j[0],jour):"";
+  return "Vigilance jaune "+etV(j.map(p=>p.nom))+(h?", "+h:"")+" : soyez attentifs. ";
+}
 function reel(c,jour){
   const r=DATA.par[c.n]; if(!r||!r.d[jour]) return null;
   const [date,code,max,min,raf,dir,pl,prob,uv,feel,uvDe,uvA]=r.d[jour];
   // Un code « pluie » sans pluie mesurable (moins de 0,3 mm) : on affiche des nuages, pour rester cohérent avec « 0 mm »
-  const codeOK=((code>=51&&code<=67)||(code>=80&&code<=82))&&(pl==null||pl<0.3)?3:code;
-  return {date,uvDe,uvA,type:classer(codeOK,raf,dir,max,min),min:Math.round(min),max:Math.round(max),raf:Math.round(raf),pl:Math.round(pl*10)/10,prob:prob==null?0:Math.round(prob),uv:Math.round(uv||0),feel:Math.round(feel==null?max:feel),dir:dirTxt(dir),deg:dir,alert:(DATA.alertes&&DATA.alertes[c.s]&&jour===0)?DATA.alertes[c.s]:null};
+  let codeOK=((code>=51&&code<=67)||(code>=80&&code<=82))&&(pl==null||pl<0.3)?3:code;
+  // Le code du jour couvre les 24 heures : une pluie tombée seulement la nuit ne doit pas faire afficher « Pluie »
+  // pour une journée sèche. On regarde alors le temps de 7 h à 19 h, comme l'affiche « Heure par heure ».
+  const PRECIP=k=>(k>=51&&k<=67)||(k>=71&&k<=86)||k>=95, hj=r.h&&r.h[jour];let plNuit=false;
+  if(PRECIP(codeOK)&&hj){const jj=hj.slice(0,7).filter(e=>e&&e[1]!=null);
+    if(jj.length>=5&&!jj.some(e=>PRECIP(e[1]))&&Math.max(...jj.map(e=>e[2]||0))<50){
+      const n={};jj.forEach(e=>n[e[1]]=(n[e[1]]||0)+1);
+      codeOK=+Object.entries(n).sort((a,b)=>b[1]-a[1]||b[0]-a[0])[0][0];plNuit=true}}
+  return {date,uvDe,uvA,plNuit,type:classer(codeOK,raf,dir,max,min),min:Math.round(min),max:Math.round(max),raf:Math.round(raf),pl:Math.round(pl*10)/10,prob:prob==null?0:Math.round(prob),uv:Math.round(uv||0),feel:Math.round(feel==null?max:feel),dir:dirTxt(dir),deg:dir,alert:alerteVig(c,jour)};
 }
 function chargerDonnees(d){
   if(!d||!Array.isArray(d.communes)||d.communes.length<50) throw new Error("données incomplètes");
   const nomActuel=COMMUNES[st.c]&&COMMUNES[st.c].n;
-  DATA={maj:new Date(d.maj),par:{},alertes:d.alertes||null,air:d.air||null,mer:d.mer||null};
+  DATA={maj:new Date(d.maj),par:{},qualite:d.qualite||null,vigilance:d.vigilance||null,alertes:d.alertes||null,air:d.air||null,mer:d.mer||null};
   COMMUNES.length=0;ORDRE.forEach(k=>SECTEURS[k].c=[]);
   for(const k in COORDS) delete COORDS[k];
   d.communes.slice().sort((a,b)=>a.n.localeCompare(b.n,"fr")).forEach(x=>{
     if(!SECTEURS[x.s]) return;
-    COMMUNES.push({n:x.n,s:x.s});SECTEURS[x.s].c.push(x.n);COORDS[x.n]=[x.lat,x.lon];DATA.par[x.n]=x;
+    COMMUNES.push({n:x.n,s:x.s,dep:x.dep||(x.s!=="voisins"?"13":/Maximin/.test(x.n)?"83":"84")});SECTEURS[x.s].c.push(x.n);COORDS[x.n]=[x.lat,x.lon];DATA.par[x.n]=x;
   });
   ORDRE.forEach(k=>{SECTEURS[k].v=SECTEURS[k].v.filter(n=>DATA.par[n]);SECTEURS[k].c.forEach(n=>{if(SECTEURS[k].v.length<5&&!SECTEURS[k].v.includes(n))SECTEURS[k].v.push(n)})});
   const garde=st.nom||nomActuel;
@@ -1470,7 +1532,7 @@ function render(){
   $("when").textContent=(st.jour===0?"Aujourd'hui":st.jour===1?"Demain":"Prévision")+" · "+fmt(dayDate(st.jour));
   $("hero").dataset.t=m.type;
   $("heroIco").innerHTML=ICONS[m.type];
-  $("cond").textContent=LIB[m.type];
+  $("cond").textContent=LIB[m.type]+(m.plNuit&&m.pl>=0.3?" · pluie la nuit":"");
   const vif=LIVE[c.n];let cur=enReel()&&DATA.par[c.n]&&DATA.par[c.n].cur, quand=null;
   if(enReel()&&vif&&vif.t>DATA.maj){cur=vif.cur;quand=vif.t}
   if(st.jour===0&&enReel()) liveMaintenant(c);
@@ -1485,12 +1547,16 @@ function render(){
   else if(st.jour===0){$("tempLbl").textContent="Maintenant · "+new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}).replace(":"," h ");$("temp").textContent=tAt(m,new Date().getHours()+new Date().getMinutes()/60)+"°"}
   else{$("tempLbl").textContent="Maximale";$("temp").textContent=m.max+"°"}
   $("facts").innerHTML='<span>Min <b>'+m.min+'°</b></span><span>Max <b>'+m.max+'°</b></span><span>Ressenti <b>'+m.feel+'°</b></span>';
-  if(m.alert){$("alertBox").hidden=false;$("motBox").hidden=true;$("alertTitle").textContent=m.alert.titre;$("alertList").innerHTML=m.alert.cons.map(x=>"<li>"+x+"</li>").join("")}
+  // Vigilance : celle du jour affiché ; le soir, celle de demain si elle est orange ou rouge
+  const soir=st.jour===0&&new Date().getHours()>=18&&enReel(), m2=soir?reel(c,1):null;
+  const alAff=m.alert||(m2&&m2.alert?Object.assign({},m2.alert,{titre:"Demain, v"+m2.alert.titre.slice(1)}):null);
+  {const vj=enReel()&&!alAff?vigJaune(c,st.jour):null, bj=$("vigJaune");bj.hidden=!vj;if(vj)$("vigJauneTxt").innerHTML=vj+'<a href="https://vigilance.meteofrance.fr" target="_blank" rel="noopener">En savoir plus</a>'}
+  $("alertBox").classList.toggle("orange",!!(alAff&&alAff.niveau===3));
+  if(alAff){$("alertBox").hidden=false;$("motBox").hidden=true;$("alertTitle").textContent=alAff.titre;$("alertList").innerHTML=alAff.cons.map(x=>"<li>"+x+"</li>").join("")}
   else{$("alertBox").hidden=true;$("motBox").hidden=false;
-    const soir=st.jour===0&&new Date().getHours()>=18&&enReel(), m2=soir?reel(c,1):null;
     $("motK").textContent=m2?"Le sourire de demain":"Le sourire du jour";
     $("mot").textContent=insec(m2?motDuJour(c,m2,1,true):motDuJour(c,m,st.jour))}
-  {const sv=saviezDuJour(m,st.jour),bx=$("saviezBox");if(sv&&!m.alert){$("saviez").textContent=insec(sv.t);bx.hidden=false}else bx.hidden=true}
+  {const sv=saviezDuJour(m,st.jour),bx=$("saviezBox");if(sv&&!alAff){$("saviez").textContent=insec(sv.t);bx.hidden=false}else bx.hidden=true}
   // heures
   const prochaines=(enReel()&&st.jour===0)?prochainesHeures(c):null;
   $("hoursTitle").textContent=prochaines?"Les prochaines heures":"Heure par heure";
@@ -1640,6 +1706,7 @@ function dessinerZones(){
   // Légende : la plage de couleurs utile pour la journée affichée
   const e=ECHELLES[mapMode], leg=$("mapLeg");
   $("mapTitre").textContent=e.titre;
+  $("mapNote").textContent="La couleur de chaque commune indique "+(mapMode==="temp"?"sa température maximale":mapMode==="pluie"?"la pluie prévue":"ses rafales de vent")+". Touchez une commune pour voir sa météo.";
   const res=$("mapResume");
   if(!vals.length){leg.hidden=true;res.hidden=true;return}
   const tri=vals.slice().sort((a,b)=>a.v-b.v), mini=tri[0], maxi=tri[tri.length-1], quand=mapJour===0?"Aujourd'hui":"Demain";
@@ -1722,7 +1789,6 @@ async function renderCarte(){
   const ok=await chargerLeaflet();
   if(!ok||!window.L){$("leaf").hidden=true;$("map").style.display="";renderMap();return}
   $("map").style.display="none";$("leaf").hidden=false;
-  $("mapNote").textContent="Chaque commune est colorée selon sa valeur. Touchez-en une pour voir sa météo, zoomez pour afficher plus de noms.";
   if(!LMAP){
     const pts=Object.values(COORDS), b=L.latLngBounds(pts);
     LMAP=L.map("leaf",{zoomSnap:.25,scrollWheelZoom:false,maxBounds:b.pad(.35),attributionControl:false,minZoom:7.5,maxZoom:12});
@@ -1867,75 +1933,202 @@ function cIcon(ctx,t,x,y,s,dark,pal){
   ctx.restore();
 }
 function logoCanvas(x,px,py,size,color,accent){x.font="800 "+size+"px "+FD;x.fillStyle=color;x.fillText("La météo ",px,py);const w=x.measureText("La météo ").width;x.fillStyle=accent;x.fillText("de Léo",px+w,py)}
-function slideCover(){
-  const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;const x=cv.getContext("2d");
-  const al=SCEN[st.scen].alert;
-  x.fillStyle=al?B.alert:B.ink;x.fillRect(0,0,1080,1350);
-  drawMark(x,950,118,150,true);
-  logoCanvas(x,70,140,72,B.white,al?B.white:B.sun);
-  x.fillStyle=B.white;x.globalAlpha=.85;x.font="700 32px "+FB;x.fillText(fmt(today)+" · Bouches-du-Rhône",70,196);x.globalAlpha=1;
-  const pos={arles:[70,280],salon:[395,250],voisins:[720,280],berre:[230,510],aix:[555,500],mc:[395,730]};
-  for(const [k,[px,py]] of Object.entries(pos)){
-    const c=COMMUNES[idx(SECTEURS[k].v[0])], m=meteo(c,st.scen,0);
-    x.fillStyle="rgba(255,255,255,.1)";rr(x,px,py,290,200,32);x.fill();
-    x.strokeStyle="rgba(255,255,255,.22)";x.lineWidth=2;rr(x,px,py,290,200,32);x.stroke();
-    cIcon(x,m.type,px+22,py+22,84,true);
-    x.fillStyle=B.white;x.font="800 76px "+FD;x.textAlign="right";x.fillText(m.max+"°",px+266,py+98);x.textAlign="left";
-    let fs=28;x.font="700 "+fs+"px "+FB;while(x.measureText(SECTEURS[k].short).width>246&&fs>18){fs--;x.font="700 "+fs+"px "+FB}
-    x.fillText(SECTEURS[k].short,px+24,py+164);
-  }
-  const c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,0);
-  const txt=al?(al.titre+". "+al.cons[0]):motDuJour(c,m,0);
-  x.fillStyle=al?B.white:B.sun;rr(x,70,990,940,250,36);x.fill();
-  x.fillStyle=al?B.alert:B.sunInk;x.font="800 26px "+FB;x.fillText(al?"VIGILANCE":"LE SOURIRE DU JOUR",110,1046);
-  x.font="600 40px "+FD;wrapText(x,txt,110,1104,860,50,3);
-  x.fillStyle=B.white;x.globalAlpha=.75;x.font="700 26px "+FB;x.fillText(PSEUDO+" · Toutes les communes : lien en bio",70,1300);x.globalAlpha=1;
-  return cv;
+/* ---------- Carrousel Instagram : 7 images, une idée par image ----------
+   1 accroche · 2 carte · 3 secteurs · 4 la journée · 5 conseils · 6 jours suivants · 7 sourire et lien */
+let postJour=new Date().getHours()>=18?1:0;   // le soir, on prépare le carrousel du lendemain
+const TITRE={soleil:"Grand soleil",nuageux:"Soleil et nuages",mistral:"Journée de mistral",vent:"Vent fort",pluie:"Journée de pluie",orage:"Risque d'orages",gel:"Gelées au réveil",brouillard:"Brouillard le matin",neige:"De la neige",chaleur:"Forte chaleur"};
+const AUSSI={soleil:"du soleil",nuageux:"des éclaircies",mistral:"du mistral",vent:"du vent",pluie:"de la pluie",orage:"des orages",gel:"des gelées",brouillard:"du brouillard",neige:"de la neige",chaleur:"une forte chaleur"};
+const POIDS={orage:3,neige:3,pluie:1.5,mistral:1.3,chaleur:1.3};
+function typeDominant(L){const n={};L.forEach(m=>n[m.type]=(n[m.type]||0)+1);
+  const tri=Object.entries(n).sort((a,b)=>b[1]*(POIDS[b[0]]||1)-a[1]*(POIDS[a[0]]||1));
+  return {dom:tri[0][0],sec:tri[1]&&tri[1][1]>=L.length*.2?tri[1][0]:null}}
+/* Bilan du département pour un jour donné */
+function bilanDep(j){
+  const L=COMMUNES.map(c=>({nom:c.n,m:meteo(c,st.scen,j)})), M=L.map(o=>o.m), d=typeDominant(M);
+  const par=f=>L.slice().sort((a,b)=>f(a.m)-f(b.m)), T=par(m=>m.max), R=par(m=>m.raf), P=par(m=>m.pl);
+  return {L,dom:d.dom,sec:d.sec,min:Math.min(...M.map(m=>m.min)),frais:T[0],chaud:T[T.length-1],vent:R[R.length-1],pluie:P[P.length-1],
+    nbPluie:M.filter(m=>m.pl>=1).length,al:M.map(m=>m.alert).find(Boolean)||null};
 }
-function slideSecteur(k,n){
-  const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;const x=cv.getContext("2d");
-  const al=SCEN[st.scen].alert, s=SECTEURS[k];
+function bilanSecteur(k,j){
+  const M=SECTEURS[k].c.map(n=>meteo(COMMUNES[idx(n)],st.scen,j));
+  return {type:typeDominant(M).dom,min:Math.min(...M.map(m=>m.min)),max:Math.max(...M.map(m=>m.max)),raf:Math.max(...M.map(m=>m.raf)),pl:Math.max(...M.map(m=>m.pl))};
+}
+const mm=v=>fr(v>=10?Math.round(v):v)+" mm";
+function toile(){const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;return [cv,cv.getContext("2d")]}
+function ajuste(x,txt,maxW,taille,graisse,police){let fs=taille;x.font=graisse+" "+fs+"px "+police;while(x.measureText(txt).width>maxW&&fs>20){fs-=2;x.font=graisse+" "+fs+"px "+police}return fs}
+/* En-tête et pied communs aux images 2 à 6 */
+function entete(x,n,titre,j,al){
   x.fillStyle=al?"#FCEBE9":B.bg;x.fillRect(0,0,1080,1350);
   x.fillStyle=al?B.alert:B.muted;x.font="800 28px "+FB;x.fillText(n+" / 7",70,108);
   drawMark(x,982,98,62,true);x.textAlign="right";x.fillText(NOM,936,108);x.textAlign="left";
-  x.fillStyle=al?B.alert:B.ink;x.font="800 80px "+FD;x.fillText(s.n,70,206);
-  x.font="700 30px "+FB;x.fillStyle=B.muted;x.fillText(fmt(today),70,256);
-  s.v.forEach((nom,i)=>{
-    const c=COMMUNES[idx(nom)], m=meteo(c,st.scen,0), y=310+i*124;
-    x.fillStyle=B.white;rr(x,70,y,940,106,26);x.fill();
-    cIcon(x,m.type,94,y+19,68,false);
-    x.fillStyle=B.ink;x.font="800 36px "+FB;
-    let label=nom;while(x.measureText(label).width>470&&label.length>4)label=label.slice(0,-2);if(label!==nom)label=label.trim()+"…";
-    x.fillText(label,184,y+66);
-    x.textAlign="right";x.font="800 46px "+FD;x.fillText(m.max+"°",900,y+70);
-    x.font="700 30px "+FB;x.fillStyle=B.muted;x.fillText(m.min+"°",990,y+68);x.textAlign="left";
-  });
-  const c=COMMUNES[idx(s.v[0])], m=meteo(c,st.scen,0);
-  const txt=al?al.cons.slice(0,2).join(" "):(SPECIAL[k]&&SPECIAL[k][m.type])||motDuJour(c,m,0);
-  x.fillStyle=al?B.alert:B.sun;rr(x,70,960,940,270,36);x.fill();
-  x.fillStyle=al?B.white:B.sunInk;x.font="800 26px "+FB;x.fillText(al?al.titre.toUpperCase():"LE SOURIRE DU SECTEUR",110,1016);
-  x.font="600 40px "+FD;wrapText(x,txt,110,1074,860,50,3);
-  x.fillStyle=B.muted;x.font="700 25px "+FB;x.fillText("Rafales "+m.raf+" km/h · Pluie "+m.pl+" mm · Toutes les communes : lien en bio",70,1296);
+  x.fillStyle=al?B.alert:B.ink;ajuste(x,titre,940,72,"800",FD);x.fillText(titre,70,206);
+  x.font="700 30px "+FB;x.fillStyle=B.muted;x.fillText(fmt(dayDate(j))+" · Bouches-du-Rhône",70,256);
+  x.font="700 25px "+FB;x.fillText("La météo de chaque commune, heure par heure : lien en bio",70,1296);
+}
+/* 1. L'accroche : le temps du jour en une phrase et trois chiffres */
+function slideCover(j){
+  const [cv,x]=toile(), R=bilanDep(j), al=R.al;
+  x.fillStyle=al?B.alert:B.ink;x.fillRect(0,0,1080,1350);
+  drawMark(x,116,128,92,true);logoCanvas(x,186,150,60,B.white,al?B.white:B.sun);
+  x.fillStyle=al?B.white:B.sun;x.font="800 34px "+FB;x.fillText(fmt(dayDate(j)).toUpperCase(),70,300);
+  x.fillStyle=B.white;x.globalAlpha=.8;x.font="700 32px "+FB;x.fillText("Bouches-du-Rhône",70,348);x.globalAlpha=1;
+  cIcon(x,R.dom,70,400,250,true);
+  const titre=al?al.titre:TITRE[R.dom]||LIB[R.dom];
+  x.fillStyle=B.white;x.font="800 104px "+FD;
+  const nb=wrapText(x,titre,70,780,940,108,2);
+  x.globalAlpha=.9;x.font="600 40px "+FB;
+  const sous=al?"Suivez les consignes officielles.":(R.sec?"Et "+AUSSI[R.sec]+" par endroits.":"Sur tout le département.");
+  x.fillText(sous,70,790+nb*108-28);x.globalAlpha=1;
+  // Trois chiffres : le plus chaud, le vent, la pluie
+  const cases=[["AU PLUS CHAUD",R.chaud.m.max+"°"],["RAFALES JUSQU'À",R.vent.m.raf+" km/h"],["PLUIE",R.pluie.m.pl>=0.3?"jusqu'à "+mm(R.pluie.m.pl):"aucune"]];
+  cases.forEach(([lab,val],i)=>{const px=70+i*320;
+    x.fillStyle="rgba(255,255,255,.1)";rr(x,px,1030,300,170,28);x.fill();
+    x.fillStyle=B.white;x.globalAlpha=.75;x.font="800 22px "+FB;x.fillText(lab,px+24,1080);x.globalAlpha=1;
+    ajuste(x,val,252,56,"800",FD);x.fillText(val,px+24,1156)});
+  x.fillStyle=B.white;x.globalAlpha=.75;x.font="700 28px "+FB;x.fillText(PSEUDO,70,1290);x.textAlign="right";x.fillText("Faites défiler →",1010,1290);x.textAlign="left";x.globalAlpha=1;
+  return cv;
+}
+/* 2. La carte : le phénomène du jour, commune par commune */
+function modeCarte(R){return (R.nbPluie>=R.L.length*.25&&R.pluie.m.pl>=3)?"pluie":R.vent.m.raf>=60?"vent":"temp"}
+function slideCarte(j){
+  const [cv,x]=toile(), R=bilanDep(j), mode=modeCarte(R), e=ECHELLES[mode];
+  entete(x,2,mode==="temp"?"Les températures maximales":mode==="pluie"?"La pluie de la journée":"Les rafales de vent",j,R.al);
+  x.fillStyle=B.white;rr(x,50,300,980,720,36);x.fill();
+  const lat0=43.997,lat1=43.157,lon0=4.23,lon1=5.925,k=Math.cos(43.55*Math.PI/180),W=940,H=680;
+  const sc=Math.min(W/((lon1-lon0)*k),H/(lat0-lat1)), ox=70+(W-(lon1-lon0)*k*sc)/2, oy=320+(H-(lat0-lat1)*sc)/2;
+  const P=(la,lo)=>[ox+(lo-lon0)*k*sc,oy+(lat0-la)*sc];
+  const trace=r=>{r.forEach((p,i)=>{const [a,b]=P(p[0],p[1]);i?x.lineTo(a,b):x.moveTo(a,b)});x.closePath()};
+  const val={};R.L.forEach(o=>val[o.nom]=e.val(o.m));
+  x.lineJoin="round";
+  for(const [nom,...an] of CARTE13.pol){const v=val[nom];
+    an.forEach(r=>{x.beginPath();trace(r);x.fillStyle=(v!=null&&couleurCarte(v,mode))||"#E4E0F2";x.fill();x.strokeStyle="rgba(255,255,255,.85)";x.lineWidth=1.5;x.stroke()})}
+  x.fillStyle="#BFD9F2";[BERRE,VACCARES].forEach(z=>{x.beginPath();z.forEach((p,i)=>{const [a,b]=P(p[1],p[0]);i?x.lineTo(a,b):x.moveTo(a,b)});x.closePath();x.fill()});
+  CARTE13.dep.forEach(r=>{x.beginPath();trace(r);x.strokeStyle=B.ink;x.lineWidth=3;x.stroke()});
+  // Les grandes villes, avec leur valeur
+  const POS=positions(), txtV=v=>mode==="temp"?v+"°":mode==="pluie"?mm(v):v+" km/h";
+  ["Marseille","Aix-en-Provence","Arles","Salon-de-Provence","Martigues","La Ciotat","Saint-Rémy-de-Provence","Pertuis"].forEach(nom=>{
+    if(!POS[nom]||val[nom]==null)return;const [a,b]=P(POS[nom][0],POS[nom][1]);
+    const court=nom.replace("-en-Provence","").replace("-de-Provence","");
+    x.font="800 24px "+FB;const w1=x.measureText(court+"  ").width;x.font="800 26px "+FD;const w2=x.measureText(txtV(val[nom])).width, w=w1+w2+28;
+    let px=Math.max(60,Math.min(1020-w,a-w/2)), py=b-22;
+    x.fillStyle="rgba(29,24,56,.92)";rr(x,px,py,w,44,22);x.fill();
+    x.fillStyle=B.white;x.font="800 24px "+FB;x.fillText(court,px+14,py+31);x.fillStyle=B.sun;x.font="800 26px "+FD;x.fillText(txtV(val[nom]),px+14+w1,py+32)});
+  // Légende
+  const vs=R.L.map(o=>e.val(o.m));let lo=Math.min(...vs),hi=Math.max(...vs);
+  if(mode==="temp"){lo=Math.floor(lo/5)*5;hi=Math.ceil(hi/5)*5;if(hi-lo<10)hi=lo+10}else if(mode==="pluie"){lo=0;hi=Math.max(10,Math.ceil(hi/10)*10)}else{lo=0;hi=Math.max(60,Math.ceil(hi/20)*20)}
+  for(let i=0;i<40;i++){const v=lo+(hi-lo)*(i+.5)/40;x.fillStyle=couleurCarte(v,mode)||"#E4E0F2";x.fillRect(240+i*15,1052,16,24)}
+  x.fillStyle=B.muted;x.font="700 26px "+FB;x.textAlign="right";x.fillText(mode==="temp"?lo+"°":mode==="pluie"?"sec":"calme",224,1074);x.textAlign="left";x.fillText(mode==="temp"?hi+"°":hi+e.unite,856,1074);
+  // La phrase qui résume
+  x.fillStyle=B.ink;x.font="700 34px "+FB;
+  const phrase=mode==="temp"?(R.chaud.m.max===R.frais.m.max?R.chaud.m.max+"° au plus chaud, partout.":"Le plus chaud : "+R.chaud.nom+" ("+R.chaud.m.max+"°). Le plus frais : "+R.frais.nom+" ("+R.frais.m.max+"°)."):
+    mode==="pluie"?"Le plus arrosé : "+R.pluie.nom+" ("+mm(R.pluie.m.pl)+").":"Les plus fortes rafales : "+R.vent.nom+" ("+R.vent.m.raf+" km/h).";
+  wrapText(x,phrase,70,1150,940,46,2);
+  return cv;
+}
+/* 3. Les six secteurs, pour que chacun retrouve le sien */
+function slideSecteurs(j){
+  const [cv,x]=toile(), R=bilanDep(j);
+  entete(x,3,"Secteur par secteur",j,R.al);
+  ORDRE.forEach((k,i)=>{const s=bilanSecteur(k,j), y=300+i*156;
+    x.fillStyle=B.white;rr(x,70,y,940,138,28);x.fill();
+    cIcon(x,s.type,96,y+27,84,false);
+    x.fillStyle=B.ink;x.font="800 38px "+FB;x.fillText(SECTEURS[k].n,206,y+62);
+    x.fillStyle=B.muted;x.font="700 27px "+FB;x.fillText("Rafales "+s.raf+" km/h · "+(s.pl>=0.3?"pluie jusqu'à "+mm(s.pl):"pas de pluie"),206,y+106);
+    x.textAlign="right";x.fillStyle=B.ink;x.font="800 52px "+FD;x.fillText(s.max+"°",984,y+70);
+    x.fillStyle=B.muted;x.font="700 28px "+FB;x.fillText("min "+s.min+"°",984,y+110);x.textAlign="left"});
+  return cv;
+}
+/* 4. La journée : matin, après-midi, soir dans cinq villes */
+function momentsVille(c,j){
+  const m=meteo(c,st.scen,j), hr=enReel()?heuresReelles(c,j):null, ic=heures(m,j,st.scen), cou=enMin(soleil(dayDate(j)).coucher)/60;
+  return [[9,1],[15,4],[19,6]].map(([h,i])=>{let t,type;
+    if(hr&&hr[i]){t=hr[i].t;type=hr[i].type}else{t=tAt(m,h);type=(ic&&ic[i])||m.type}
+    if(h>=cou)type=type==="soleil"?"lune":type==="nuageux"?"nuitNuageux":type;
+    return {t,type}});
+}
+function slideJournee(j){
+  const [cv,x]=toile(), R=bilanDep(j);
+  entete(x,4,"Du matin au soir",j,R.al);
+  const cols=[560,740,920];
+  x.fillStyle=B.muted;x.font="800 26px "+FB;x.textAlign="center";["MATIN","APRÈS-MIDI","SOIR"].forEach((t,i)=>x.fillText(t,cols[i],330));
+  x.font="700 22px "+FB;["9 h","15 h","19 h"].forEach((t,i)=>x.fillText(t,cols[i],362));x.textAlign="left";
+  ["Marseille","Aix-en-Provence","Arles","Salon-de-Provence","Martigues"].forEach((nom,r)=>{
+    const i=idx(nom);if(i<0)return;const M=momentsVille(COMMUNES[i],j), y=392+r*166;
+    x.fillStyle=B.white;rr(x,70,y,940,148,28);x.fill();
+    x.fillStyle=B.ink;ajuste(x,nom,380,36,"800",FB);x.fillText(nom,100,y+86);
+    M.forEach((o,c)=>{cIcon(x,o.type,cols[c]-36,y+14,72,false);x.fillStyle=B.ink;x.font="800 40px "+FD;x.textAlign="center";x.fillText(o.t+"°",cols[c],y+130);x.textAlign="left"})});
+  return cv;
+}
+/* 5. Les conseils du jour (ceux de l'app, pour Marseille) */
+function conseilsPost(j){
+  const c=COMMUNES[idx("Marseille")], sauve=st.jour;let r;
+  st.jour=j;try{r=conseils(meteo(c,st.scen,j),c,1).liste}finally{st.jour=sauve}
+  // Le post est lu le jour même : on retire les « demain »
+  const jourMeme=t=>t.replace("toute la journée de demain","toute la journée").replace(" demain matin"," ce matin").replace(" demain après-midi"," cet après-midi").replace("Tenue de demain","Tenue du jour").replace("Par rapport à aujourd'hui,","Par rapport à hier,").replace("Chaussée mouillée demain","Chaussée mouillée");
+  return r.map(o=>({cat:o.cat,warn:o.warn,txt:j>0?jourMeme(o.txt):o.txt}));
+}
+function slideConseils(j){
+  const [cv,x]=toile(), R=bilanDep(j), L=conseilsPost(j);
+  entete(x,5,R.al?"Les consignes":"Les conseils du jour",j,R.al);
+  L.slice(0,3).forEach((o,i)=>{const y=300+i*310;
+    x.fillStyle=B.white;rr(x,70,y,940,286,32);x.fill();
+    x.fillStyle=o.warn?B.alert:B.brand;rr(x,100,y+34,64,64,20);x.fill();
+    x.fillStyle=B.white;x.font="800 38px "+FD;x.textAlign="center";x.fillText(String(i+1),132,y+80);x.textAlign="left";
+    x.fillStyle=o.warn?B.alert:B.brand;x.font="800 26px "+FB;x.fillText((CAT[o.cat]||"").toUpperCase(),188,y+78);
+    x.fillStyle=B.ink;x.font="700 32px "+FB;wrapText(x,o.txt,100,y+138,880,41,4)});
+  return cv;
+}
+/* 6. Les trois jours suivants */
+function slideSuite(j){
+  const [cv,x]=toile(), R0=bilanDep(j);
+  entete(x,6,"Et les jours suivants ?",j,R0.al);
+  [1,2,3].forEach((d,i)=>{const R=bilanDep(j+d), y=300+i*310, jour=cap(dayDate(j+d).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric"}));
+    x.fillStyle=B.white;rr(x,70,y,940,286,32);x.fill();
+    cIcon(x,R.dom,100,y+58,170,false);
+    x.fillStyle=B.muted;x.font="800 28px "+FB;x.fillText(jour.toUpperCase(),310,y+78);
+    x.fillStyle=B.ink;ajuste(x,TITRE[R.dom]||LIB[R.dom],480,50,"800",FD);x.fillText(TITRE[R.dom]||LIB[R.dom],310,y+146);
+    x.fillStyle=B.muted;x.font="700 28px "+FB;
+    x.fillText("Rafales "+R.vent.m.raf+" km/h · "+(R.pluie.m.pl>=0.3?"pluie jusqu'à "+mm(R.pluie.m.pl):"pas de pluie"),310,y+200);
+    x.textAlign="right";x.fillStyle=B.ink;x.font="800 64px "+FD;x.fillText(R.chaud.m.max+"°",984,y+130);
+    x.fillStyle=B.muted;x.font="700 28px "+FB;x.fillText("min "+R.min+"°",984,y+178);x.textAlign="left"});
+  return cv;
+}
+/* 7. Le sourire du jour, puis le lien vers l'app */
+function slideFin(j){
+  const [cv,x]=toile(), R=bilanDep(j), al=R.al, c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,j);
+  x.fillStyle=al?B.alert:B.sun;x.fillRect(0,0,1080,1350);
+  x.fillStyle=al?B.white:B.sunInk;x.font="800 30px "+FB;x.fillText(al?"VIGILANCE":"LE SOURIRE DU JOUR",70,150);
+  x.font="800 28px "+FB;x.textAlign="right";x.fillText("7 / 7",1010,150);x.textAlign="left";
+  const txt=al?al.cons.slice(0,2).join(" "):motDuJour(c,m,j);
+  let fs=76;x.font="700 "+fs+"px "+FD;
+  const lignes=t=>{const w=t.split(" ");let l="",n=1;for(const k of w){const u=l?l+" "+k:k;if(x.measureText(u).width>940&&l){n++;l=k}else l=u}return n};
+  while(lignes(txt)*fs*1.18>640&&fs>40){fs-=4;x.font="700 "+fs+"px "+FD}
+  const lh=Math.round(fs*1.18);wrapText(x,txt,70,Math.round(210+(710-lignes(txt)*lh)/2+fs),940,lh,12);
+  x.fillStyle=B.ink;rr(x,70,960,940,300,40);x.fill();
+  drawMark(x,160,1050,110,true);
+  x.fillStyle=B.white;x.font="800 44px "+FD;x.fillText(COMMUNES.length+" communes,",250,1040);x.fillText("heure par heure.",250,1094);
+  x.fillStyle=B.sun;x.font="800 34px "+FB;x.fillText("Lien en bio · "+PSEUDO,110,1180);
+  x.fillStyle=B.white;x.globalAlpha=.8;x.font="700 28px "+FB;x.fillText("Enregistrez ce post, partagez-le à un voisin.",110,1226);x.globalAlpha=1;
   return cv;
 }
 function slideStory(){
   const cv=document.createElement("canvas");cv.width=1080;cv.height=1920;const x=cv.getContext("2d");
-  const al=SCEN[st.scen].alert;
+  const J=postJour, al=bilanDep(J).al;
   x.fillStyle=al?B.alert:B.ink;x.fillRect(0,0,1080,1920);
   drawMark(x,135,190,130,true);
   logoCanvas(x,230,210,70,B.white,al?B.white:B.sun);
-  x.fillStyle=B.white;x.globalAlpha=.85;x.font="700 34px "+FB;x.fillText(fmt(today),70,330);x.globalAlpha=1;
-  x.font="800 64px "+FD;x.fillText(al?al.titre:"Aujourd'hui dans le 13",70,420);
+  x.fillStyle=B.white;x.globalAlpha=.85;x.font="700 34px "+FB;x.fillText(fmt(dayDate(J)),70,330);x.globalAlpha=1;
+  x.font="800 64px "+FD;x.fillText(al?al.titre:"Le temps du jour",70,420);
   ORDRE.forEach((k,i)=>{
-    const c=COMMUNES[idx(SECTEURS[k].v[0])], m=meteo(c,st.scen,0), y=480+i*120;
+    const c=COMMUNES[idx(SECTEURS[k].v[0])], m=meteo(c,st.scen,J), y=480+i*120;
     x.fillStyle="rgba(255,255,255,.1)";rr(x,70,y,940,100,26);x.fill();
     cIcon(x,m.type,96,y+18,64,true);
     x.fillStyle=B.white;x.font="700 36px "+FB;x.fillText(SECTEURS[k].n,184,y+63);
     x.textAlign="right";x.font="800 48px "+FD;x.fillText(m.max+"°",900,y+68);
     x.font="700 30px "+FB;x.globalAlpha=.7;x.fillText(m.min+"°",985,y+66);x.globalAlpha=1;x.textAlign="left";
   });
-  const c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,0);
-  const txt=al?al.cons.slice(0,2).join(" "):motDuJour(c,m,0);
+  const c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,J);
+  const txt=al?al.cons.slice(0,2).join(" "):motDuJour(c,m,J);
   x.fillStyle=al?B.white:B.sun;rr(x,70,1230,940,290,40);x.fill();
   x.fillStyle=al?B.alert:B.sunInk;x.font="800 28px "+FB;x.fillText(al?"CONSIGNES":"LE SOURIRE DU JOUR",112,1292);
   x.font="600 44px "+FD;wrapText(x,txt,112,1354,856,54,3);
@@ -1957,15 +2150,17 @@ function addSlide(box,cv,label,file,cls){
   d.append(img,meta);box.appendChild(d);
 }
 let dl=null;
+document.querySelectorAll("#postJour .chip").forEach(b=>b.addEventListener("click",()=>{postJour=+b.dataset.j;buildSlides()}));
 async function buildSlides(){
   try{await Promise.all(['800 60px "Bricolage Grotesque"','600 40px "Bricolage Grotesque"','800 30px "Nunito Sans"','700 30px "Nunito Sans"'].map(f=>document.fonts.load(f)))}catch(e){}
-  const day=today.toISOString().slice(0,10);
+  const J=postJour, dj=dayDate(J), day=dj.getFullYear()+"-"+String(dj.getMonth()+1).padStart(2,"0")+"-"+String(dj.getDate()).padStart(2,"0");
+  document.querySelectorAll("#postJour .chip").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.j===J)));
   const box=$("slides");box.innerHTML="";
-  [slideCover(),...ORDRE.map((k,i)=>slideSecteur(k,i+2))].forEach((cv,i)=>addSlide(box,cv,"Image "+(i+1)+" / 7","lameteodeleo-"+day+"-"+(i+1)+".jpg"));
+  [slideCover(J),slideCarte(J),slideSecteurs(J),slideJournee(J),slideConseils(J),slideSuite(J),slideFin(J)].forEach((cv,i)=>addSlide(box,cv,"Image "+(i+1)+" / 7","lameteodeleo-"+day+"-"+(i+1)+".jpg"));
   const sb=$("storyBox");sb.innerHTML="";addSlide(sb,slideStory(),"Story du jour","lameteodeleo-"+day+"-story.jpg","story");
-  const al=SCEN[st.scen].alert, c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,0);
-  const lines=ORDRE.map(k=>{const cc=COMMUNES[idx(SECTEURS[k].v[0])],mm=meteo(cc,st.scen,0);return "• "+SECTEURS[k].n+" : "+mm.max+"°, "+LIB[mm.type].toLowerCase()});
-  $("caption").value=(al?("⚠️ "+al.titre+" sur les Bouches-du-Rhône.\n\n"+al.cons.join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr"):(motDuJour(c,m,0)+"\n\n"+lines.join("\n")+"\n\nTa commune n'est pas dans la liste ? La météo des "+COMMUNES.length+" communes : lien en bio.\nEt chez vous, il fait quoi ? 👇"))+"\n\n#meteo #provence #bouchesdurhone #marseille #aixenprovence #mistral #lameteodeleo"+(al?"":" #humour");
+  const R=bilanDep(J), al=R.al, c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,J);
+  const lines=ORDRE.map(k=>{const b=bilanSecteur(k,J);return "• "+SECTEURS[k].n+" : "+b.min+"° à "+b.max+"°, "+LIB[b.type].toLowerCase()});
+  $("caption").value=(al?("⚠️ "+al.titre+" sur les Bouches-du-Rhône.\n\n"+al.cons.join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr"):(motDuJour(c,m,J)+"\n\n"+fmt(dj)+" : "+(TITRE[R.dom]||LIB[R.dom]).toLowerCase()+(R.sec?", et "+AUSSI[R.sec]+" par endroits":"")+".\n"+lines.join("\n")+"\n\nLa météo de chaque commune, heure par heure : lien en bio.\nEt chez vous, il fait quoi ? 👇"))+"\n\n#meteo #provence #bouchesdurhone #marseille #aixenprovence #mistral #lameteodeleo"+(al?"":" #humour");
 }
 /* Logo en image : icône d'app (carrée) et photo de profil Instagram (ronde) */
 function drawMark(x,cx,cy,s,bg){
@@ -2069,7 +2264,10 @@ function route(){
   $("t-meteo").toggleAttribute("aria-current",v==="meteo");$("t-secteurs").toggleAttribute("aria-current",v==="secteurs");
   if(v==="meteo"){$("t-meteo").setAttribute("aria-current","page");render()}
   if(v==="secteurs"){$("t-secteurs").setAttribute("aria-current","page");renderSecteurs()}
-  if(v==="studio"){markScen();buildAssets();buildKit();buildSlides()}
+  if(v==="studio"){markScen();buildAssets();buildKit();buildSlides();
+    const q=DATA&&DATA.qualite, ql=$("qualiteLigne");
+    if(q){ql.hidden=false;ql.textContent="Contrôle qualité de la dernière mise à jour ("+DATA.maj.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}).replace(":"," h ")+") : "+q.validees+" communes validées sur "+q.total+(q.ajustees?", "+q.ajustees+" valeur"+(q.ajustees>1?"s":"")+" ajustée"+(q.ajustees>1?"s":""):"")+(q.ecartees&&q.ecartees.length?". Écartées : "+q.ecartees.join(", ")+".":".")+(DATA.vigilance?" Vigilance Météo-France lue (bulletin de "+heureV(new Date(DATA.vigilance.maj||DATA.maj))+").":" Vigilance Météo-France : non lue.")}
+    else ql.hidden=true}
   window.scrollTo(0,0);
 }
 window.addEventListener("hashchange",()=>{studioOuvert=false;route()});

@@ -1,12 +1,12 @@
-# La météo de Léo : mise à jour automatique toutes les heures et mise en ligne sur GitHub Pages.
+# La météo de Léo : mise à jour automatique toutes les 2 heures et mise en ligne sur GitHub Pages.
 name: Mise à jour météo
 
 on:
   schedule:
-       - cron: "17 */2 * * *"
+    - cron: "17 */2 * * *" # toutes les 2 heures, à la minute 17 (heure UTC) ; le « Maintenant » de l app est en direct
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches: [main]      # et à chaque modification du code
+  workflow_dispatch:      # bouton « Run workflow » pour lancer à la main
 
 permissions:
   contents: read
@@ -27,6 +27,8 @@ jobs:
           node-version: 20
       - name: Récupérer les prévisions et préparer le site
         run: node scripts/update.mjs
+        env:
+          MF_VIGILANCE_KEY: ${{ secrets.MF_VIGILANCE_KEY }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
