@@ -270,6 +270,11 @@ function controler(liste, aujourdhui) {
           if (hMax - max > 6 || min - hMin > 6) pb.push(date + " : heures et journée incohérentes (" + hMin + " à " + hMax + " contre " + min + " à " + max + ")");
           else { if (hMax > max) { J[2] = hMax; corrections++; } if (hMin < min) { J[3] = hMin; corrections++; } }
         }
+        // Rafales : la rafale maximale du jour ne peut pas être plus faible qu'une rafale prévue heure par heure
+        const rafH = [];
+        if (x.h && x.h[k]) for (const e of x.h[k]) if (e && nombre(e[3])) rafH.push(e[3]);
+        if (x.n24) for (const e of x.n24) if (e[0].slice(0, 10) === date && nombre(e[4])) rafH.push(e[4]);
+        if (rafH.length && Math.max(...rafH) > raf) { J[4] = Math.max(...rafH); corrections++; }
       });
       if (!x.n24 || x.n24.length < 12) pb.push("moins de 12 heures à venir");
     }
@@ -355,6 +360,12 @@ if (liste.some(x => !x.d)) {
   } catch (e) { console.warn("Reprise de la mise à jour précédente impossible : " + e.message); }
 }
 const recues = liste.filter(x => x.d);
+// Journal de contrôle : quelques communes témoins, pour comparer la journée et ses heures
+for (const n of ["Marseille", "Aix-en-Provence", "Arles"]) {
+  const x = liste.find(y => y.n === n); if (!x || !x.d) continue;
+  for (const k of [0, 1]) console.log(`Témoin ${n} ${x.d[k][0]} : code ${x.d[k][1]}, ${x.d[k][3]}° à ${x.d[k][2]}°, rafales ${x.d[k][4]} km/h, pluie ${x.d[k][6]} mm · heures 7→21 h : ` +
+    (x.h[k] || []).map(e => e && e[0] != null ? `${e[0]}°/${e[1]}/${e[3]}` : "-").join(" "));
+}
 const aujourdhui = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
 const bilan = controler(recues, aujourdhui), ok = bilan.valides;
 console.log(`Contrôle qualité : ${ok.length}/${liste.length} communes validées, ${bilan.corrections} valeur(s) ajustée(s), ${bilan.rejets.length} commune(s) écartée(s)`);
