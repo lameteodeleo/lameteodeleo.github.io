@@ -1691,6 +1691,16 @@ const ECHELLES={
   pluie:{titre:"Pluie de la journée",unite:" mm",seuil:1,classes:[[1,"#BFE3FB","1 à 5"],[5,"#5AAEF0","5 à 15"],[15,"#1F63D6","15 à 30"],[30,"#F5A623","30 à 50"],[50,"#E0362C","50 et +"]],rien:"Sec",val:m=>m.pl},
   vent:{titre:"Rafales de vent",unite:" km/h",seuil:30,classes:[[30,"#FFE86A","30 à 50"],[50,"#F9A533","50 à 70"],[70,"#E8502E","70 à 90"],[90,"#9E1B4F","90 et +"]],rien:"Calme",val:m=>m.raf}
 };
+/* Températures : des classes calculées sur l'écart du jour, pour que 15° et 20° ne se ressemblent pas.
+   Du bleu (le plus frais du jour) au rouge (le plus chaud) ; la légende donne les degrés exacts. */
+const PAL_T=["#3D8BE0","#4FC3C8","#9BD46A","#F5D63D","#F5962E","#E0412A"];
+function preparerTemp(vals){
+  const e=ECHELLES.temp;vals=vals.filter(v=>v!=null);
+  if(!vals.length){e.classes=null;return}
+  const lo=Math.min(...vals), hi=Math.max(...vals), n=Math.min(6,hi-lo+1), w=Math.ceil((hi-lo+1)/n);
+  e.classes=[];for(let k=0;k*w+lo<=hi;k++){const a=lo+k*w,b=Math.min(hi,a+w-1);e.classes.push([a,null,a===b?a+"°":a+" à "+b+"°"])}
+  const nb=e.classes.length;e.classes.forEach((c,k)=>c[1]=PAL_T[nb<3?2+k:Math.round(k*5/(nb-1))]);
+}
 function couleurCarte(v,mode){
   const e=ECHELLES[mode], S=e.stops;
   if(v==null||(e.seuil!=null&&v<e.seuil)) return null;
@@ -1704,6 +1714,7 @@ function dessinerZones(){
   if(!LMAP||!LFOND) return;
   if(LZONES) LMAP.removeLayer(LZONES);
   const C=LFOND._C, sombre=LFOND._style==="sombre", g=L.layerGroup(), vals=[];
+  if(mapMode==="temp") preparerTemp(CARTE13.pol.map(([nom])=>{const i=idx(nom);return i>=0?meteo(COMMUNES[i],st.scen,mapJour).max:null}));
   for(const [nom,...anneaux] of CARTE13.pol){
     const i=idx(nom), m=i>=0?meteo(COMMUNES[i],st.scen,mapJour):null, v=m?ECHELLES[mapMode].val(m):null, col=couleurCarte(v,mapMode);
     if(v!=null) vals.push({v,nom});
@@ -1726,8 +1737,8 @@ function dessinerZones(){
     (maxi.v<30?quand+", <b>vent faible</b> partout.":quand+", les plus fortes rafales : <b>"+maxi.nom+" ("+maxi.v+" km/h)</b>."+(mini.v<30?" Ailleurs, le vent reste faible.":" Le plus calme : "+mini.nom+" ("+mini.v+" km/h)."));
   leg.hidden=false;
   if(e.classes){
-    const pas=[["",C.terre,e.rien]].concat(e.classes);
-    leg.innerHTML='<div class="classes">'+pas.map(([,col,lab])=>'<span><i style="background:'+col+'"></i>'+lab+'</span>').join("")+'</div><div class="mots"><span>en '+e.unite.trim()+'</span></div>';
+    const pas=(e.rien?[["",C.terre,e.rien]]:[]).concat(e.classes);
+    leg.innerHTML='<div class="classes">'+pas.map(([,col,lab])=>'<span><i style="background:'+col+'"></i>'+lab+'</span>').join("")+'</div>'+(mapMode==="temp"?'<div class="mots"><span>Couleurs du plus frais au plus chaud du jour</span></div>':'<div class="mots"><span>en '+e.unite.trim()+'</span></div>');
     return}
   let lo=mini.v, hi=maxi.v;
   if(mapMode==="temp"){lo=Math.floor(lo/5)*5;hi=Math.ceil(hi/5)*5;if(hi-lo<10){hi=lo+10}}
@@ -2013,6 +2024,7 @@ function slideCarte(j){
   const P=(la,lo)=>[ox+(lo-lon0)*k*sc,oy+(lat0-la)*sc];
   const trace=r=>{r.forEach((p,i)=>{const [a,b]=P(p[0],p[1]);i?x.lineTo(a,b):x.moveTo(a,b)});x.closePath()};
   const val={};R.L.forEach(o=>val[o.nom]=e.val(o.m));
+  if(mode==="temp") preparerTemp(R.L.map(o=>o.m.max));
   x.lineJoin="round";
   for(const [nom,...an] of CARTE13.pol){const v=val[nom];
     an.forEach(r=>{x.beginPath();trace(r);x.fillStyle=(v!=null&&couleurCarte(v,mode))||"#E4E0F2";x.fill();x.strokeStyle="rgba(255,255,255,.85)";x.lineWidth=1.5;x.stroke()})}
@@ -2029,9 +2041,9 @@ function slideCarte(j){
     x.fillStyle=B.white;x.font="800 24px "+FB;x.fillText(court,px+14,py+31);x.fillStyle=B.sun;x.font="800 26px "+FD;x.fillText(txtV(val[nom]),px+14+w1,py+32)});
   // Légende
   if(e.classes){
-    const pas=[["","#E4E0F2",e.rien]].concat(e.classes);let px=70;x.font="700 26px "+FB;
+    const pas=(e.rien?[["","#E4E0F2",e.rien]]:[]).concat(e.classes);let px=70;x.font="700 26px "+FB;
     pas.forEach(([,col,lab])=>{x.fillStyle=col;rr(x,px,1052,30,30,7);x.fill();x.strokeStyle="#D6D1EA";x.lineWidth=1.5;x.stroke();x.fillStyle=B.muted;x.fillText(lab,px+40,1076);px+=40+x.measureText(lab).width+30});
-    x.fillText(e.unite.trim(),Math.min(px,960),1076);
+    if(mode!=="temp")x.fillText(e.unite.trim(),Math.min(px,960),1076);
   }else{
   const vs=R.L.map(o=>e.val(o.m));let lo=Math.min(...vs),hi=Math.max(...vs);
   if(mode==="temp"){lo=Math.floor(lo/5)*5;hi=Math.ceil(hi/5)*5;if(hi-lo<10)hi=lo+10}else if(mode==="pluie"){lo=0;hi=Math.max(10,Math.ceil(hi/10)*10)}else{lo=0;hi=Math.max(60,Math.ceil(hi/20)*20)}
