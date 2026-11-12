@@ -2285,7 +2285,8 @@ async function buildAssets(){
 }
 /* ---------- Kit de lancement Instagram ---------- */
 const KIT={
- bio:"La météo des Bouches-du-Rhône, commune par commune ☀️\nDes prévisions sérieuses, le sourire en plus 😉\n👇 L'app gratuite",
+ nom:"La météo de Léo | Bouches-du-Rhône",
+ bio:"☀️ La météo de votre commune, heure par heure\n📍 125 communes, de Marseille à Arles\n⚠️ Vigilances Météo-France\n😉 Le sourire en plus\n👇 App gratuite",
  pins:[
   {titre:"C'est quoi La météo de Léo ?",points:["La météo de toutes les communes du 13 et de quelques voisines.","Des prévisions fiables, issues des modèles de Météo-France.","Le sourire du jour pour bien commencer la journée.","Vigilance orange ou rouge : plus de blague, seulement les consignes.","Gratuit, sans inscription : lien en bio."],
    legende:"Bienvenue sur La météo de Léo ☀️\n\nLa météo de votre commune, avec des chiffres sérieux et le sourire du jour. Et quand Météo-France passe en vigilance orange ou rouge, les blagues s'effacent : il ne reste que les consignes.\n\nL'app est gratuite : lien en bio.\n\n#meteo #bouchesdurhone #provence #lameteodeleo"},
@@ -2332,6 +2333,7 @@ async function buildKit(){
   const bloc=(titre,html,copie)=>'<div class="card kit"><div class="row"><h3>'+titre+'</h3>'+(copie!=null?'<button class="sbtn" type="button" data-copy="'+copie+'">Copier</button>':'')+'</div>'+html+'</div>';
   const esc=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;");
   k.innerHTML=
+    bloc("Nom du profil",'<p class="txt">'+esc(KIT.nom)+'</p><span class="sub">À mettre dans le champ « Nom ». Le nom d\'utilisateur, lui, est '+PSEUDO.slice(1)+'. Instagram cherche aussi dans ce champ : « Bouches-du-Rhône » aide les gens du coin à te trouver.</span>',"nom")+
     bloc("Bio du profil",'<p class="txt">'+esc(KIT.bio)+'</p><span class="sub">'+KIT.bio.length+' caractères sur 150 autorisés. Ajoute le lien de l\'app dans le champ « Liens ».</span>',"bio")+
     bloc("Rythme de publication",'<ul>'+KIT.rythme.map(t=>"<li>"+esc(t)+"</li>").join("")+'</ul>')+
     bloc("Idées de Reels",'<ol>'+KIT.reels.map(t=>"<li>"+esc(t)+"</li>").join("")+'</ol>')+
@@ -2341,7 +2343,7 @@ async function buildKit(){
   const hb=$("hlBox");hb.innerHTML="";HL.forEach(([kind,label])=>addSlide(hb,slideHighlight(kind),label,CLE+"-une-"+kind+".jpg","hl"));
   kitBuilt=true;
 }
-$("kit").addEventListener("click",e=>{const b=e.target.closest("[data-copy]");if(!b)return;const k=b.dataset.copy;const t=k==="bio"?KIT.bio:k==="hashtags"?KIT.hashtags:KIT.pins[+k.slice(3)].legende;copyText(t,b,"Copié !")});
+$("kit").addEventListener("click",e=>{const b=e.target.closest("[data-copy]");if(!b)return;const k=b.dataset.copy;const t=k==="bio"?KIT.bio:k==="nom"?KIT.nom:k==="hashtags"?KIT.hashtags:KIT.pins[+k.slice(3)].legende;copyText(t,b,"Copié !")});
 $("copyCap").addEventListener("click",e=>copyText($("caption").value,e.currentTarget,"Légende copiée !"));
 
 /* ---------- Navigation ---------- */
