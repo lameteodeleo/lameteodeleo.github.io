@@ -133,14 +133,26 @@ function appliquerMF(x, p) {
 }
 
 async function previsions(liste) {
+  const rates = [];
   for (let i = 0; i < liste.length; i += 25) {
     const lot = liste.slice(i, i + 25);
+    if (i > 0) await pause(6000); // on étale les demandes pour rester sous la limite par minute d'Open-Meteo
+    try { await traiterLot(lot); }
+    catch (e) { console.warn(`Lot ${i / 25 + 1} sans prévisions : ${e.message}`); rates.push([i / 25 + 1, lot]); }
+    await pause(1200);
+  }
+  // Deuxième chance pour les lots en échec (coupure passagère du réseau ou du service)
+  for (const [n, lot] of rates) {
+    await pause(30000);
+    try { await traiterLot(lot); console.log(`Lot ${n} récupéré au second passage`); }
+    catch (e) { console.warn(`Lot ${n} toujours sans prévisions : ${e.message}`); }
+  }
+}
+async function traiterLot(lot) {
+  {
     const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lot.map(x => x.lat.toFixed(4)).join(",") +
       "&longitude=" + lot.map(x => x.lon.toFixed(4)).join(",") + "&" + PARAMS.toString();
-    if (i > 0) await pause(6000); // on étale les demandes pour rester sous la limite par minute d'Open-Meteo
-    let rep;
-    try { rep = await lireJSON(url); }
-    catch (e) { console.warn(`Lot ${i / 25 + 1} sans prévisions : ${e.message}`); continue; }
+    let rep = await lireJSON(url);
     if (!Array.isArray(rep)) rep = [rep];
     // Météo-France : un bonus, si la demande échoue on garde le modèle global
     let mf = null;
@@ -175,7 +187,6 @@ async function previsions(liste) {
       }));
       if (mf && mf[j]) appliquerMF(x, mf[j]);
     });
-    await pause(1200);
   }
 }
 
@@ -324,13 +335,28 @@ async function bonus(nom, f) { try { return await f(); } catch (e) { console.war
 // 5. Construction du site
 const liste = await communes();
 await previsions(liste);
+// Communes restées sans prévisions : on reprend celles de la mise à jour précédente si elle a moins de 5 heures,
+// plutôt que de faire disparaître la commune de l'app. Le contrôle qualité les vérifie comme les autres.
+let reprises = 0;
+if (liste.some(x => !x.d)) {
+  try {
+    const prec = await lireJSON("https://lameteodeleo.github.io/data/meteo.json?t=" + Date.now(), 2);
+    if (Date.now() - new Date(prec.maj).getTime() < 5 * 3600e3) {
+      for (const x of liste) if (!x.d) {
+        const a = prec.communes.find(c => c.n === x.n);
+        if (a && a.d) { x.cur = a.cur; x.d = a.d; x.h = a.h; x.n24 = a.n24; x.mf = 1; reprises++; }
+      }
+    }
+    console.log(`${reprises} commune(s) reprise(s) de la mise à jour précédente`);
+  } catch (e) { console.warn("Reprise de la mise à jour précédente impossible : " + e.message); }
+}
 const recues = liste.filter(x => x.d);
 const aujourdhui = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
 const bilan = controler(recues, aujourdhui), ok = bilan.valides;
 console.log(`Contrôle qualité : ${ok.length}/${liste.length} communes validées, ${bilan.corrections} valeur(s) ajustée(s), ${bilan.rejets.length} commune(s) écartée(s)`);
 for (const r of bilan.rejets) console.warn(`  écartée : ${r.n} (${r.pb.join(" ; ")})`);
 console.log(`Météo-France appliqué à ${ok.filter(x => x.mf).length}/${ok.length} communes`);
-if (ok.length < 100 || bilan.rejets.length > 12) throw new Error(`Contrôle qualité : ${ok.length} communes validées et ${bilan.rejets.length} écartées. Rien n'est publié, la version précédente reste en ligne.`);
+if (liste.length - ok.length > 12) throw new Error(`Contrôle qualité : ${ok.length} communes validées sur ${liste.length} (${bilan.rejets.length} écartées, ${liste.length - recues.length} sans prévisions). Rien n'est publié, la version précédente reste en ligne.`);
 const qualiteAir = await bonus("Qualité de l'air", () => air(ok));
 const laMer = await bonus("Mer", mer);
 // Département de chaque commune (code INSEE), pour lui associer la bonne vigilance
@@ -341,7 +367,7 @@ await writeFile("site/data/meteo.json", JSON.stringify({
   maj: new Date().toISOString(),
   source: "Open-Meteo (CC BY 4.0) : modèles Météo-France AROME et ARPEGE, complétés par le modèle global",
   mf: ok.filter(x => x.mf).length,
-  qualite: { validees: ok.length, total: liste.length, ajustees: bilan.corrections, ecartees: bilan.rejets.map(r => r.n) },
+  qualite: { validees: ok.length, total: liste.length, ajustees: bilan.corrections, reprises, ecartees: bilan.rejets.map(r => r.n) },
   alertes: null,
   vigilance: vig,
   air: qualiteAir,
