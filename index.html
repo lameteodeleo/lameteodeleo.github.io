@@ -2385,15 +2385,25 @@ async function creerReel(btn){
   const stream=cv.captureStream(30),rec=new MediaRecorder(stream,{mimeType:type,videoBitsPerSecond:8e6}),morceaux=[];
   rec.ondataavailable=e=>{if(e.data&&e.data.size)morceaux.push(e.data)};
   btn.disabled=true;out.innerHTML='<span class="sub" id="reelEtat">Création en cours… 0 %</span>';
+  // Aperçu en direct : le dessin reste à l'écran, ce qui évite que le téléphone le mette en pause
+  cv.style.cssText="width:140px;height:auto;border-radius:12px;display:block;margin-top:8px";out.appendChild(cv);
+  // Empêche la mise en veille de l'écran pendant la création (si le téléphone le permet)
+  let verrou=null;try{if(navigator.wakeLock)verrou=await navigator.wakeLock.request("screen")}catch(e){}
   const fini=new Promise(res=>rec.onstop=res);rec.start(500);
-  const t0=performance.now();
-  await new Promise(res=>{const tick=()=>{const t=(performance.now()-t0)/1000;if(t>=total+.2){res();return}
+  // Le temps de la vidéo n'avance que quand la page est visible : si l'écran s'éteint ou si on change d'appli, tout se met en pause
+  let t=0,prec=performance.now(),pause=false;
+  const vis=()=>{if(document.hidden){if(rec.state==="recording")rec.pause();pause=true}else{if(rec.state==="paused")rec.resume();pause=false;prec=performance.now()}};
+  document.addEventListener("visibilitychange",vis);
+  await new Promise(res=>{const tick=()=>{const now=performance.now();if(!pause)t+=Math.min(.1,(now-prec)/1000);prec=now;
+    if(t>=total+.2){res();return}
     let k=0,acc=0;while(k<SC.length-1&&t>=acc+SC[k].d){acc+=SC[k].d;k++}
     const tl=t-acc;scene(SC[k],tl);progression(k,Math.min(1,tl/SC[k].d));
-    const e=$("reelEtat");if(e)e.textContent="Création en cours… "+Math.min(100,Math.round(t/total*100))+" %";requestAnimationFrame(tick)};tick()});
-  rec.stop();await fini;btn.disabled=false;
+    const e=$("reelEtat");if(e)e.textContent=(pause?"En pause : reviens sur cette page… ":"Création en cours… ")+Math.min(100,Math.round(t/total*100))+" %";requestAnimationFrame(tick)};tick()});
+  document.removeEventListener("visibilitychange",vis);
+  rec.stop();await fini;btn.disabled=false;try{if(verrou)verrou.release()}catch(e){}
   const ext=type.startsWith("video/mp4")?"mp4":"webm",blob=new Blob(morceaux,{type:type.split(";")[0]}),file="lameteodeleo-"+SLIDES_JOUR+"-reel."+ext,url=URL.createObjectURL(blob);
   out.innerHTML='<video src="'+url+'" controls playsinline muted style="width:100%;max-width:280px;border-radius:14px;display:block"></video>';
+  {const v=out.querySelector("video");v.addEventListener("loadedmetadata",()=>{if(isFinite(v.duration)&&v.duration<total-1.5){const n=document.createElement("p");n.className="alert";n.style.marginTop="8px";n.innerHTML="<span><b>Vidéo incomplète ("+Math.round(v.duration)+" s au lieu de "+Math.round(total)+" s).</b> Touche à nouveau «&nbsp;Créer la vidéo&nbsp;» en gardant l'écran allumé, sans changer d'appli.</span>";out.appendChild(n)}})}
   const meta=document.createElement("div");meta.className="chips";meta.style.marginTop="8px";
   if(dl){const b=document.createElement("button");b.type="button";b.className="chip";b.textContent="Enregistrer la vidéo";b.addEventListener("click",async()=>{try{await dl.save({filename:file,data:blob});flash(b,"Enregistrée")}catch(e){if(e&&e.code!=="declined")flash(b,"Impossible ici")}});meta.appendChild(b)}
   else{const a=document.createElement("a");a.className="chip";a.textContent="Enregistrer la vidéo";a.download=file;a.href=url;a.style.textDecoration="none";meta.appendChild(a)}
