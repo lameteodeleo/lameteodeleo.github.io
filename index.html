@@ -143,7 +143,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .hnav svg{width:18px;height:18px}.hnav.g{left:-8px}.hnav.d{right:-8px}.hnav[hidden]{display:none}
 .hour{flex:0 0 56px;display:flex;flex-direction:column;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
 .hour small{color:var(--muted);font-size:.75rem;font-weight:700}
-.hour svg{width:30px;height:30px}
+.hour svg{width:36px;height:36px}
 .hour b{font-size:.98rem}
 .hour .p{font-size:.7rem;font-weight:800;color:var(--cool);min-height:1.1em;white-space:nowrap}
 .hour .p svg{width:.85em;height:.85em;vertical-align:-1px;margin-right:2px}
@@ -154,7 +154,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .day[aria-pressed="true"]{background:var(--brand-soft);border-radius:14px;border-top-color:transparent}
 .day[aria-pressed="true"]+.day{border-top-color:transparent}
 .day .dn{font-weight:800}
-.day svg{width:28px;height:28px}
+.day svg{width:32px;height:32px}
 .day .ic{display:flex;flex-direction:column;align-items:center;gap:0}
 .days-note{margin:8px 4px 0;font-size:.8rem;color:var(--muted);line-height:1.4}.days-note svg{width:11px;height:11px;color:var(--cool);vertical-align:-1px}
 .day .ic small.nuit{display:inline-flex;align-items:center;gap:2px}.day .ic small.nuit svg{width:11px;height:11px}
@@ -195,7 +195,7 @@ footer{line-height:1.35}
 .scard h3 small{font-family:var(--f-body);font-weight:700;color:var(--muted);font-size:.8rem}
 .crow{display:grid;grid-template-columns:28px 1fr auto auto;align-items:center;gap:10px;width:100%;border:0;background:none;padding:9px 0;cursor:pointer;text-align:left;font-variant-numeric:tabular-nums}
 .crow+.crow{border-top:1px solid var(--line)}
-.crow svg{width:26px;height:26px}
+.crow svg{width:30px;height:30px}
 .crow .n{font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .crow .lo{color:var(--muted)}
 .crow .hi{font-weight:800;min-width:34px;text-align:right}
@@ -692,8 +692,8 @@ const hash=t=>{let h=2166136261;for(const ch of t){h^=ch.charCodeAt(0);h=Math.im
 /* ---------- Icônes ---------- */
 /* Icônes au trait, même épaisseur que le logo. Une seule géométrie, utilisée par l'app et par les visuels Instagram. */
 const PAL={sun:"var(--sun)",cloud:"var(--muted)",rain:"var(--cool)",wind:"var(--brand)",hot:"var(--alert)"};
-const circ=(cx,cy,r)=>"M"+(cx-r)+" "+cy+"a"+r+" "+r+" 0 1 0 "+(2*r)+" 0a"+r+" "+r+" 0 1 0 "+(-2*r)+" 0";
-function sunParts(cx,cy,r,ray,k){let d="";for(let a=0;a<8;a++){const g=a*Math.PI/4,c=Math.cos(g),sn=Math.sin(g);d+="M"+(cx+c*(r+4)).toFixed(1)+" "+(cy+sn*(r+4)).toFixed(1)+"L"+(cx+c*(r+4+ray)).toFixed(1)+" "+(cy+sn*(r+4+ray)).toFixed(1)}return [[circ(cx,cy,r),k],[d,k]]}
+const circ=(cx,cy,r)=>"M"+(cx-r)+" "+cy+"a"+r+" "+r+" 0 1 0 "+(2*r)+" 0a"+r+" "+r+" 0 1 0 "+(-2*r)+" 0z";
+function sunParts(cx,cy,r,ray,k,cache){let d="";for(let a=0;a<8;a++){if(cache&&a<=2)continue;const g=a*Math.PI/4,c=Math.cos(g),sn=Math.sin(g);d+="M"+(cx+c*(r+4)).toFixed(1)+" "+(cy+sn*(r+4)).toFixed(1)+"L"+(cx+c*(r+4+ray)).toFixed(1)+" "+(cy+sn*(r+4+ray)).toFixed(1)}return [[circ(cx,cy,r),k],[d,k]]}
 const cloudD=dy=>"M15 "+(37+dy)+"h19a7 7 0 0 0 .6-14a10 10 0 0 0-19.2 2.6A5.8 5.8 0 0 0 15 "+(37+dy)+"z";
 function iconParts(t){
   switch(t){
@@ -703,13 +703,13 @@ function iconParts(t){
     case "nuitNuageux": return [["M19 6a9 9 0 1 0 7 15a7 7 0 1 1-7-15z","sun"],[cloudD(3),"cloud"]];
     case "neige": return [[cloudD(-6),"cloud"],["M17 35v9M13.1 37.2l7.8 4.6M13.1 41.8l7.8-4.6M31 35v9M27.1 37.2l7.8 4.6M27.1 41.8l7.8-4.6","rain"]];
     case "vent": return [["M7 20h26a5 5 0 1 0-5-5M7 29h20a5 5 0 1 1-5 5M7 38h12","cloud"]];
-    case "nuageux": return [...sunParts(14,14,5,3,"sun"),[cloudD(3),"cloud"]];
+    case "nuageux": return [...sunParts(14,14,5,3,"sun",1),[cloudD(3),"cloud"]];
     case "mistral": return [["M7 18h22a5 5 0 1 0-5-5M7 26h29a5 5 0 1 1-5 5M7 34h14","wind"]];
     case "pluie": return [[cloudD(-6),"cloud"],["M17 37l-2 5M25 37l-2 5M33 37l-2 5","rain"]];
     case "couvert": return [["M21 15a9 9 0 0 1 16.5 3a6.5 6.5 0 0 1 4 11","cloud"],[cloudD(5),"cloud"]];
-    case "averses": return [...sunParts(12,12,4,2.5,"sun"),[cloudD(-3),"cloud"],["M20 39l-2 4.5M28 39l-2 4.5","rain"]];
+    case "averses": return [...sunParts(12,12,4,2.5,"sun",1),[cloudD(-3),"cloud"],["M20 39l-2 4.5M28 39l-2 4.5","rain"]];
     case "pluieForte": return [[cloudD(-7),"cloud"],["M14 35l-3 8M21 35l-3 8M28 35l-3 8M35 35l-3 8","rain"]];
-    case "bruine": return [[cloudD(-6),"cloud"],[circ(17,38,.6)+circ(25,38,.6)+circ(33,38,.6)+circ(21,43,.6)+circ(29,43,.6),"rain"]];
+    case "bruine": return [[cloudD(-6),"cloud"],[(circ(17,38,.6)+circ(25,38,.6)+circ(33,38,.6)+circ(21,43,.6)+circ(29,43,.6)).replace(/z/g,""),"rain"]];
     case "verglas": return [[cloudD(-6),"cloud"],["M18 36l-2 6","rain"],["M30 35v9M26.1 37.2l7.8 4.6M26.1 41.8l7.8-4.6","rain"]];
     case "orage": return [[cloudD(-6),"cloud"],["M26 32l-5 7h6l-3 6","sun"]];
     case "gel": return [["M24 7v34M9.3 15.5l29.4 17M9.3 32.5l29.4-17M20 10.5l4 3 4-3M20 37.5l4-3 4 3","rain"]];
@@ -717,7 +717,7 @@ function iconParts(t){
   }
 }
 const TYPES=["lune","nuitNuageux","soleil","nuageux","mistral","vent","pluie","gel","brouillard","neige","chaleur","orage","couvert","averses","pluieForte","bruine","verglas"];
-const ICONS={};TYPES.forEach(t=>ICONS[t]='<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">'+iconParts(t).map(([d,k])=>'<path d="'+d+'" stroke="'+PAL[k]+'"/>').join("")+'</g></svg>');
+const ICONS={};TYPES.forEach(t=>ICONS[t]='<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">'+iconParts(t).map(([d,k])=>'<path d="'+d+'" stroke="'+PAL[k]+'"'+(/z$/.test(d)?' fill="'+PAL[k]+'" fill-opacity=".22"':'')+'/>').join("")+'</g></svg>');
 const LIB={lune:"Nuit claire",nuitNuageux:"Nuit nuageuse",soleil:"Ensoleillé",nuageux:"Éclaircies",mistral:"Mistral",vent:"Vent fort",pluie:"Pluie",gel:"Gelée matinale",brouillard:"Brouillard",neige:"Neige",chaleur:"Très chaud",orage:"Orages",couvert:"Couvert",averses:"Averses",pluieForte:"Forte pluie",bruine:"Bruine",verglas:"Pluie verglaçante"};
 /* Icône plus précise, comme une météo pro (le type général reste utilisé pour les conseils et les textes).
    Couvert = ciel entièrement nuageux ; averses = pluie passagère avec éclaircies ; bruine = pluie très fine ; forte pluie ; pluie verglaçante. */
@@ -2040,7 +2040,8 @@ function rr(ctx,x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,
 function cIcon(ctx,t,x,y,s,dark,pal){
   const P=pal||(dark?{sun:"#F5C433",cloud:"#C9D6E3",rain:"#7EB6E9",wind:"#A99FF5",hot:"#FF8C82"}:{sun:"#E0A400",cloud:"#5B6F83",rain:"#3A79B3",wind:"#4B3BB8",hot:"#B3261E"});
   ctx.save();ctx.translate(x,y);ctx.scale(s/48,s/48);ctx.lineWidth=3.4;ctx.lineCap="round";ctx.lineJoin="round";
-  iconParts(t).forEach(([d,k])=>{ctx.strokeStyle=P[k];ctx.stroke(new Path2D(d))});
+  // Formes pleines légèrement teintées (soleil, nuage, lune), comme les icônes de l'app
+  iconParts(t).forEach(([d,k])=>{const pa=new Path2D(d);if(/z$/.test(d)){ctx.globalAlpha=.22;ctx.fillStyle=P[k];ctx.fill(pa);ctx.globalAlpha=1}ctx.strokeStyle=P[k];ctx.stroke(pa)});
   ctx.restore();
 }
 function logoCanvas(x,px,py,size,color,accent){x.font="800 "+size+"px "+FD;x.fillStyle=color;x.fillText("La météo ",px,py);const w=x.measureText("La météo ").width;x.fillStyle=accent;x.fillText("de Léo",px+w,py)}
