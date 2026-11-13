@@ -4,6 +4,7 @@
 // Seule clé utilisée : MF_VIGILANCE_KEY (secret GitHub, facultatif) pour les vigilances de Météo-France. Node 20 ou plus récent.
 
 import { mkdir, writeFile, cp, readdir } from "node:fs/promises";
+import { gunzipSync } from "node:zlib";
 
 // Secteurs de l'app. Une commune du 13 absente de ces listes est rattachée au secteur le plus proche.
 const SECTEURS = {"mc": ["Marseille","Allauch","Plan-de-Cuques","Aubagne","La Penne-sur-Huveaune","Carnoux-en-Provence","Cassis","Ceyreste","La Ciotat","Roquefort-la-Bédoule","Gémenos","Cuges-les-Pins","Roquevaire","Auriol","La Destrousse","Peypin","Belcodène","La Bouilladisse","Cadolive","Saint-Savournin","Septèmes-les-Vallons","Le Rove","Ensuès-la-Redonne","Carry-le-Rouet","Sausset-les-Pins"],"aix": ["Aix-en-Provence","Éguilles","Venelles","Le Tholonet","Saint-Marc-Jaumegarde","Vauvenargues","Beaurecueil","Châteauneuf-le-Rouge","Rousset","Peynier","Trets","Puyloubier","Fuveau","Gréasque","Mimet","Gardanne","Meyreuil","Bouc-Bel-Air","Simiane-Collongue","Cabriès","Les Pennes-Mirabeau","Ventabren","Saint-Cannat","Rognes","Le Puy-Sainte-Réparade","Meyrargues","Peyrolles-en-Provence","Jouques","Saint-Paul-lès-Durance","Saint-Estève-Janson","Saint-Antonin-sur-Bayon","La Roque-d'Anthéron"],"berre": ["Martigues","Châteauneuf-les-Martigues","Gignac-la-Nerthe","Marignane","Saint-Victoret","Vitrolles","Rognac","Berre-l'Étang","Velaux","Coudoux","La Fare-les-Oliviers","Saint-Chamas","Istres","Fos-sur-Mer","Port-de-Bouc","Saint-Mitre-les-Remparts","Port-Saint-Louis-du-Rhône","Miramas","Cornillon-Confoux"],"salon": ["Salon-de-Provence","Pélissanne","Lançon-Provence","Grans","Lambesc","Alleins","Aurons","Vernègues","Lamanon","Eyguières","Sénas","Mallemort","Charleval","Orgon","Plan-d'Orgon","Cabannes","Saint-Andiol","Verquières","Mollégès","Noves","Eyragues","Châteaurenard","Rognonas","Barbentane","Graveson","Maillane","Saint-Rémy-de-Provence","Eygalières","Aureille","Mouriès","Maussane-les-Alpilles","Paradou","Les Baux-de-Provence","Mas-Blanc-des-Alpilles"],"arles": ["Arles","Saintes-Maries-de-la-Mer","Saint-Martin-de-Crau","Tarascon","Boulbon","Saint-Étienne-du-Grès","Saint-Pierre-de-Mézoargues","Fontvieille"]};
@@ -361,6 +362,95 @@ async function vigilance(deps) {
 // Ces données sont un bonus : si elles manquent, le site est quand même publié
 async function bonus(nom, f) { try { return await f(); } catch (e) { console.warn(`${nom} indisponible : ${e.message}`); return null; } }
 
+
+// 6. Vérification de la fiabilité : on compare la prévision faite la veille avec ce qu'ont mesuré
+// les stations de Météo-France (données publiques, Licence Ouverte Etalab, data.gouv.fr).
+// La prévision de demain est gardée à chaque mise à jour ; la dernière de la journée est celle qu'on juge.
+const DATASET_QUOT = "6569b51ae64326786e4e8e1a";
+async function lireTexte(url) {
+  const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 60000);
+  const r = await fetch(url, { headers: UA, signal: ctl.signal }); clearTimeout(to);
+  if (!r.ok) { const e = new Error("HTTP " + r.status); e.status = r.status; throw e; }
+  const buf = Buffer.from(await r.arrayBuffer());
+  return (url.endsWith(".gz") ? gunzipSync(buf) : buf).toString("utf8");
+}
+async function fichierObs(dep, annee) {
+  const nom = `Q_${dep}_latest-${annee - 1}-${annee}_RR-T-Vent.csv.gz`;
+  try { return await lireTexte("https://object.files.data.gouv.fr/meteofrance/data/synchro_ftp/BASE/QUOT/" + nom); }
+  catch (e) {
+    // Nom de fichier changé : on cherche le bon lien dans le catalogue de data.gouv.fr
+    const cat = await lireJSON(`https://www.data.gouv.fr/api/2/datasets/${DATASET_QUOT}/resources/?page_size=50&q=Q_${dep}_latest`, 2);
+    const res = (cat.data || []).find(r => /latest/.test(r.url) && /RR-T-Vent/.test(r.url) && r.url.includes(`Q_${dep}_`));
+    if (!res) throw new Error(`fichier des mesures du ${dep} introuvable`);
+    return await lireTexte(res.url);
+  }
+}
+function lireCSV(txt, dates) {
+  const lignes = txt.split(/\r?\n/); const tete = lignes[0].split(";").map(t => t.trim());
+  const col = n => tete.indexOf(n), iD = col("AAAAMMJJ");
+  const out = [];
+  for (let i = 1; i < lignes.length; i++) {
+    const v = lignes[i].split(";"); if (v.length < tete.length - 2) continue;
+    const jour = v[iD]; if (!dates.has(jour)) continue;
+    const nb = n => { const k = col(n); if (k < 0 || v[k] === undefined || v[k].trim() === "") return null; const x = parseFloat(v[k].replace(",", ".")); return isNaN(x) ? null : x; };
+    out.push({ poste: v[col("NUM_POSTE")], nom: (v[col("NOM_USUEL")] || "").trim(), lat: nb("LAT"), lon: nb("LON"), jour, tx: nb("TX"), tn: nb("TN"), rr: nb("RR"), fxi: nb("FXI") });
+  }
+  return { tete, out };
+}
+const distKm = (a, b, c, d) => { const R = 6371, x = (d - b) * Math.PI / 180 * Math.cos((a + c) / 2 * Math.PI / 180), y = (c - a) * Math.PI / 180; return R * Math.hypot(x, y); };
+const dateParis = (dec = 0) => new Date(Date.now() + dec * 864e5).toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
+async function verifier(ok) {
+  let prec = null;
+  try { prec = await lireJSON("https://lameteodeleo.github.io/data/verif.json?t=" + Date.now(), 3); } catch (e) { console.warn("Historique de vérification introuvable (" + e.message + ") : on repart de zéro."); }
+  const V = { prev: (prec && prec.prev) || {}, jours: (prec && prec.jours) || [] };
+  const auj = dateParis(0);
+  // Garde la prévision de demain (écrasée à chaque mise à jour jusqu'à minuit)
+  const dem = {}; let dDem = null;
+  for (const x of ok) { const J = x.d && x.d[1]; if (!J) continue; dDem = J[0]; dem[x.n] = [J[2], J[3], J[6], J[4], x.lat, x.lon]; }
+  if (dDem && dDem > auj) V.prev[dDem] = dem;
+  // Juge les jours passés qui ont une prévision et pas encore de score
+  const faits = new Set(V.jours.map(j => j.date));
+  const aJuger = Object.keys(V.prev).filter(d => d < auj && !faits.has(d)).sort();
+  // Premier lancement : on vérifie tout de suite que les mesures des stations sont bien lisibles
+  if (!prec) { try { const hier = dateParis(-2).replace(/-/g, ""); const { tete, out } = lireCSV(await fichierObs("13", +auj.slice(0, 4)), new Set([hier])); console.log(`Test des mesures : ${out.length} stations du 13 le ${hier} ; colonnes ${tete.join(";").slice(0, 300)} ; exemple ${JSON.stringify(out[0])}`); } catch (e) { console.warn("Test des mesures impossible : " + e.message); } }
+  if (aJuger.length) {
+    const dates = new Set(aJuger.map(d => d.replace(/-/g, "")));
+    const mesures = [];
+    for (const dep of ["13", "84", "83", "30"]) {
+      try { const { tete, out } = lireCSV(await fichierObs(dep, +auj.slice(0, 4)), dates); mesures.push(...out); if (dep === "13") console.log("Mesures : colonnes " + tete.slice(0, 14).join(";") + "… ; " + out.length + " lignes du 13 pour " + [...dates].join(", ")); }
+      catch (e) { console.warn(`Mesures du ${dep} indisponibles : ${e.message}`); }
+    }
+    for (const d of aJuger) {
+      const P = V.prev[d], M = mesures.filter(m => m.jour === d.replace(/-/g, "") && m.lat != null && m.tx != null && m.tn != null);
+      if (M.length < 5) { console.log(`Vérification du ${d} : mesures pas encore publiées (${M.length} stations), on réessaiera.`); continue; }
+      const res = { date: d, stations: 0, tx: [0, 0, 0], tn: [0, 0, 0], pluie: [0, 0], vent: [0, 0, 0], pires: [] };
+      for (const m of M) {
+        let best = null, bd = 6;
+        for (const [n, p] of Object.entries(P)) { const k = distKm(m.lat, m.lon, p[4], p[5]); if (k < bd) { bd = k; best = n; } }
+        if (!best) continue;
+        const p = P[best]; res.stations++;
+        const ex = p[0] - m.tx, en = p[1] - m.tn;
+        res.tx[0]++; res.tx[1] += Math.abs(ex) <= 2 ? 1 : 0; res.tx[2] += Math.abs(ex);
+        res.tn[0]++; res.tn[1] += Math.abs(en) <= 2 ? 1 : 0; res.tn[2] += Math.abs(en);
+        if (m.rr != null) { res.pluie[0]++; res.pluie[1] += ((p[2] >= 1) === (m.rr >= 1)) ? 1 : 0; }
+        if (m.fxi != null) { const kmh = m.fxi * 3.6; res.vent[0]++; res.vent[1] += Math.abs(p[3] - kmh) <= 15 ? 1 : 0; res.vent[2] += Math.abs(p[3] - kmh); }
+        res.pires.push({ n: best, st: m.nom, ex: Math.round(ex * 10) / 10, en: Math.round(en * 10) / 10, rrP: p[2], rrM: m.rr, vP: p[3], vM: m.fxi == null ? null : Math.round(m.fxi * 3.6) });
+      }
+      if (res.stations < 5) { console.log(`Vérification du ${d} : trop peu de stations proches d'une commune (${res.stations}).`); continue; }
+      res.pires = res.pires.sort((a, b) => Math.max(Math.abs(b.ex), Math.abs(b.en)) - Math.max(Math.abs(a.ex), Math.abs(a.en))).slice(0, 3);
+      for (const k of ["tx", "tn", "vent"]) if (res[k][0]) res[k][2] = Math.round(res[k][2] / res[k][0] * 10) / 10;
+      V.jours.push(res);
+      console.log(`Vérification du ${d} : ${res.stations} stations ; max justes à 2° près ${res.tx[1]}/${res.tx[0]} (écart moyen ${res.tx[2]}°) ; min ${res.tn[1]}/${res.tn[0]} (${res.tn[2]}°) ; pluie oui/non ${res.pluie[1]}/${res.pluie[0]} ; rafales à 15 km/h près ${res.vent[1]}/${res.vent[0]}`);
+    }
+  }
+  // On garde 10 jours de prévisions en attente et 60 jours de scores
+  for (const d of Object.keys(V.prev).sort().slice(0, -10)) delete V.prev[d];
+  for (const d of Object.keys(V.prev)) if (d < dateParis(-9)) delete V.prev[d];
+  V.jours = V.jours.sort((a, b) => a.date < b.date ? -1 : 1).slice(-60);
+  await writeFile("site/data/verif.json", JSON.stringify({ maj: new Date().toISOString(), ...V }));
+  return V.jours.slice(-14).map(({ pires, ...r }) => ({ ...r, pires }));
+}
+
 // 5. Construction du site
 const liste = await communes();
 await previsions(liste);
@@ -406,6 +496,7 @@ const BORD_DE_MER = ["Marseille", "Cassis", "La Ciotat", "Le Rove", "Ensuès-la-
 for (const x of ok) if (BORD_DE_MER.includes(norm(x.n))) x.cote = 1;
 const vig = await bonus("Vigilance", () => vigilance([...new Set(ok.map(x => x.dep))]));
 await mkdir("site/data", { recursive: true });
+const fiabilite = await bonus("Vérification", () => verifier(ok));
 await writeFile("site/data/meteo.json", JSON.stringify({
   maj: new Date().toISOString(),
   source: "Open-Meteo (CC BY 4.0) : modèles Météo-France AROME et ARPEGE, complétés par le modèle global",
@@ -415,6 +506,7 @@ await writeFile("site/data/meteo.json", JSON.stringify({
   vigilance: vig,
   air: qualiteAir,
   mer: laMer,
+  fiabilite,
   communes: ok.map(({ n, s, dep, cote, lat, lon, cur, d, h, n24 }) => ({ n, s, dep, cote, lat: r1x(lat), lon: r1x(lon), cur, d, h, n24 }))
 }));
 function r1x(v) { return Math.round(v * 1000) / 1000; }

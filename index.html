@@ -573,6 +573,10 @@ details.plus[open] .tiles{margin-top:10px}
       <div class="sub" id="qualiteLigne" style="margin-top:6px" hidden></div>
     </div>
     <section>
+      <div class="sec-h"><h2>Fiabilité des prévisions</h2></div>
+      <div class="card kit" id="fiab"></div>
+    </section>
+    <section>
       <div class="sec-h"><h2>Statistiques</h2></div>
       <div class="card kit">
         <span class="sub">Umami : visiteurs, pages vues, appareils et villes. Google Search Console : ce que les gens tapent sur Google pour trouver l'app.</span>
@@ -1147,7 +1151,7 @@ function reel(c,jour){
 function chargerDonnees(d){
   if(!d||!Array.isArray(d.communes)||d.communes.length<50) throw new Error("données incomplètes");
   const nomActuel=COMMUNES[st.c]&&COMMUNES[st.c].n;
-  DATA={maj:new Date(d.maj),par:{},qualite:d.qualite||null,vigilance:d.vigilance||null,alertes:d.alertes||null,air:d.air||null,mer:d.mer||null};
+  DATA={maj:new Date(d.maj),par:{},qualite:d.qualite||null,fiabilite:d.fiabilite||null,vigilance:d.vigilance||null,alertes:d.alertes||null,air:d.air||null,mer:d.mer||null};
   COMMUNES.length=0;ORDRE.forEach(k=>SECTEURS[k].c=[]);
   for(const k in COORDS) delete COORDS[k];
   d.communes.slice().sort((a,b)=>a.n.localeCompare(b.n,"fr")).forEach(x=>{
@@ -2048,12 +2052,16 @@ function logoCanvas(x,px,py,size,color,accent){x.font="800 "+size+"px "+FD;x.fil
 /* ---------- Carrousel Instagram : 7 images, une idée par image ----------
    1 accroche · 2 carte · 3 secteurs · 4 la journée · 5 conseils · 6 jours suivants · 7 sourire et lien */
 let postJour=new Date().getHours()>=18?1:0;   // le soir, on prépare le carrousel du lendemain
-const TITRE={soleil:"Grand soleil",nuageux:"Soleil et nuages",mistral:"Journée de mistral",vent:"Vent fort",pluie:"Journée de pluie",orage:"Risque d'orages",gel:"Gelées au réveil",brouillard:"Brouillard le matin",neige:"De la neige",chaleur:"Forte chaleur"};
+const TITRE={soleil:"Grand soleil",nuageux:"Soleil et nuages",mistral:"Journée de mistral",vent:"Vent fort",pluie:"Journée de pluie",orage:"Risque d'orages",gel:"Gelées au réveil",brouillard:"Brouillard le matin",neige:"De la neige",chaleur:"Forte chaleur",couvert:"Ciel couvert",averses:"Averses",pluieForte:"Fortes pluies",bruine:"Bruine",verglas:"Pluie verglaçante"};
 const AUSSI={soleil:"du soleil",nuageux:"des éclaircies",mistral:"du mistral",vent:"du vent",pluie:"de la pluie",orage:"des orages",gel:"des gelées",brouillard:"du brouillard",neige:"de la neige",chaleur:"une forte chaleur"};
 const POIDS={orage:3,neige:3,pluie:1.5,mistral:1.3,chaleur:1.3};
 function typeDominant(L){const n={};L.forEach(m=>n[m.type]=(n[m.type]||0)+1);
   const tri=Object.entries(n).sort((a,b)=>b[1]*(POIDS[b[0]]||1)-a[1]*(POIDS[a[0]]||1));
-  return {dom:tri[0][0],sec:tri[1]&&tri[1][1]>=L.length*.2?tri[1][0]:null}}
+  const dom=tri[0][0];
+  // Icône précise (forte pluie, averses, couvert...) : celle de la majorité des communes concernées
+  const v={};L.filter(m=>m.type===dom).forEach(m=>{const k=m.ico||dom;v[k]=(v[k]||0)+1});
+  const top=Object.entries(v).sort((a,b)=>b[1]-a[1])[0], nb=L.filter(m=>m.type===dom).length;
+  return {dom,ico:top&&top[1]>=nb*.5?top[0]:dom,sec:tri[1]&&tri[1][1]>=L.length*.2?tri[1][0]:null}}
 /* Bilan du département pour un jour donné */
 /* Températures « typiques » d'un groupe de communes : la valeur du milieu, pour ne pas afficher l'écart entre
    la commune la plus chaude et la plus froide comme si c'était la journée de tout le monde */
@@ -2074,12 +2082,13 @@ function bilanDep(j){
       moment=hd>=15?{titre:d.dom==="orage"?"Orages en fin de journée":"Pluie en fin de journée",sous:"Au sec jusqu'en début d'après-midi.",leg:"au sec le matin, pluie en fin de journée"}:
         hf<=11?{titre:d.dom==="orage"?"Orages le matin":"Pluie le matin",sous:"Plus calme l'après-midi.",leg:"pluie le matin, plus calme l'après-midi"}:null}
   }
-  return {L,dom:d.dom,sec:d.sec,moment,titre:moment?moment.titre:(TITRE[d.dom]||LIB[d.dom]),min:Math.min(...M.map(m=>m.min)),tMax:mediane(M.map(m=>m.max)),tMin:mediane(M.map(m=>m.min)),frais:T[0],chaud:T[T.length-1],vent:R[R.length-1],pluie:P[P.length-1],pl:pluies(M),
+  return {L,dom:d.dom,ico:d.ico,sec:d.sec,moment,titre:moment?moment.titre:(TITRE[d.ico]||TITRE[d.dom]||LIB[d.dom]),min:Math.min(...M.map(m=>m.min)),tMax:mediane(M.map(m=>m.max)),tMin:mediane(M.map(m=>m.min)),frais:T[0],chaud:T[T.length-1],vent:R[R.length-1],pluie:P[P.length-1],pl:pluies(M),
     nbPluie:M.filter(m=>!m.plNuit&&m.pl>=1).length,al:M.map(m=>m.alert).find(Boolean)||null};
 }
 function bilanSecteur(k,j){
   const M=SECTEURS[k].c.map(n=>meteo(COMMUNES[idx(n)],st.scen,j));
-  return {type:typeDominant(M).dom,min:mediane(M.map(m=>m.min)),max:mediane(M.map(m=>m.max)),raf:Math.max(...M.map(m=>m.raf)),pl:pluies(M)};
+  const td=typeDominant(M);
+  return {type:td.dom,ico:td.ico,min:mediane(M.map(m=>m.min)),max:mediane(M.map(m=>m.max)),raf:Math.max(...M.map(m=>m.raf)),pl:pluies(M)};
 }
 const mm=v=>fr(v>=10?Math.round(v):v)+" mm";
 function toile(){const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;return [cv,cv.getContext("2d")]}
@@ -2100,7 +2109,7 @@ function slideCover(j){
   drawMark(x,116,128,92,true);logoCanvas(x,186,150,60,B.white,al?B.white:B.sun);
   x.fillStyle=al?B.white:B.sun;x.font="800 34px "+FB;x.fillText(fmt(dayDate(j)).toUpperCase(),70,300);
   x.fillStyle=B.white;x.globalAlpha=.8;x.font="700 32px "+FB;x.fillText("Bouches-du-Rhône",70,348);x.globalAlpha=1;
-  cIcon(x,R.dom,70,400,250,true);
+  cIcon(x,R.ico||R.dom,70,400,250,true);
   const titre=al?al.titre:R.titre;
   x.fillStyle=B.white;x.font="800 104px "+FD;
   const nb=wrapText(x,titre,70,780,940,108,2);
@@ -2167,7 +2176,7 @@ function slideSecteurs(j){
   entete(x,3,"Secteur par secteur",j,R.al);
   ORDRE.forEach((k,i)=>{const s=bilanSecteur(k,j), y=300+i*156;
     x.fillStyle=B.white;rr(x,70,y,940,138,28);x.fill();
-    cIcon(x,s.type,96,y+27,84,false);
+    cIcon(x,s.ico||s.type,96,y+27,84,false);
     x.fillStyle=B.ink;x.font="800 38px "+FB;x.fillText(SECTEURS[k].n,206,y+62);
     x.fillStyle=B.muted;x.font="700 27px "+FB;{const t="Rafales jusqu'à "+s.raf+" km/h · "+txtPluie(s.pl);ajuste(x,t,600,27,"700",FB);x.fillText(t,206,y+106)}
     x.textAlign="right";x.fillStyle=B.ink;x.font="800 52px "+FD;x.fillText(s.max+"°",984,y+70);
@@ -2178,9 +2187,9 @@ function slideSecteurs(j){
 function momentsVille(c,j){
   const m=meteo(c,st.scen,j), hr=enReel()?heuresReelles(c,j):null, ic=heures(m,j,st.scen), cou=enMin(soleil(dayDate(j)).coucher)/60;
   return [[9,1],[15,4],[19,6]].map(([h,i])=>{let t,type;
-    if(hr&&hr[i]){t=hr[i].t;type=hr[i].type}else{t=tAt(m,h);type=(ic&&ic[i])||m.type}
+    let code=null;if(hr&&hr[i]){t=hr[i].t;type=hr[i].type;code=hr[i].code}else{t=tAt(m,h);type=(ic&&ic[i])||m.type}
     if(h>=cou)type=type==="soleil"?"lune":type==="nuageux"?"nuitNuageux":type;
-    return {t,type}});
+    return {t,type:code==null?type:variante(code,type,h>=cou)}});
 }
 function slideJournee(j){
   const [cv,x]=toile(), R=bilanDep(j);
@@ -2220,7 +2229,7 @@ function slideSuite(j){
   entete(x,6,"Et les jours suivants ?",j,R0.al);
   [1,2,3].forEach((d,i)=>{const R=bilanDep(j+d), y=300+i*310, jour=cap(dayDate(j+d).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric"}));
     x.fillStyle=B.white;rr(x,70,y,940,286,32);x.fill();
-    cIcon(x,R.dom,100,y+58,170,false);
+    cIcon(x,R.ico||R.dom,100,y+58,170,false);
     x.fillStyle=B.muted;x.font="800 28px "+FB;x.fillText(jour.toUpperCase(),310,y+78);
     x.fillStyle=B.ink;ajuste(x,R.titre,480,50,"800",FD);x.fillText(R.titre,310,y+146);
     x.fillStyle=B.muted;x.font="700 28px "+FB;
@@ -2260,7 +2269,7 @@ function slideStory(){
   ORDRE.forEach((k,i)=>{
     const m=bilanSecteur(k,J), y=480+i*120;
     x.fillStyle="rgba(255,255,255,.1)";rr(x,70,y,940,100,26);x.fill();
-    cIcon(x,m.type,96,y+18,64,true);
+    cIcon(x,m.ico||m.type,96,y+18,64,true);
     x.fillStyle=B.white;x.font="700 36px "+FB;x.fillText(SECTEURS[k].n,184,y+63);
     x.textAlign="right";x.font="800 48px "+FD;x.fillText(m.max+"°",900,y+68);
     x.font="700 30px "+FB;x.globalAlpha=.7;x.fillText(m.min+"°",985,y+66);x.globalAlpha=1;x.textAlign="left";
@@ -2414,8 +2423,23 @@ function route(){
   if(v==="studio"){markScen();buildKit();buildSlides();
     const q=DATA&&DATA.qualite, ql=$("qualiteLigne");
     if(q){ql.hidden=false;ql.textContent="Contrôle qualité de la dernière mise à jour ("+DATA.maj.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}).replace(":"," h ")+") : "+q.validees+" communes validées sur "+q.total+(q.ajustees?", "+q.ajustees+" valeur"+(q.ajustees>1?"s":"")+" ajustée"+(q.ajustees>1?"s":""):"")+(q.ecartees&&q.ecartees.length?". Écartées : "+q.ecartees.join(", ")+".":".")+(DATA.vigilance?" Vigilance Météo-France lue (bulletin de "+heureV(new Date(DATA.vigilance.maj||DATA.maj))+").":" Vigilance Météo-France : non lue.")}
-    else ql.hidden=true}
+    else ql.hidden=true;
+    renderFiab()}
   window.scrollTo(0,0);
+}
+/* Fiabilité : la prévision faite la veille, comparée aux mesures des stations Météo-France */
+function renderFiab(){
+  const F=DATA&&DATA.fiabilite, el=$("fiab");if(!el)return;
+  if(!F||!F.length){el.innerHTML='<span class="sub">Le premier score arrive environ deux jours après la mise en route : la prévision de demain est gardée ce soir, puis comparée aux mesures des stations Météo-France, publiées le lendemain.</span>';return}
+  const pc=a=>a&&a[0]?Math.round(a[1]/a[0]*100):null, d=F[F.length-1];
+  const jour=x=>new Date(x+"T12:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+  const moy=k=>{const t=F.slice(-7).filter(x=>x[k]&&x[k][0]);if(!t.length)return null;return Math.round(t.reduce((a,x)=>a+x[k][1]/x[k][0],0)/t.length*100)};
+  const ligne=(lib,a,ecart,unit,m7)=>a&&a[0]?'<li><b>'+lib+' : '+pc(a)+' %</b>'+(ecart!=null?' (écart moyen '+String(ecart).replace(".",",")+unit+')':'')+(m7!=null&&F.length>1?' · sur 7 jours : '+m7+' %':'')+'</li>':'';
+  el.innerHTML='<span class="sub">Prévision faite la veille pour <b>'+jour(d.date)+'</b>, comparée à '+d.stations+' stations Météo-France.</span><ul style="margin:8px 0 0 18px;padding:0;line-height:1.6">'+
+    ligne("Températures max justes à 2° près",d.tx,d.tx[2],"°",moy("tx"))+ligne("Températures min justes à 2° près",d.tn,d.tn[2],"°",moy("tn"))+
+    ligne("Pluie bien annoncée (oui ou non)",d.pluie,null,"",moy("pluie"))+ligne("Rafales justes à 15 km/h près",d.vent,d.vent[2]," km/h",moy("vent"))+'</ul>'+
+    (d.pires&&d.pires.length?'<span class="sub" style="display:block;margin-top:8px">Plus gros écarts : '+d.pires.map(p=>p.n+' (max '+(p.ex>0?"+":"")+String(p.ex).replace(".",",")+'°, min '+(p.en>0?"+":"")+String(p.en).replace(".",",")+'°)').join(" ; ")+'.</span>':'')+
+    '<span class="sub" style="display:block;margin-top:8px">Au-dessus de 80 %, c\'est du travail de pro. En dessous de 60 % plusieurs jours de suite, dis-le-moi.</span>';
 }
 window.addEventListener("hashchange",()=>{studioOuvert=false;route()});
 /* Logo : retour à l'accueil */
