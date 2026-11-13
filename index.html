@@ -603,17 +603,19 @@ details.plus[open] .tiles{margin-top:10px}
       <div class="sec-h"><h2>Publier le Reel</h2><span class="sub">Chaque soir, vers 18 h</span></div>
       <ol class="card steps">
         <li><b>Choisis le jour</b> juste en dessous. Le soir, «&nbsp;Demain&nbsp;» est déjà choisi.</li>
-        <li><b>Touche «&nbsp;Créer la vidéo&nbsp;»</b> et garde l'écran allumé 18 secondes, sans quitter la page.</li>
+        <li><b>Touche «&nbsp;Créer la vidéo&nbsp;»</b> et garde l'écran allumé 17 secondes, sans quitter la page.</li>
         <li><b>Enregistre la vidéo</b>, puis <b>copie la légende</b>.</li>
         <li><b>Instagram</b> : «&nbsp;+&nbsp;», «&nbsp;Reel&nbsp;», choisis la vidéo, ajoute un son tendance, volume bas.</li>
         <li><b>Couverture</b> : l'image d'accroche. <b>Colle la légende</b>, puis «&nbsp;Partager&nbsp;».</li>
+        <li><b>Sur Facebook</b> : refais la vidéo avec «&nbsp;Pour Facebook&nbsp;», et remplace «&nbsp;lien en bio&nbsp;» par lameteodeleo.github.io dans la légende.</li>
       </ol>
     </section>
     <p class="alert" id="demoAvert" style="margin:0 0 12px" hidden><span><b>Mode démonstration : ces chiffres sont inventés.</b> Pour publier, ouvre «&nbsp;Tests&nbsp;», tout en bas, et choisis «&nbsp;Prévisions réelles&nbsp;».</span></p>
     <div class="chips" id="postJour" role="group" aria-label="Jour du post"><button class="chip" type="button" data-j="0">Aujourd'hui</button><button class="chip" type="button" data-j="1">Demain</button></div>
     <section>
       <div class="card kit">
-        <span class="sub">18 secondes : une accroche avec le chiffre du jour, la carte, les secteurs, la journée, les conseils, les jours suivants, puis le lien en bio.</span>
+        <span class="sub">17 secondes, une information par écran : le chiffre du jour, les températures, la pluie et le vent, la journée, le conseil, les jours suivants, puis le lien. Choisis le réseau : la fin s'adapte.</span>
+        <div class="chips" id="reelReseau" role="group" aria-label="Réseau" style="margin-top:10px"><button class="chip" type="button" data-r="instagram" aria-pressed="true">Pour Instagram</button><button class="chip" type="button" data-r="facebook" aria-pressed="false">Pour Facebook</button></div>
         <div class="chips" style="margin-top:10px"><button class="chip" type="button" id="reelGo">Créer la vidéo</button></div>
         <div id="reelOut" style="margin-top:10px"></div>
       </div>
@@ -2350,7 +2352,7 @@ $("hPrev").addEventListener("click",()=>$("hours").scrollBy({left:-240,behavior:
 $("hNext").addEventListener("click",()=>$("hours").scrollBy({left:240,behavior:"smooth"}));
 document.querySelectorAll("#postJour .chip").forEach(b=>b.addEventListener("click",()=>{postJour=+b.dataset.j;buildSlides()}));
 /* Reel : les images du carrousel enchaînées en vidéo verticale 1080 × 1920 (fondu et léger zoom), enregistrée dans le navigateur */
-let SLIDES=[],SLIDES_JOUR="",SLIDES_J=1;
+let SLIDES=[],SLIDES_JOUR="",SLIDES_J=1,RESEAU="instagram";
 async function creerReel(btn){
   const out=$("reelOut");if(!SLIDES.length){flash(btn,"Pas d'images");return}
   if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){out.innerHTML='<span class="sub">Ce navigateur ne sait pas créer de vidéo. Essaie avec Chrome à jour.</span>';return}
@@ -2369,13 +2371,27 @@ async function creerReel(btn){
   else if(R.min<=0) hook={n:R.min,u:"°",lab:"au petit matin dans le 13",ico:"gel"};
   else if(R.pl.jour>=2) hook={n:Math.round(R.pl.jour),u:" mm",lab:"de pluie attendus dans le 13",ico:R.ico||"pluie"};
   else hook={n:R.chaud.m.max,u:"°",lab:R.titre.toLowerCase()+" dans le 13",ico:R.ico||R.dom};
-  const SC=[{type:"hook",d:2.8}].concat(SLIDES.slice(1,6).map(img=>({type:"img",img,d:2.6}))).concat([{type:"fin",d:2.8}]);
+  // Écrans pensés pour la vidéo : une seule information par écran, en très gros
+  const parMin=R.L.slice().sort((a,b)=>a.m.min-b.m.min)[0];
+  const ville=COMMUNES[idx("Marseille")], mom=momentsVille(ville,J);
+  const cons=(conseilsPost(J).find(o=>o.warn)||conseilsPost(J)[0]);
+  const suite=[1,2,3].map(d=>({R:bilanDep(J+d),nom:cap(dayDate(J+d).toLocaleDateString("fr-FR",{weekday:"long"}))}));
+  const pluieVent=[];
+  if(R.pl.jour>=1&&R.pluie)pluieVent.push({ico:R.pl.jour>=10?"pluieForte":"pluie",k:"Pluie",v:"jusqu'à "+mm(R.pl.jour),o:R.pluie.nom,s:R.moment?R.moment.sous:""});
+  pluieVent.push({ico:R.dom==="mistral"?"mistral":"vent",k:R.dom==="mistral"?"Mistral":"Rafales",v:R.vent.m.raf+" km/h",o:R.vent.nom,s:""});
+  const SC=[{type:"hook",d:2.6},{type:"temp",d:2.4},{type:"pv",d:2.4},{type:"jour",d:2.6},{type:"cons",d:2.6},{type:"suite",d:2.6},{type:"fin",d:2.6}];
   const total=SC.reduce((a,b)=>a+b.d,0), TR=.32;
   const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,3), pop=t=>{t=Math.max(0,Math.min(1,t));return t<.6?ease(t/.6)*1.08:1.08-.08*ease((t-.6)/.4)};
   const fond=c=>{const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,c||B.ink);g.addColorStop(1,al?"#6E1712":"#2B2366");x.fillStyle=g;x.fillRect(0,0,W,H)};
   const centre=(txt,y,font,col,a)=>{x.globalAlpha=a==null?1:a;x.fillStyle=col;x.font=font;x.textAlign="center";x.fillText(txt,W/2,y);x.textAlign="left";x.globalAlpha=1};
   const progression=(k,f)=>{const n=SC.length,gap=10,w=(W-140-gap*(n-1))/n;for(let i=0;i<n;i++){x.fillStyle="rgba(255,255,255,.28)";rr(x,70+i*(w+gap),236,w,8,4);x.fill();
       const v=i<k?1:i===k?f:0;if(v>0){x.fillStyle=B.sun;rr(x,70+i*(w+gap),236,w*v,8,4);x.fill()}}};
+  const titreSc=(txt,t)=>{centre(txt,420,"800 76px "+FD,B.white,ease(t/.3))};
+  const sousSc=(txt,t)=>{centre(txt,490,"700 40px "+FB,B.sun,ease((t-.1)/.3))};
+  // Une carte qui glisse depuis la droite, avec un léger décalage entre les cartes
+  const carte=(y,h,t,dl,dessin)=>{const e=ease((t-dl)/.35);if(e<=0)return;x.save();x.globalAlpha=e;x.translate((1-e)*120,0);
+    x.fillStyle="rgba(255,255,255,.1)";rr(x,70,y,W-140,h,40);x.fill();dessin();x.restore()};
+  const lignesC=(txt,y,font,col,maxW,lh,a)=>{x.font=font;const w=txt.split(" ");let l="",L=[];for(const k of w){const u=l?l+" "+k:k;if(x.measureText(u).width>maxW&&l){L.push(l);l=k}else l=u}if(l)L.push(l);L.forEach((li,i)=>centre(li,y+i*lh,font,col,a));return L.length};
   const scene=(sc,t)=>{ // t : secondes depuis le début de la scène
     if(sc.type==="hook"){fond(al?B.alert:B.ink);
       drawMark(x,W/2-200,330,70,true);logoCanvas(x,W/2-150,350,48,B.white,al?B.white:B.sun);
@@ -2386,17 +2402,37 @@ async function creerReel(btn){
       else hook.k.split("\n").forEach((l,i)=>centre(l,1060+i*120,"800 110px "+FD,B.white,ease((t-.2)/.4)));
       x.save();x.font="800 54px "+FB;x.fillStyle=B.white;x.textAlign="center";x.globalAlpha=ease((t-.5)/.4);x.fillText(hook.lab,W/2,1250);x.restore();
       const b=ease((t-1.1)/.4);if(b>0){x.globalAlpha=b;x.fillStyle=B.sun;rr(x,150,1330,W-300,110,55);x.fill();x.globalAlpha=1;
-        centre("Votre secteur en 15 secondes 👇",1402,"800 44px "+FB,B.sunInk,b)}
-    }else if(sc.type==="img"){fond();
-      const img=sc.img,z=1+.04*Math.min(1,t/sc.d),w=W*.9*z,h=img.height*(W*.9)/img.width*z;
-      const dx=t<TR?(1-ease(t/TR))*W*.35:0,a=t<TR?ease(t/TR):1;
-      x.save();x.globalAlpha=a;x.shadowColor="rgba(0,0,0,.35)";x.shadowBlur=40;x.drawImage(img,(W-w)/2+dx,330+(1220-h)/2,w,h);x.restore();
+        centre("Ce qui vous attend, en 15 s 👇",1402,"800 44px "+FB,B.sunInk,b)}
+    }else if(sc.type==="temp"){fond();titreSc("Les températures",t);sousSc(jourTxt,t);
+      [[R.chaud.m.max,"Le plus chaud",R.chaud.nom,"chaleur","#F2994A"],[parMin.m.min,"Le plus frais, au réveil",parMin.nom,"gel","#6EA8F0"]].forEach(([v,k,o,ic,col],i)=>
+        carte(620+i*480,420,t,.25+i*.35,()=>{x.fillStyle=col;x.font="800 50px "+FB;x.fillText(k,130,720+i*480);
+          x.fillStyle=B.white;x.font="800 190px "+FB;x.fillText(Math.round(v)+"°",130,920+i*480);
+          x.font="800 54px "+FB;x.textAlign="right";x.fillText(o,W-130,900+i*480);x.textAlign="left"}));
+    }else if(sc.type==="pv"){fond();titreSc(pluieVent.length>1?"Pluie et vent":"Le vent",t);sousSc(jourTxt,t);
+      pluieVent.forEach((o,i)=>carte(620+i*480,420,t,.25+i*.35,()=>{cIcon(x,o.ico,120,660+i*480,170,true);
+          x.fillStyle=B.sun;x.font="800 50px "+FB;x.fillText(o.k,330,720+i*480);
+          x.fillStyle=B.white;ajuste(x,o.v,W-470,120,"800",FB);x.fillText(o.v,330,850+i*480);
+          x.font="700 44px "+FB;x.globalAlpha*=.85;x.fillText(o.s||("à "+o.o),330,930+i*480)}));
+    }else if(sc.type==="jour"){fond();titreSc("Du matin au soir",t);sousSc("À Marseille · "+jourTxt.toLowerCase(),t);
+      [["Matin","9 h"],["Après-midi","15 h"],["Soir","19 h"]].forEach(([k,h],i)=>carte(600+i*330,290,t,.2+i*.3,()=>{
+          x.fillStyle=B.white;x.font="800 60px "+FB;x.fillText(k,130,720+i*330);x.globalAlpha*=.7;x.font="700 40px "+FB;x.fillText(h,130,780+i*330);x.globalAlpha/=.7;
+          cIcon(x,mom[i].type,560,640+i*330,170,true);
+          x.fillStyle=B.white;x.font="800 120px "+FB;x.textAlign="right";x.fillText(mom[i].t+"°",W-120,790+i*330);x.textAlign="left"}));
+    }else if(sc.type==="cons"){fond();titreSc(al?"La consigne":"Le conseil du jour",t);sousSc(jourTxt,t);
+      carte(620,760,t,.25,()=>{x.fillStyle=cons&&cons.warn?"#FF8A80":B.sun;x.font="800 50px "+FB;x.textAlign="center";x.fillText(((cons&&CAT[cons.cat])||"").toUpperCase(),W/2,740);x.textAlign="left";
+          let fs=64,n;do{x.font="800 "+fs+"px "+FB;const w=(cons?cons.txt:"").split(" ");let l="";n=1;for(const k of w){const u=l?l+" "+k:k;if(x.measureText(u).width>W-240&&l){n++;l=k}else l=u}fs-=4}while(n*fs*1.3>560&&fs>36);
+          lignesC(cons?cons.txt:"",840,"800 "+(fs+4)+"px "+FB,B.white,W-240,(fs+4)*1.3,x.globalAlpha)});
+    }else if(sc.type==="suite"){fond();titreSc("Les jours suivants",t);sousSc("Bouches-du-Rhône",t);
+      suite.forEach((o,i)=>carte(600+i*330,290,t,.2+i*.3,()=>{
+          x.fillStyle=B.white;x.font="800 60px "+FB;x.fillText(o.nom,130,725+i*330);x.globalAlpha*=.75;ajuste(x,o.R.titre,380,40,"700",FB);x.fillText(o.R.titre,130,785+i*330);x.globalAlpha/=.75;
+          cIcon(x,o.R.ico||o.R.dom,540,645+i*330,160,true);
+          x.fillStyle=B.white;x.font="800 110px "+FB;x.textAlign="right";x.fillText(o.R.tMax+"°",W-120,790+i*330);x.textAlign="left"}));
     }else{fond(B.brand);
       drawMark(x,W/2,560,220,true);
       centre("Votre commune,",820,"800 92px "+FD,B.white,ease(t/.4));
       centre("heure par heure",930,"800 92px "+FD,B.sun,ease((t-.15)/.4));
       const b=ease((t-.5)/.4);x.globalAlpha=b;x.fillStyle=B.white;rr(x,240,1040,W-480,120,60);x.fill();x.globalAlpha=1;
-      centre("Lien en bio",1118,"800 54px "+FB,B.brand,b);
+      centre(RESEAU==="facebook"?"Lien dans la publication":"Lien en bio",1118,"800 "+(RESEAU==="facebook"?44:54)+"px "+FB,B.brand,b);
       centre("Abonnez-vous pour la météo de demain",1290,"700 42px "+FB,B.white,ease((t-.9)/.4));
       centre(PSEUDO,1370,"800 40px "+FB,B.sun,ease((t-.9)/.4));
     }
@@ -2421,7 +2457,7 @@ async function creerReel(btn){
     const e=$("reelEtat");if(e)e.textContent=(pause?"En pause : reviens sur cette page… ":"Création en cours… ")+Math.min(100,Math.round(t/total*100))+" %";requestAnimationFrame(tick)};tick()});
   document.removeEventListener("visibilitychange",vis);
   rec.stop();await fini;btn.disabled=false;try{if(verrou)verrou.release()}catch(e){}
-  const ext=type.startsWith("video/mp4")?"mp4":"webm",blob=new Blob(morceaux,{type:type.split(";")[0]}),file="lameteodeleo-"+SLIDES_JOUR+"-reel."+ext,url=URL.createObjectURL(blob);
+  const ext=type.startsWith("video/mp4")?"mp4":"webm",blob=new Blob(morceaux,{type:type.split(";")[0]}),file="lameteodeleo-"+SLIDES_JOUR+"-reel-"+RESEAU+"."+ext,url=URL.createObjectURL(blob);
   out.innerHTML='<video src="'+url+'" controls playsinline muted style="width:100%;max-width:280px;border-radius:14px;display:block"></video>';
   {const v=out.querySelector("video");v.addEventListener("loadedmetadata",()=>{if(isFinite(v.duration)&&v.duration<total-1.5){const n=document.createElement("p");n.className="alert";n.style.marginTop="8px";n.innerHTML="<span><b>Vidéo incomplète ("+Math.round(v.duration)+" s au lieu de "+Math.round(total)+" s).</b> Touche à nouveau «&nbsp;Créer la vidéo&nbsp;» en gardant l'écran allumé, sans changer d'appli.</span>";out.appendChild(n)}})}
   const meta=document.createElement("div");meta.className="chips";meta.style.marginTop="8px";
@@ -2431,6 +2467,7 @@ async function creerReel(btn){
   if(ext==="webm"){const n=document.createElement("p");n.className="sub";n.textContent="Vidéo au format WebM : si Instagram ne la propose pas, mets Chrome à jour puis recommence (les versions récentes créent un MP4).";out.appendChild(n)}
 }
 $("reelGo").addEventListener("click",e=>creerReel(e.currentTarget));
+document.querySelectorAll("#reelReseau .chip").forEach(b=>b.addEventListener("click",()=>{RESEAU=b.dataset.r;document.querySelectorAll("#reelReseau .chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b)))}));
 async function buildSlides(){
   try{await Promise.all(['800 60px "Bricolage Grotesque"','600 40px "Bricolage Grotesque"','800 30px "Nunito Sans"','700 30px "Nunito Sans"'].map(f=>document.fonts.load(f)))}catch(e){}
   const J=postJour, dj=dayDate(J), day=dj.getFullYear()+"-"+String(dj.getMonth()+1).padStart(2,"0")+"-"+String(dj.getDate()).padStart(2,"0");
