@@ -730,6 +730,8 @@ function classer(code,raf,dirDeg,tmax,tmin){
 const PRECIPC=k=>(k>=51&&k<=67)||(k>=71&&k<=77)||(k>=80&&k<=86)||k>=95;
 function codeFiable(code,prob,pl){
   if(!PRECIPC(code)) return code;
+  // Sécurité : pluie forte, averse forte ou orage annoncés par le modèle, ou au moins 5 mm sur la journée : on garde toujours l'icône
+  if([63,65,67,73,75,81,82,95,96,99].includes(code)||(pl!=null&&pl>=5)) return code;
   if(prob!=null&&prob<50) return 3;
   if(pl!=null&&pl<0.5) return 3;
   return code;
