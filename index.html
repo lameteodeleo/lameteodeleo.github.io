@@ -101,6 +101,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .place-btn{display:flex;align-items:center;gap:6px;min-width:0;background:none;border:0;padding:6px 0;cursor:pointer;text-align:left}
 .place-btn svg{flex:0 0 auto;width:18px;height:18px;color:var(--brand)}
 .place-btn b{font-family:var(--f-display);font-size:1.3rem;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.place-btn b.long{font-size:1.05rem;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .fav{flex:0 0 auto;width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);display:grid;place-items:center;cursor:pointer}
 .fav svg{width:20px;height:20px;color:var(--muted)}
 .fav[aria-pressed="true"] svg{color:var(--sun);fill:var(--sun)}
@@ -1169,7 +1170,7 @@ function prochainesHeures(c){
   if(liste.length<6)return null;
   return liste.map(([t,temp,code,prob,raf,dir],i)=>{
     const d=new Date(t), hh=d.getHours();let type=classer(code,raf,dir,temp,temp);
-    if(estNuit(d,hh*60+30)) type=versNuit(type);
+    if(estNuit(d,hh*60)) type=versNuit(type); // l'icône montre le ciel au début de l'heure affichée
     return {lbl:i===0?"Maint.":hh+" h",h:hh,demain:d.getDate()!==now.getDate(),t:Math.round(temp),type,prob:prob==null?0:Math.round(prob),raf:Math.round(raf||0)};
   });
 }
@@ -1562,7 +1563,7 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden&&COMMUNES[
 /* ---------- Rendu : Ma météo ---------- */
 function render(){
   const c=COMMUNES[st.c];let m=meteo(c,st.scen,st.jour);
-  $("city").textContent=c.n;
+  $("city").textContent=c.n;$("city").classList.toggle("long",c.n.length>17);
   const fav=st.favs.includes(c.n);$("fav").setAttribute("aria-pressed",fav);
   { const fb=$("favbar"), FL=st.favs.filter(n=>idx(n)>=0);
     fb.hidden=!FL.length;
