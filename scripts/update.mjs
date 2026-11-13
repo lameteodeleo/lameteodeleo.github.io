@@ -383,16 +383,13 @@ async function catalogue() {
   }
   return tous;
 }
-async function fichierObs(dep, annee) {
-  const nom = `Q_${dep}_latest-${annee - 1}-${annee}_RR-T-Vent.csv.gz`;
-  try { return await lireTexte("https://object.files.data.gouv.fr/meteofrance/data/synchro_ftp/BASE/QUOT/" + nom); }
-  catch (e) {
-    // Nom de fichier changé : on cherche le bon lien dans le catalogue de data.gouv.fr
-    const cat = await lireJSON(`https://www.data.gouv.fr/api/2/datasets/${DATASET_QUOT}/resources/?page_size=50&q=Q_${dep}_latest`, 2);
-    const res = (cat.data || []).find(r => /latest/.test(r.url) && /RR-T-Vent/.test(r.url) && r.url.includes(`Q_${dep}_`));
-    if (!res) throw new Error(`fichier des mesures du ${dep} introuvable`);
-    return await lireTexte(res.url);
-  }
+// Le lien du fichier « latest » de chaque département est pris dans le catalogue de data.gouv.fr (il peut changer)
+let CATALOGUE = null;
+async function fichierObs(dep) {
+  if (!CATALOGUE) CATALOGUE = await catalogue();
+  const res = CATALOGUE.find(r => new RegExp(`Q_${dep}_latest-\\d+-\\d+_RR-T-Vent`).test(r.url));
+  if (!res) throw new Error(`fichier des mesures du ${dep} introuvable dans le catalogue`);
+  return await lireTexte(res.url);
 }
 function lireCSV(txt, dates) {
   const lignes = txt.split(/\r?\n/); const tete = lignes[0].split(";").map(t => t.trim());
@@ -420,14 +417,11 @@ async function verifier(ok) {
   // Juge les jours passés qui ont une prévision et pas encore de score
   const faits = new Set(V.jours.map(j => j.date));
   const aJuger = Object.keys(V.prev).filter(d => d < auj && !faits.has(d)).sort();
-  // Premier lancement : on vérifie tout de suite que les mesures des stations sont bien lisibles
-  if (!prec || !prec.test5) { try { const tous = await catalogue(); const r13 = tous.find(r => /Q_13_latest.*RR-T-Vent/.test(r.url)); console.log("Catalogue : lien " + r13.url); const txt = await lireTexte(r13.url); const ls = txt.split("\n"); const ds = ls.slice(1).map(l => l.split(";")[5]).filter(Boolean); const mois = {}; ds.forEach(d => mois[d.slice(0, 6)] = (mois[d.slice(0, 6)] || 0) + 1); console.log(`Catalogue : ${ls.length} lignes, ${txt.length} caractères, par mois ${JSON.stringify(mois)}, fin ${ls.slice(-3).join(" || ").slice(0, 400)}`); } catch (e) { console.warn("Catalogue illisible : " + e.message); } }
-  if (!prec || !prec.test2) { try { const txt = await fichierObs("13", +auj.slice(0, 4)); const ds = [...new Set(txt.split("\n").slice(1).map(l => l.split(";")[5]).filter(Boolean))].sort(); const der = ds[ds.length - 1]; const { out } = lireCSV(txt, new Set([der])); console.log(`Test des mesures : dernier jour publié ${der} (${out.length} stations du 13, ${out.filter(o => o.tx != null).length} avec TX) ; exemple ${JSON.stringify(out.find(o => o.tx != null))}`); } catch (e) { console.warn("Test des mesures impossible : " + e.message); } }
   if (aJuger.length) {
     const dates = new Set(aJuger.map(d => d.replace(/-/g, "")));
     const mesures = [];
     for (const dep of ["13", "84", "83", "30"]) {
-      try { const { tete, out } = lireCSV(await fichierObs(dep, +auj.slice(0, 4)), dates); mesures.push(...out); if (dep === "13") console.log("Mesures : colonnes " + tete.slice(0, 14).join(";") + "… ; " + out.length + " lignes du 13 pour " + [...dates].join(", ")); }
+      try { const { tete, out } = lireCSV(await fichierObs(dep), dates); mesures.push(...out); if (dep === "13") console.log("Mesures : colonnes " + tete.slice(0, 14).join(";") + "… ; " + out.length + " lignes du 13 pour " + [...dates].join(", ")); }
       catch (e) { console.warn(`Mesures du ${dep} indisponibles : ${e.message}`); }
     }
     for (const d of aJuger) {
@@ -457,7 +451,7 @@ async function verifier(ok) {
   for (const d of Object.keys(V.prev).sort().slice(0, -10)) delete V.prev[d];
   for (const d of Object.keys(V.prev)) if (d < dateParis(-9)) delete V.prev[d];
   V.jours = V.jours.sort((a, b) => a.date < b.date ? -1 : 1).slice(-60);
-  await writeFile("site/data/verif.json", JSON.stringify({ maj: new Date().toISOString(), test2: 1, test3: 1, test4: 1, test5: 1, ...V }));
+  await writeFile("site/data/verif.json", JSON.stringify({ maj: new Date().toISOString(), ...V }));
   return V.jours.slice(-14).map(({ pires, ...r }) => ({ ...r, pires }));
 }
 
