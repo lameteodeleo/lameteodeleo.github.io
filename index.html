@@ -443,7 +443,7 @@ details.plus[open] .tiles{margin-top:10px}
       <div>
         <h3 id="alertTitle"></h3>
         <ul id="alertList"></ul>
-        <a href="https://vigilance.meteofrance.fr" target="_blank" rel="noopener">Consignes officielles sur vigilance.meteofrance.fr</a>
+        <a href="https://vigilance.meteofrance.fr/fr" target="_blank" rel="noopener">Consignes officielles sur vigilance.meteofrance.fr</a>
       </div>
     </div>
     <div class="vigj" id="vigJaune" hidden><i aria-hidden="true"></i><span id="vigJauneTxt"></span></div>
@@ -575,8 +575,8 @@ details.plus[open] .tiles{margin-top:10px}
     <section>
       <div class="sec-h"><h2>Statistiques</h2></div>
       <div class="card kit">
-        <span class="sub">Visiteurs, pages vues, appareils et villes : tout est sur Umami, avec ton compte.</span>
-        <div class="chips"><a class="chip" href="https://cloud.umami.is/websites/a3212f59-b8e9-486f-9e0f-d7256926be65" target="_blank" rel="noopener">Statistiques de l'app</a><a class="chip" href="https://www.instagram.com/lameteodeleo/" target="_blank" rel="noopener">Compte Instagram</a></div>
+        <span class="sub">Umami : visiteurs, pages vues, appareils et villes. Google Search Console : ce que les gens tapent sur Google pour trouver l'app.</span>
+        <div class="chips"><a class="chip" href="https://cloud.umami.is/websites/a3212f59-b8e9-486f-9e0f-d7256926be65" target="_blank" rel="noopener">Umami</a><a class="chip" href="https://search.google.com/search-console?resource_id=https%3A%2F%2Flameteodeleo.github.io%2F" target="_blank" rel="noopener">Google Search Console</a></div>
       </div>
     </section>
     <section>
@@ -628,7 +628,7 @@ details.plus[open] .tiles{margin-top:10px}
   </main>
 
   <footer>
-    <span>Prévisions : modèles AROME et ARPEGE de Météo-France. Vigilances officielles : <a href="https://vigilance.meteofrance.fr" target="_blank" rel="noopener">vigilance.meteofrance.fr</a>.</span>
+    <span>Prévisions : modèles AROME et ARPEGE de Météo-France. Vigilances officielles : <a href="https://vigilance.meteofrance.fr/fr" target="_blank" rel="noopener">vigilance.meteofrance.fr</a>.</span>
     <span id="foot"></span>
     <span><a href="#apropos">À propos et mentions légales</a></span>
   </footer>
@@ -1608,7 +1608,7 @@ function render(){
   const alAff=m.alert||(m2&&m2.alert?Object.assign({},m2.alert,{titre:"Demain, v"+m2.alert.titre.slice(1)}):null);
   {let vj=enReel()&&!alAff?vigJaune(c,st.jour):null;
    if(!vj&&soir&&!alAff){const d1=vigJaune(c,1);if(d1)vj="Demain, v"+d1.slice(1)}
-   const bj=$("vigJaune");bj.hidden=!vj;if(vj)$("vigJauneTxt").innerHTML=vj+'<a href="https://vigilance.meteofrance.fr" target="_blank" rel="noopener">En savoir plus</a>'}
+   const bj=$("vigJaune");bj.hidden=!vj;if(vj)$("vigJauneTxt").innerHTML=vj+'<a href="https://vigilance.meteofrance.fr/fr" target="_blank" rel="noopener">En savoir plus</a>'}
   $("alertBox").classList.toggle("orange",!!(alAff&&alAff.niveau===3));
   if(alAff){$("alertBox").hidden=false;$("motBox").hidden=true;$("alertTitle").textContent=alAff.titre;$("alertList").innerHTML=alAff.cons.map(x=>"<li>"+x+"</li>").join("")}
   else{$("alertBox").hidden=true;$("motBox").hidden=false;
@@ -1989,7 +1989,16 @@ $("favbar").addEventListener("click",e=>{const b=e.target.closest("button[data-i
 $("days").addEventListener("click",e=>{const b=e.target.closest(".day");if(!b)return;st.jour=+b.dataset.i;render();$("hero").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
 
 function flash(btn,msg){const o=btn.textContent;btn.textContent=msg;setTimeout(()=>btn.textContent=o,1800)}
-async function copyText(txt,btn,ok){try{await navigator.clipboard.writeText(txt);flash(btn,ok)}catch(e){flash(btn,"Copie impossible ici")}}
+/* Copier : presse-papiers moderne, et méthode de secours pour les vieux iPhone et les navigateurs d'Instagram ou de Facebook */
+function copieSecours(txt){try{const t=document.createElement("textarea");t.value=txt;t.setAttribute("readonly","");t.style.cssText="position:fixed;top:0;left:0;opacity:0;font-size:16px";document.body.appendChild(t);t.focus();t.select();t.setSelectionRange(0,txt.length);const r=document.execCommand("copy");t.remove();return r}catch(e){return false}}
+async function copyText(txt,btn,ok){try{if(!navigator.clipboard)throw 0;await navigator.clipboard.writeText(txt);flash(btn,ok)}catch(e){flash(btn,copieSecours(txt)?ok:"Copie impossible ici")}}
+/* Liens vers d'autres sites : dans le navigateur intégré d'Instagram, Facebook, etc. (surtout sur iPhone),
+   un lien qui s'ouvre « dans un nouvel onglet » peut ne rien faire. On l'ouvre alors dans la même fenêtre. */
+const NAV_INTEGRE=/Instagram|FBAN|FBAV|FB_IAB|FBIOS|Messenger|Snapchat|TikTok|musical_ly|Line\/|Twitter|LinkedInApp|Pinterest/i.test(navigator.userAgent);
+document.addEventListener("click",e=>{
+  const a=e.target.closest&&e.target.closest('a[href^="http"]');if(!a||a.href.startsWith(location.origin))return;
+  if(NAV_INTEGRE&&a.target==="_blank"){e.preventDefault();location.href=a.href}
+},true);
 $("share").addEventListener("click",e=>copyText($("mot").textContent+" — "+NOM+", "+COMMUNES[st.c].n,e.currentTarget,"Copié !"));
 
 /* ---------- Espace créateur : scénarios + carrousel Instagram ---------- */
