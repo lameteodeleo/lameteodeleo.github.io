@@ -551,7 +551,6 @@ details.plus[open] .tiles{margin-top:10px}
         <li>Votre commune et vos favoris restent sur votre appareil.</li>
         <li>La localisation ne sert que si vous touchez « Me localiser », pour trouver la commune la plus proche. Elle n'est ni enregistrée ni transmise.</li>
         <li>Les visites sont comptées de façon anonyme, sans cookie.</li>
-        <li>Comme tout site, l'app passe par des serveurs qui reçoivent l'adresse IP de votre appareil. Je n'y ai pas accès.</li>
       </ul>
       <p class="sub">© La météo de Léo, tous droits réservés. Les textes, le logo et le design de l'app ne peuvent pas être réutilisés sans autorisation.</p>
     </div>
@@ -1565,7 +1564,7 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden&&COMMUNES[
 /* ---------- Rendu : Ma météo ---------- */
 function render(){
   const c=COMMUNES[st.c];let m=meteo(c,st.scen,st.jour);
-  $("city").textContent=c.n;$("city").classList.toggle("long",c.n.length>17);
+  {const ce=$("city");ce.textContent=c.n;ce.classList.remove("long");if(ce.scrollWidth>ce.clientWidth+1||c.n.length>17)ce.classList.add("long")}
   const fav=st.favs.includes(c.n);$("fav").setAttribute("aria-pressed",fav);
   { const fb=$("favbar"), FL=st.favs.filter(n=>idx(n)>=0);
     fb.hidden=!FL.length;
@@ -1574,7 +1573,7 @@ function render(){
   $("hero").dataset.t=m.type;
   $("heroIco").innerHTML=ICONS[m.type];
   $("cond").textContent=LIB[m.type]+(m.plNuit&&m.pl>=0.3?" · pluie la nuit":"");
-  const vif=LIVE[c.n];let cur=enReel()&&DATA.par[c.n]&&DATA.par[c.n].cur, quand=null;
+  const vif=LIVE[c.n];let cur=enReel()&&DATA.par[c.n]&&DATA.par[c.n].cur, quand=null, heroNow=null;
   if(enReel()&&vif&&vif.t>DATA.maj){cur=vif.cur;quand=vif.t}
   if(st.jour===0&&enReel()) liveMaintenant(c);
   renderPluie(c);
@@ -1582,6 +1581,7 @@ function render(){
     const now=new Date();let tNow=classer(cur[2],cur[3],cur[4],cur[0],cur[0]);
     if(estNuit(now,now.getHours()*60+now.getMinutes())) tNow=versNuit(tNow);
     $("tempLbl").textContent=quand?"Maintenant · "+quand.getHours()+" h "+String(quand.getMinutes()).padStart(2,"0"):"Maintenant · "+DATA.maj.getHours()+" h";$("temp").textContent=Math.round(cur[0])+"°";
+    heroNow={t:Math.round(cur[0]),type:tNow};
     $("hero").dataset.t=tNow;$("heroIco").innerHTML=ICONS[tNow];$("cond").textContent=LIB[tNow];
     m=Object.assign({},m,{feel:Math.round(cur[1])});
   }
@@ -1602,6 +1602,8 @@ function render(){
   {const sv=saviezDuJour(m,st.jour),bx=$("saviezBox");if(sv&&!alAff){$("saviez").textContent=insec(sv.t);bx.hidden=false}else bx.hidden=true}
   // heures
   const prochaines=(enReel()&&st.jour===0)?prochainesHeures(c):null;
+  // « Maint. » reprend exactement la température et le ciel affichés en haut
+  if(prochaines&&heroNow) prochaines[0]=Object.assign({},prochaines[0],heroNow);
   $("hoursTitle").textContent=prochaines?"Les prochaines heures":"Heure par heure";
   $("hoursDay").textContent=prochaines?"24 heures à venir":st.jour===0?"Aujourd'hui":fmt(dayDate(st.jour));
   const hr=(enReel()&&!prochaines)?heuresReelles(c,st.jour):null;
