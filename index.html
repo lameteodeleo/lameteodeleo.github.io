@@ -594,28 +594,30 @@ details.plus[open] .tiles{margin-top:10px}
       <div class="slides" id="storyBox" style="margin-top:12px"></div>
     </section>
     <section>
-      <div class="sec-h"><h2>Publier le carrousel</h2><span class="sub">Mardi et vendredi, vers 18 h</span></div>
+      <div class="sec-h"><h2>Publier le Reel</h2><span class="sub">Chaque soir, vers 18 h</span></div>
       <ol class="card steps">
         <li><b>Choisis le jour</b> juste en dessous. Le soir, «&nbsp;Demain&nbsp;» est déjà choisi.</li>
-        <li><b>Enregistre les 7 images</b>, de la 1 à la 7, avec «&nbsp;Enregistrer&nbsp;».</li>
-        <li><b>Copie la légende</b>, sous les images.</li>
-        <li><b>Instagram</b> : «&nbsp;+&nbsp;», «&nbsp;Publication&nbsp;», icône des deux carrés, puis les images dans l'ordre.</li>
-        <li><b>Colle la légende</b> (appui long, «&nbsp;Coller&nbsp;»), puis «&nbsp;Partager&nbsp;».</li>
+        <li><b>Touche «&nbsp;Créer la vidéo&nbsp;»</b> et garde l'écran allumé 18 secondes, sans quitter la page.</li>
+        <li><b>Enregistre la vidéo</b>, puis <b>copie la légende</b>.</li>
+        <li><b>Instagram</b> : «&nbsp;+&nbsp;», «&nbsp;Reel&nbsp;», choisis la vidéo, ajoute un son tendance, volume bas.</li>
+        <li><b>Couverture</b> : l'image d'accroche. <b>Colle la légende</b>, puis «&nbsp;Partager&nbsp;».</li>
       </ol>
     </section>
     <p class="alert" id="demoAvert" style="margin:0 0 12px" hidden><span><b>Mode démonstration : ces chiffres sont inventés.</b> Pour publier, ouvre «&nbsp;Tests&nbsp;», tout en bas, et choisis «&nbsp;Prévisions réelles&nbsp;».</span></p>
     <div class="chips" id="postJour" role="group" aria-label="Jour du post"><button class="chip" type="button" data-j="0">Aujourd'hui</button><button class="chip" type="button" data-j="1">Demain</button></div>
-    <div class="slides" id="slides"></div>
     <section>
-      <div class="sec-h"><h2>Reel du carrousel</h2><span class="sub">Les 7 images en vidéo verticale, environ 25 secondes</span></div>
       <div class="card kit">
-        <span class="sub">Garde l'écran allumé et reste sur cette page pendant la création (25 secondes). Ensuite, dans Instagram : «&nbsp;+&nbsp;», «&nbsp;Reel&nbsp;», choisis la vidéo, ajoute une musique de la bibliothèque d'Instagram, puis colle la légende.</span>
+        <span class="sub">18 secondes : une accroche avec le chiffre du jour, la carte, les secteurs, la journée, les conseils, les jours suivants, puis le lien en bio.</span>
         <div class="chips" style="margin-top:10px"><button class="chip" type="button" id="reelGo">Créer la vidéo</button></div>
         <div id="reelOut" style="margin-top:10px"></div>
       </div>
     </section>
+    <details class="plus">
+      <summary><span>Les images du Reel</span><small>7 images, si besoin</small></summary>
+      <div class="slides" id="slides" style="margin-top:12px"></div>
+    </details>
     <section>
-      <div class="sec-h"><h2>Légende du carrousel</h2><span class="sub">5 hashtags, le maximum d'Instagram</span></div>
+      <div class="sec-h"><h2>Légende du Reel</h2><span class="sub">5 hashtags, le maximum d'Instagram</span></div>
       <textarea class="caption" id="caption" aria-label="Légende du post Instagram"></textarea>
       <div style="margin-top:8px"><button class="sbtn" type="button" id="copyCap">Copier la légende</button></div>
     </section>
@@ -2328,25 +2330,66 @@ $("hPrev").addEventListener("click",()=>$("hours").scrollBy({left:-240,behavior:
 $("hNext").addEventListener("click",()=>$("hours").scrollBy({left:240,behavior:"smooth"}));
 document.querySelectorAll("#postJour .chip").forEach(b=>b.addEventListener("click",()=>{postJour=+b.dataset.j;buildSlides()}));
 /* Reel : les images du carrousel enchaînées en vidéo verticale 1080 × 1920 (fondu et léger zoom), enregistrée dans le navigateur */
-let SLIDES=[],SLIDES_JOUR="";
+let SLIDES=[],SLIDES_JOUR="",SLIDES_J=1;
 async function creerReel(btn){
   const out=$("reelOut");if(!SLIDES.length){flash(btn,"Pas d'images");return}
   if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){out.innerHTML='<span class="sub">Ce navigateur ne sait pas créer de vidéo. Essaie avec Chrome à jour.</span>';return}
   const types=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4","video/webm;codecs=vp9","video/webm"],type=types.find(t=>MediaRecorder.isTypeSupported(t));
   if(!type){out.innerHTML='<span class="sub">Ce navigateur ne sait pas créer de vidéo. Essaie avec Chrome à jour.</span>';return}
   const W=1080,H=1920,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
-  const DUREE=3.4,FONDU=.45,total=SLIDES.length*DUREE;
-  const fond=()=>{x.fillStyle=B.ink;x.fillRect(0,0,W,H);x.fillStyle=B.white;x.font="800 54px "+FD;x.textAlign="center";x.fillText("La météo de Léo",W/2,190);
-    x.fillStyle=B.sun;x.font="800 38px "+FB;x.fillText("La météo de votre commune : lien en bio",W/2,H-150);x.textAlign="left"};
-  const poser=(img,t,alpha)=>{const z=1+.035*Math.min(1,t/DUREE), w=W*z, h=img.height*W/img.width*z;x.globalAlpha=alpha;x.drawImage(img,(W-w)/2,(H-h)/2,w,h);x.globalAlpha=1};
+  // Reel pensé pour la rétention : accroche forte en 1 seconde, images courtes qui glissent, barre de progression, fin qui renvoie au lien
+  const J=SLIDES_J, R=bilanDep(J), al=R.al, dj=dayDate(J);
+  const jourTxt=(J===0?"Aujourd'hui":"Demain")+", "+dj.toLocaleDateString("fr-FR",{weekday:"long"});
+  // L'accroche : le chiffre le plus marquant du jour
+  let hook;
+  if(al) hook={k:al.titre.replace(/^Vigilance /,"Vigilance\n"),n:null,lab:"sur les Bouches-du-Rhône",ico:R.ico||R.dom};
+  else if(R.pl.jour>=10) hook={n:Math.round(R.pl.jour),u:" mm",lab:"de pluie attendus dans le 13",ico:"pluieForte"};
+  else if(R.vent.m.raf>=60||(R.dom==="mistral"&&R.vent.m.raf>=40)) hook={n:R.vent.m.raf,u:" km/h",lab:R.dom==="mistral"?"de mistral en rafales dans le 13":"de rafales dans le 13",ico:R.dom==="mistral"?"mistral":"vent"};
+  else if(R.chaud.m.max>=32) hook={n:R.chaud.m.max,u:"°",lab:"au plus chaud dans le 13",ico:"chaleur"};
+  else if(R.min<=0) hook={n:R.min,u:"°",lab:"au petit matin dans le 13",ico:"gel"};
+  else if(R.pl.jour>=2) hook={n:Math.round(R.pl.jour),u:" mm",lab:"de pluie attendus dans le 13",ico:R.ico||"pluie"};
+  else hook={n:R.chaud.m.max,u:"°",lab:R.titre.toLowerCase()+" dans le 13",ico:R.ico||R.dom};
+  const SC=[{type:"hook",d:2.8}].concat(SLIDES.slice(1,6).map(img=>({type:"img",img,d:2.6}))).concat([{type:"fin",d:2.8}]);
+  const total=SC.reduce((a,b)=>a+b.d,0), TR=.32;
+  const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,3), pop=t=>{t=Math.max(0,Math.min(1,t));return t<.6?ease(t/.6)*1.08:1.08-.08*ease((t-.6)/.4)};
+  const fond=c=>{const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,c||B.ink);g.addColorStop(1,al?"#6E1712":"#2B2366");x.fillStyle=g;x.fillRect(0,0,W,H)};
+  const centre=(txt,y,font,col,a)=>{x.globalAlpha=a==null?1:a;x.fillStyle=col;x.font=font;x.textAlign="center";x.fillText(txt,W/2,y);x.textAlign="left";x.globalAlpha=1};
+  const progression=(k,f)=>{const n=SC.length,gap=10,w=(W-140-gap*(n-1))/n;for(let i=0;i<n;i++){x.fillStyle="rgba(255,255,255,.28)";rr(x,70+i*(w+gap),236,w,8,4);x.fill();
+      const v=i<k?1:i===k?f:0;if(v>0){x.fillStyle=B.sun;rr(x,70+i*(w+gap),236,w*v,8,4);x.fill()}}};
+  const scene=(sc,t)=>{ // t : secondes depuis le début de la scène
+    if(sc.type==="hook"){fond(al?B.alert:B.ink);
+      drawMark(x,W/2-200,330,70,true);logoCanvas(x,W/2-150,350,48,B.white,al?B.white:B.sun);
+      centre(jourTxt.toUpperCase(),520,"800 46px "+FB,al?B.white:B.sun,ease(t/.35));
+      const s=pop(t/.55);x.save();x.translate(W/2,760);x.scale(s,s);cIcon(x,hook.ico,-170,-170,340,true);x.restore();
+      if(hook.n!=null){const v=Math.round(hook.n*ease(Math.min(1,t/.9)));x.save();x.fillStyle=B.white;x.font="800 230px "+FD;x.textAlign="center";
+          const txt=v+hook.u;let fs=230;while(x.measureText(txt).width>W-120&&fs>120){fs-=10;x.font="800 "+fs+"px "+FD}x.fillText(txt,W/2,1150);x.restore()}
+      else hook.k.split("\n").forEach((l,i)=>centre(l,1060+i*120,"800 110px "+FD,B.white,ease((t-.2)/.4)));
+      x.save();x.font="800 54px "+FB;x.fillStyle=B.white;x.textAlign="center";x.globalAlpha=ease((t-.5)/.4);x.fillText(hook.lab,W/2,1250);x.restore();
+      const b=ease((t-1.1)/.4);if(b>0){x.globalAlpha=b;x.fillStyle=B.sun;rr(x,150,1330,W-300,110,55);x.fill();x.globalAlpha=1;
+        centre("Votre secteur en 15 secondes 👇",1402,"800 44px "+FB,B.sunInk,b)}
+    }else if(sc.type==="img"){fond();
+      const img=sc.img,z=1+.04*Math.min(1,t/sc.d),w=W*.9*z,h=img.height*(W*.9)/img.width*z;
+      const dx=t<TR?(1-ease(t/TR))*W*.35:0,a=t<TR?ease(t/TR):1;
+      x.save();x.globalAlpha=a;x.shadowColor="rgba(0,0,0,.35)";x.shadowBlur=40;x.drawImage(img,(W-w)/2+dx,330+(1220-h)/2,w,h);x.restore();
+    }else{fond(B.brand);
+      drawMark(x,W/2,560,220,true);
+      centre("Votre commune,",820,"800 92px "+FD,B.white,ease(t/.4));
+      centre("heure par heure",930,"800 92px "+FD,B.sun,ease((t-.15)/.4));
+      const b=ease((t-.5)/.4);x.globalAlpha=b;x.fillStyle=B.white;rr(x,240,1040,W-480,120,60);x.fill();x.globalAlpha=1;
+      centre("Lien en bio",1118,"800 54px "+FB,B.brand,b);
+      centre("Abonnez-vous pour la météo de demain",1290,"700 42px "+FB,B.white,ease((t-.9)/.4));
+      centre(PSEUDO,1370,"800 40px "+FB,B.sun,ease((t-.9)/.4));
+    }
+    if(!enReel()){x.save();x.translate(W/2,H/2);x.rotate(-Math.PI/7);x.fillStyle="rgba(179,38,30,.9)";x.fillRect(-W,-70,W*2,140);x.fillStyle="#fff";x.font="800 58px "+FD;x.textAlign="center";x.fillText("DÉMONSTRATION · NE PAS PUBLIER",0,20);x.restore()}
+  };
   const stream=cv.captureStream(30),rec=new MediaRecorder(stream,{mimeType:type,videoBitsPerSecond:8e6}),morceaux=[];
   rec.ondataavailable=e=>{if(e.data&&e.data.size)morceaux.push(e.data)};
   btn.disabled=true;out.innerHTML='<span class="sub" id="reelEtat">Création en cours… 0 %</span>';
   const fini=new Promise(res=>rec.onstop=res);rec.start(500);
   const t0=performance.now();
-  await new Promise(res=>{const tick=()=>{const t=(performance.now()-t0)/1000;if(t>=total+.3){res();return}
-    fond();const i=Math.min(SLIDES.length-1,Math.floor(t/DUREE)),tl=t-i*DUREE;poser(SLIDES[i],tl,1);
-    if(i<SLIDES.length-1&&tl>DUREE-FONDU)poser(SLIDES[i+1],0,(tl-(DUREE-FONDU))/FONDU);
+  await new Promise(res=>{const tick=()=>{const t=(performance.now()-t0)/1000;if(t>=total+.2){res();return}
+    let k=0,acc=0;while(k<SC.length-1&&t>=acc+SC[k].d){acc+=SC[k].d;k++}
+    const tl=t-acc;scene(SC[k],tl);progression(k,Math.min(1,tl/SC[k].d));
     const e=$("reelEtat");if(e)e.textContent="Création en cours… "+Math.min(100,Math.round(t/total*100))+" %";requestAnimationFrame(tick)};tick()});
   rec.stop();await fini;btn.disabled=false;
   const ext=type.startsWith("video/mp4")?"mp4":"webm",blob=new Blob(morceaux,{type:type.split(";")[0]}),file="lameteodeleo-"+SLIDES_JOUR+"-reel."+ext,url=URL.createObjectURL(blob);
@@ -2364,7 +2407,7 @@ async function buildSlides(){
   document.querySelectorAll("#postJour .chip").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.j===J)));
   const box=$("slides");box.innerHTML="";
   {const av=$("demoAvert");if(av)av.hidden=enReel()}
-  SLIDES=[slideCover(J),slideCarte(J),slideSecteurs(J),slideJournee(J),slideConseils(J),slideSuite(J),slideFin(J)];SLIDES_JOUR=day;$("reelOut").innerHTML="";
+  SLIDES=[slideCover(J),slideCarte(J),slideSecteurs(J),slideJournee(J),slideConseils(J),slideSuite(J),slideFin(J)];SLIDES_JOUR=day;SLIDES_J=J;$("reelOut").innerHTML="";
   SLIDES.forEach((cv,i)=>addSlide(box,cv,"Image "+(i+1)+" / 7","lameteodeleo-"+day+"-"+(i+1)+".jpg"));
   const sb=$("storyBox");sb.innerHTML="";addSlide(sb,slideStory(),"Story du jour","lameteodeleo-"+day+"-story.jpg","story");
   const R=bilanDep(J), al=R.al, c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,J);
@@ -2414,8 +2457,8 @@ const KIT={
   {titre:"Le mistral, expliqué avec le sourire",points:["Il descend du nord et du nord-ouest par la vallée du Rhône.","Il chasse les nuages : ciel bleu garanti, chapeau non garanti.","Ses rafales peuvent dépasser 90 km/h.","Il rend le ressenti bien plus froid que le thermomètre.","Le dicton dit qu'il souffle 3, 6 ou 9 jours. Le dicton ne signe jamais de contrat."],
    legende:"Le mistral, notre colocataire le plus bruyant 🌬️\n\nUne anecdote de mistral ? Un parasol envolé, une porte claquée ? Racontez-la en commentaire, les meilleures passeront en story.\n\n#mistral #provence #bouchesdurhone #lameteodeleo"}
  ],
- rythme:["Chaque matin vers 7 h : la story du jour, avec l'autocollant « Lien ».","Mardi vers 18 h : le carrousel de mercredi.","Jeudi vers 18 h : un Reel « Le week-end s'annonce… ».","Vendredi vers 18 h : le carrousel de samedi.","Dimanche vers 18 h : un Reel « La semaine qui arrive ».","Jour de vigilance ou phénomène marquant : un carrousel ou un Reel en plus, la veille au soir.","Chaque jour : répondre aux commentaires et aux messages."],
- reels:["Le week-end en 3 temps (jeudi) : une vidéo de ciel libre de droits (Pexels), puis 3 phrases courtes : samedi matin, samedi après-midi, dimanche.","La semaine qui arrive (dimanche) : 2 ou 3 temps forts, par exemple « mistral mardi, pluie jeudi ».","Les images du carrousel qui défilent sur une musique tendance.","Un jour de vigilance ou de mistral fort : une vidéo de vent ou de pluie, et la consigne principale en texte.","Image libre de droits : jamais présentée comme filmée aujourd'hui ; ajoute « image d'illustration » en cas de doute."],
+ rythme:["Chaque matin vers 7 h : la story du jour, avec l'autocollant « Lien ».", "Chaque soir vers 18 h : le Reel de demain. Choisis « Demain », puis « Créer la vidéo ».", "Avant un jour marquant (vigilance, gros mistral, forte pluie) : le Reel est indispensable.", "Plus de carrousel : la légende sous les images sert de légende au Reel."],
+ reels:["Garde l'accroche du début : c'est la première seconde qui décide si les gens restent.", "Ajoute un son tendance de la bibliothèque d'Instagram, volume bas : la portée augmente.", "Couverture du Reel : choisis l'image d'accroche, avec le gros chiffre.", "Après la publication, partage le Reel en story : il touche aussi tes abonnés qui regardent les stories.", "Réponds aux commentaires dans la première heure : Instagram montre alors le Reel à plus de monde."],
  hashtags:"#meteo #provence #bouchesdurhone #marseille #aixenprovence"
 };
 function slidePin(i){
@@ -2451,7 +2494,7 @@ async function buildKit(){
   const bloc=(titre,html,copie)=>'<div class="card kit"><div class="row"><h3>'+titre+'</h3>'+(copie!=null?'<button class="sbtn" type="button" data-copy="'+copie+'">Copier</button>':'')+'</div>'+html+'</div>';
   const esc=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;");
   $("semaine").innerHTML=bloc("Rythme de publication",'<ul>'+KIT.rythme.map(t=>"<li>"+esc(t)+"</li>").join("")+'</ul>')+
-    bloc("Idées de Reels",'<ol>'+KIT.reels.map(t=>"<li>"+esc(t)+"</li>").join("")+'</ol>');
+    bloc("Réussir ses Reels",'<ol>'+KIT.reels.map(t=>"<li>"+esc(t)+"</li>").join("")+'</ol>');
   const hb=$("hlBox");hb.innerHTML="";HL.forEach(([kind,label])=>addSlide(hb,slideHighlight(kind),label,CLE+"-une-"+kind+".jpg","hl"));
   kitBuilt=true;
 }
