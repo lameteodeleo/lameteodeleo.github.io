@@ -1243,6 +1243,8 @@ const versNuit=t=>t==="soleil"?"lune":t==="nuageux"?"nuitNuageux":t;
 /* ---------- État ---------- */
 let st={c:idx("Aix-en-Provence"),scen:"mistral",jour:0,favs:[],demo:false,nom:null};
 try{const s=JSON.parse(localStorage.getItem(CLE)||"null");if(s){if(s.cn&&idx(s.cn)>=0){st.c=idx(s.cn)}st.nom=s.cn||null;if(SCEN[s.scen])st.scen=s.scen;if(Array.isArray(s.favs))st.favs=s.favs.filter(n=>idx(n)>=0)}}catch(e){}
+// Lien direct vers une commune (pages des communes, partages) : /?commune=Trets
+try{const qc=new URLSearchParams(location.search).get("commune");if(qc){if(idx(qc)>=0)st.c=idx(qc);st.nom=qc;history.replaceState(null,"",location.pathname+location.hash)}}catch(e){}
 const save=()=>{st.nom=COMMUNES[st.c]?COMMUNES[st.c].n:st.nom;try{localStorage.setItem(CLE,JSON.stringify({cn:st.nom,scen:st.scen,favs:st.favs}))}catch(e){}};
 const $=id=>document.getElementById(id);
 const today=new Date();

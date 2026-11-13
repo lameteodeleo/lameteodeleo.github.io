@@ -455,6 +455,84 @@ async function verifier(ok) {
   return V.jours.slice(-14).map(({ pires, ...r }) => ({ ...r, pires }));
 }
 
+
+// 7. Une page par commune, lisible par Google (« météo Trets », « météo Cassis »...), plus une page qui les liste toutes.
+// Les pages sont refaites à chaque mise à jour ; le bouton ouvre l'app directement sur la commune.
+const SITE = "https://lameteodeleo.github.io";
+const NOMS_SECTEURS = { mc: "Marseille & alentours", aix: "Pays d'Aix", berre: "Étang de Berre", salon: "Salon & Alpilles", arles: "Arles & Camargue", voisins: "Voisins du 13" };
+const slug = n => norm(n).replace(/ /g, "-");
+const esc = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+// Même règle que l'app : la pluie n'est annoncée que si elle est probable (50 % et plus) et mesurable
+function ciel(code, prob, pl) {
+  const precip = (code >= 51 && code <= 67) || (code >= 71 && code <= 86) || code >= 95;
+  const fort = [63, 65, 67, 73, 75, 81, 82, 95, 96, 99].includes(code) || pl >= 5;
+  if (precip && !fort && ((prob != null && prob < 50) || pl < 0.5)) code = 3;
+  if (code <= 1) return "Ensoleillé"; if (code === 2) return "Éclaircies"; if (code === 3) return "Nuageux";
+  if (code === 45 || code === 48) return "Brouillard"; if (code >= 95) return "Orages";
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "Neige";
+  if ([56, 57, 66, 67].includes(code)) return "Pluie verglaçante";
+  if (pl >= 15 || [65, 82].includes(code)) return "Forte pluie";
+  if (code >= 80) return "Averses"; if (code <= 55) return "Bruine"; return "Pluie";
+}
+const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+const mistral = (raf, dir) => raf >= 40 && dir != null && (dir >= 290 || dir <= 20);
+const dirTxt = d => d == null ? "" : ["nord", "nord-est", "est", "sud-est", "sud", "sud-ouest", "ouest", "nord-ouest"][Math.round(((d % 360) + 360) % 360 / 45) % 8];
+const article = n => /^(Le|La|Les) /.test(n) ? n.replace(/^Le /, "au ").replace(/^Les /, "aux ").replace(/^La /, "à la ") : "à " + n;
+const STYLE = `:root{--bg:#F4F2FB;--card:#fff;--ink:#1B1640;--muted:#655F86;--brand:#4B3BB8;--sun:#FFC21A;--line:#E3DFF5}
+@media (prefers-color-scheme:dark){:root{--bg:#100E24;--card:#1C1838;--ink:#F2F0FF;--muted:#A7A1CC;--brand:#A99FF5;--line:#2C2750}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px}a{color:var(--brand)}
+.top{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:800;font-size:1.1rem}.top img{width:36px;height:36px;border-radius:9px}.top em{font-style:normal;color:#E0A400}
+h1{font-size:1.7rem;line-height:1.2;margin:22px 0 4px}.sub{color:var(--muted);font-size:.9rem;margin:0}
+.hero{background:linear-gradient(135deg,#5B4BD0,#3E2FA3);color:#fff;border-radius:22px;padding:20px;margin:18px 0}
+.hero .t{font-size:3rem;font-weight:800;line-height:1}.hero p{margin:6px 0 0}
+.btn{display:inline-block;margin-top:14px;background:var(--sun);color:#1B1640;font-weight:800;text-decoration:none;padding:12px 18px;border-radius:999px}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:18px;overflow:hidden}
+th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--line);font-size:.92rem}th{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}h2{font-size:1.15rem;margin:26px 0 10px}
+.liens{display:flex;flex-wrap:wrap;gap:8px}.liens a{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;text-decoration:none;font-size:.88rem}
+footer{color:var(--muted);font-size:.78rem;margin-top:30px;line-height:1.5}`;
+function page({ titre, desc, url, corps }) {
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(titre)}</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="${url}">
+<meta property="og:type" content="website"><meta property="og:title" content="${esc(titre)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${SITE}/icons/partage.png"><meta property="og:locale" content="fr_FR">
+<meta name="theme-color" content="#4B3BB8"><link rel="icon" href="/icons/icon-192.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>${STYLE}</style>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="a3212f59-b8e9-486f-9e0f-d7256926be65" data-domains="lameteodeleo.github.io"></script>
+</head><body><main><a class="top" href="/"><img src="/icons/icon-192.png" alt="">La météo <em>de Léo</em></a>${corps}
+<footer>La météo de Léo : la météo des Bouches-du-Rhône, commune par commune. Prévisions des modèles AROME et ARPEGE de Météo-France, mises à jour toutes les 2 heures. Vigilances officielles : <a href="https://vigilance.meteofrance.fr/fr">vigilance.meteofrance.fr</a>. Données météo : Open-Meteo, licence CC BY 4.0. <a href="/#apropos">À propos et mentions légales</a>.</footer>
+</main></body></html>`;
+}
+async function pagesCommunes(ok) {
+  const maj = new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).replace(":", " h ");
+  const jourTxt = d => new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  const urls = [`${SITE}/`, `${SITE}/meteo/`];
+  for (const x of ok) {
+    const sl = slug(x.n), url = `${SITE}/meteo/${sl}/`, J = x.d[0];
+    const dep = x.dep === "13" ? "Bouches-du-Rhône" : x.dep === "84" ? "Vaucluse" : x.dep === "83" ? "Var" : "";
+    const lib0 = ciel(J[1], J[7], J[6]);
+    const lignes = x.d.slice(0, 7).map((D, k) => `<tr><td>${k === 0 ? "Aujourd'hui" : k === 1 ? "Demain" : cap(jourTxt(D[0]).split(" ")[0])}<br><span class="sub">${new Date(D[0] + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span></td><td>${ciel(D[1], D[7], D[6])}${D[6] >= 0.5 ? `<br><span class="sub">${String(D[6]).replace(".", ",")} mm${D[7] != null ? ", risque " + D[7] + " %" : ""}</span>` : ""}</td><td class="n">${Math.round(D[3])}° / <b>${Math.round(D[2])}°</b></td><td class="n">${Math.round(D[4])} km/h<br><span class="sub">${mistral(D[4], D[5]) ? "mistral" : dirTxt(D[5])}</span></td></tr>`).join("");
+    const voisines = ok.filter(o => o.s === x.s && o.n !== x.n).sort((a, b) => Math.hypot(a.lat - x.lat, a.lon - x.lon) - Math.hypot(b.lat - x.lat, b.lon - x.lon)).slice(0, 8);
+    const titre = `Météo ${x.n} : prévisions heure par heure et à 7 jours`;
+    const desc = `Météo ${article(x.n)} aujourd'hui : ${lib0.toLowerCase()}, ${Math.round(J[3])}° à ${Math.round(J[2])}°, rafales ${Math.round(J[4])} km/h. Prévisions Météo-France sur 7 jours, mises à jour toutes les 2 heures.`;
+    const corps = `<h1>Météo ${article(x.n)}</h1><p class="sub">${esc(dep)}${dep ? " · " : ""}${NOMS_SECTEURS[x.s] || ""} · mis à jour ${maj}</p>
+<div class="hero"><div class="sub" style="color:rgba(255,255,255,.8)">Aujourd'hui</div><div class="t">${Math.round(J[2])}°</div><p><b>${lib0}${mistral(J[4], J[5]) ? ", mistral" : ""}</b> · minimale ${Math.round(J[3])}° · rafales jusqu'à ${Math.round(J[4])} km/h${J[6] >= 0.5 ? " · pluie " + String(J[6]).replace(".", ",") + " mm" : ""}</p>
+<a class="btn" href="/?commune=${encodeURIComponent(x.n)}">Voir la météo heure par heure</a></div>
+<h2>Prévisions sur 7 jours</h2><table><thead><tr><th>Jour</th><th>Ciel</th><th style="text-align:right">Min / max</th><th style="text-align:right">Rafales</th></tr></thead><tbody>${lignes}</tbody></table>
+<p class="sub" style="margin-top:10px">Dans l'app : la température en direct, la pluie dans les 2 prochaines heures, les vigilances Météo-France et les conseils du jour.</p>
+<h2>Communes voisines</h2><div class="liens">${voisines.map(o => `<a href="/meteo/${slug(o.n)}/">${esc(o.n)}</a>`).join("")}<a href="/meteo/">Toutes les communes</a></div>`;
+    await mkdir(`site/meteo/${sl}`, { recursive: true });
+    await writeFile(`site/meteo/${sl}/index.html`, page({ titre, desc, url, corps }));
+    urls.push(url);
+  }
+  const groupes = Object.entries(NOMS_SECTEURS).map(([k, nom]) => { const L = ok.filter(o => o.s === k).sort((a, b) => a.n.localeCompare(b.n, "fr")); return L.length ? `<h2>${nom}</h2><div class="liens">${L.map(o => `<a href="/meteo/${slug(o.n)}/">${esc(o.n)}</a>`).join("")}</div>` : ""; }).join("");
+  await mkdir("site/meteo", { recursive: true });
+  await writeFile("site/meteo/index.html", page({ titre: "Météo des Bouches-du-Rhône : toutes les communes", desc: `La météo de ${ok.length} communes des Bouches-du-Rhône et des environs, heure par heure et sur 7 jours, d'après les modèles de Météo-France.`, url: `${SITE}/meteo/`, corps: `<h1>Météo des Bouches-du-Rhône, commune par commune</h1><p class="sub">${ok.length} communes · mis à jour ${maj}</p>${groupes}` }));
+  const jour = new Date().toISOString().slice(0, 10);
+  await writeFile("site/sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u}</loc><lastmod>${jour}</lastmod><changefreq>hourly</changefreq></url>`).join("\n")}\n</urlset>\n`);
+  return urls.length;
+}
+
 // 5. Construction du site
 const liste = await communes();
 await previsions(liste);
@@ -517,4 +595,6 @@ function r1x(v) { return Math.round(v * 1000) / 1000; }
 // Copie tous les fichiers de l'app (tout sauf les outils et le dossier « site » lui-même)
 const EXCLUS = new Set([".git", ".github", "scripts", "site", "node_modules", "README.md"]);
 for (const f of await readdir(".")) if (!EXCLUS.has(f)) await cp(f, "site/" + f, { recursive: true });
+const nbPages = await bonus("Pages des communes", () => pagesCommunes(ok));
+if (nbPages) console.log(`Pages pour Google : ${nbPages} adresses dans le plan du site`);
 console.log(`Site prêt : ${ok.length} communes, mis à jour le ${new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })}`);
