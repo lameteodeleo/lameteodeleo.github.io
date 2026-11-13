@@ -504,6 +504,8 @@ function page({ titre, desc, url, corps }) {
 </main></body></html>`;
 }
 async function pagesCommunes(ok) {
+  let ANEC = {};
+  try { ANEC = JSON.parse(await (await import("node:fs/promises")).readFile("scripts/anecdotes-communes.json", "utf8")); } catch (e) { console.warn("Anecdotes des communes illisibles : " + e.message); }
   const maj = new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).replace(":", " h ");
   const jourTxt = d => new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   const urls = [`${SITE}/`, `${SITE}/meteo/`];
@@ -520,6 +522,7 @@ async function pagesCommunes(ok) {
 <a class="btn" href="/?commune=${encodeURIComponent(x.n)}">Voir la météo heure par heure</a></div>
 <h2>Prévisions sur 7 jours</h2><table><thead><tr><th>Jour</th><th>Ciel</th><th style="text-align:right">Min / max</th><th style="text-align:right">Rafales</th></tr></thead><tbody>${lignes}</tbody></table>
 <p class="sub" style="margin-top:10px">Dans l'app : la température en direct, la pluie dans les 2 prochaines heures, les vigilances Météo-France et les conseils du jour.</p>
+${ANEC[x.n] && ANEC[x.n].length ? `<h2>Le saviez-vous ?</h2>${ANEC[x.n].slice(0, 3).map(a => `<p style="background:var(--card);border-radius:16px;padding:14px 16px;margin:0 0 10px">${esc(a.t)}</p>`).join("")}` : ""}
 <h2>Communes voisines</h2><div class="liens">${voisines.map(o => `<a href="/meteo/${slug(o.n)}/">${esc(o.n)}</a>`).join("")}<a href="/meteo/">Toutes les communes</a></div>`;
     await mkdir(`site/meteo/${sl}`, { recursive: true });
     await writeFile(`site/meteo/${sl}/index.html`, page({ titre, desc, url, corps }));
