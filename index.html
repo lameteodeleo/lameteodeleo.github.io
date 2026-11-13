@@ -232,6 +232,7 @@ nav.tabs a[aria-current="page"] svg{background:var(--brand);color:var(--surface)
 /* espace créateur */
 .back{align-self:flex-start;border:0;background:none;color:var(--brand);font-weight:800;padding:4px 0;cursor:pointer;text-decoration:none}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
+a.chip{text-decoration:none;display:inline-flex;align-items:center}
 .chip{font-size:.85rem;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .steps{margin:0;padding:14px 16px 14px 34px;display:flex;flex-direction:column;gap:4px;font-size:.92rem}
@@ -569,50 +570,14 @@ details.plus[open] .tiles{margin-top:10px}
     <a class="back" href="#meteo">← Retour à l'app</a>
     <div>
       <h2 style="font-size:1.3rem">Espace créateur</h2>
-      <div class="sub">Réservé à toi : il s'ouvre avec ton code, en bas de la page À propos.</div>
       <div class="sub" id="qualiteLigne" style="margin-top:6px" hidden></div>
     </div>
     <section>
-      <div class="sec-h"><h2>Logo et icône</h2></div>
-      <div class="assets" id="assets"></div>
-    </section>
-    <section>
-      <div class="sec-h"><h2>Kit de lancement Instagram</h2><span class="sub">À préparer une fois</span></div>
-      <div style="display:flex;flex-direction:column;gap:12px" id="kit"></div>
-    </section>
-    <section>
-      <div class="sec-h"><h2>Posts à épingler</h2><span class="sub">3 posts, en haut du profil</span></div>
-      <div class="slides" id="pinBox"></div>
-    </section>
-    <section>
-      <div class="sec-h"><h2>Couvertures des stories à la une</h2></div>
-      <div class="slides" id="hlBox"></div>
-    </section>
-    <section>
-      <div class="sec-h"><h2>Situation de démonstration</h2></div>
-      <div class="chips" id="scen" role="group" aria-label="Situations d'exemple"></div>
-      <div class="chips" style="margin-top:8px"><button class="chip" type="button" id="staleToggle" aria-pressed="false">Simuler des données non mises à jour</button></div>
-    </section>
-    <section>
-      <div class="sec-h"><h2>Publier le carrousel</h2><span class="sub">7 images, 5 minutes</span></div>
-      <ol class="card steps">
-        <li><b>Vérifie les données.</b> Juste au-dessus, «&nbsp;Prévisions réelles&nbsp;» doit être allumé.</li>
-        <li><b>Choisis le jour</b> avec les boutons «&nbsp;Aujourd'hui&nbsp;» et «&nbsp;Demain&nbsp;», sous cette liste. Le soir, «&nbsp;Demain&nbsp;» est déjà choisi : tu prépares le post du lendemain matin.</li>
-        <li><b>Enregistre les 7 images.</b> Sous chaque image, touche «&nbsp;Enregistrer&nbsp;», de la 1 à la 7. Elles arrivent dans la galerie de ton téléphone.</li>
-        <li><b>Copie la légende.</b> Sous les images, touche «&nbsp;Copier la légende&nbsp;».</li>
-        <li><b>Ouvre Instagram</b>, touche «&nbsp;+&nbsp;», puis «&nbsp;Publication&nbsp;».</li>
-        <li><b>Choisis les 7 images dans l'ordre.</b> Touche l'icône des deux carrés («&nbsp;sélection multiple&nbsp;»), puis l'image 1, la 2… jusqu'à la 7.</li>
-        <li><b>Colle la légende.</b> Touche «&nbsp;Suivant&nbsp;» jusqu'à l'écran de la légende, fais un appui long dans la case, puis «&nbsp;Coller&nbsp;».</li>
-        <li><b>Touche «&nbsp;Partager&nbsp;».</b></li>
-      </ol>
-    </section>
-    <p class="alert" id="demoAvert" style="margin:0 0 12px" hidden><span><b>Mode démonstration : ces chiffres sont inventés.</b> Pour publier, choisis «&nbsp;Prévisions réelles&nbsp;» dans «&nbsp;Situation de démonstration&nbsp;», plus haut.</span></p>
-    <div class="chips" id="postJour" role="group" aria-label="Jour du post"><button class="chip" type="button" data-j="0">Aujourd'hui</button><button class="chip" type="button" data-j="1">Demain</button></div>
-    <div class="slides" id="slides"></div>
-    <section>
-      <div class="sec-h"><h2>Légende du carrousel</h2><span class="sub">5 hashtags, le maximum d'Instagram</span></div>
-      <textarea class="caption" id="caption" aria-label="Légende du post Instagram"></textarea>
-      <div style="margin-top:8px"><button class="sbtn" type="button" id="copyCap">Copier la légende</button></div>
+      <div class="sec-h"><h2>Statistiques</h2></div>
+      <div class="card kit">
+        <span class="sub">Visiteurs, pages vues, appareils et villes : tout est sur Umami, avec ton compte.</span>
+        <div class="chips"><a class="chip" href="https://cloud.umami.is/websites/a3212f59-b8e9-486f-9e0f-d7256926be65" target="_blank" rel="noopener">Statistiques de l'app</a><a class="chip" href="https://www.instagram.com/lameteodeleo/" target="_blank" rel="noopener">Compte Instagram</a></div>
+      </div>
     </section>
     <section>
       <div class="sec-h"><h2>Publier la story du jour</h2><span class="sub">Chaque matin</span></div>
@@ -624,6 +589,56 @@ details.plus[open] .tiles{margin-top:10px}
       </ol>
       <div class="slides" id="storyBox" style="margin-top:12px"></div>
     </section>
+    <section>
+      <div class="sec-h"><h2>Publier le carrousel</h2><span class="sub">Mardi et vendredi, vers 18 h</span></div>
+      <ol class="card steps">
+        <li><b>Choisis le jour</b> juste en dessous. Le soir, «&nbsp;Demain&nbsp;» est déjà choisi.</li>
+        <li><b>Enregistre les 7 images</b>, de la 1 à la 7, avec «&nbsp;Enregistrer&nbsp;».</li>
+        <li><b>Copie la légende</b>, sous les images.</li>
+        <li><b>Instagram</b> : «&nbsp;+&nbsp;», «&nbsp;Publication&nbsp;», icône des deux carrés, puis les images dans l'ordre.</li>
+        <li><b>Colle la légende</b> (appui long, «&nbsp;Coller&nbsp;»), puis «&nbsp;Partager&nbsp;».</li>
+      </ol>
+    </section>
+    <p class="alert" id="demoAvert" style="margin:0 0 12px" hidden><span><b>Mode démonstration : ces chiffres sont inventés.</b> Pour publier, ouvre «&nbsp;Tests&nbsp;», tout en bas, et choisis «&nbsp;Prévisions réelles&nbsp;».</span></p>
+    <div class="chips" id="postJour" role="group" aria-label="Jour du post"><button class="chip" type="button" data-j="0">Aujourd'hui</button><button class="chip" type="button" data-j="1">Demain</button></div>
+    <div class="slides" id="slides"></div>
+    <section>
+      <div class="sec-h"><h2>Légende du carrousel</h2><span class="sub">5 hashtags, le maximum d'Instagram</span></div>
+      <textarea class="caption" id="caption" aria-label="Légende du post Instagram"></textarea>
+      <div style="margin-top:8px"><button class="sbtn" type="button" id="copyCap">Copier la légende</button></div>
+    </section>
+    <section>
+      <div class="sec-h"><h2>Ta semaine</h2></div>
+      <div style="display:flex;flex-direction:column;gap:12px" id="semaine"></div>
+    </section>
+    <details class="plus">
+      <summary><span>Profil Instagram</span><small>logo, bio, posts épinglés</small></summary>
+      <div style="display:flex;flex-direction:column;gap:18px;margin-top:12px">
+        <section>
+          <div class="sec-h"><h2>Logo et icône</h2></div>
+          <div class="assets" id="assets"></div>
+        </section>
+        <div style="display:flex;flex-direction:column;gap:12px" id="kit"></div>
+        <section>
+          <div class="sec-h"><h2>Posts à épingler</h2></div>
+          <div class="slides" id="pinBox"></div>
+        </section>
+        <section>
+          <div class="sec-h"><h2>Couvertures des stories à la une</h2></div>
+          <div class="slides" id="hlBox"></div>
+        </section>
+      </div>
+    </details>
+    <details class="plus">
+      <summary><span>Tests</span><small>situations de démonstration</small></summary>
+      <div style="margin-top:12px">
+    <section>
+      <div class="sec-h"><h2>Situation de démonstration</h2></div>
+      <div class="chips" id="scen" role="group" aria-label="Situations d'exemple"></div>
+      <div class="chips" style="margin-top:8px"><button class="chip" type="button" id="staleToggle" aria-pressed="false">Simuler des données non mises à jour</button></div>
+    </section>
+      </div>
+    </details>
   </main>
 
   <footer>
@@ -2306,7 +2321,7 @@ const KIT={
    legende:"Le mistral, notre colocataire le plus bruyant 🌬️\n\nUne anecdote de mistral ? Un parasol envolé, une porte claquée ? Racontez-la en commentaire, les meilleures passeront en story.\n\n#mistral #provence #bouchesdurhone #lameteodeleo"}
  ],
  rythme:["Chaque matin vers 7 h : la story du jour, avec l'autocollant « Lien ».","Mardi vers 18 h : le carrousel de mercredi.","Jeudi vers 18 h : un Reel « Le week-end s'annonce… ».","Vendredi vers 18 h : le carrousel de samedi.","Dimanche vers 18 h : un Reel « La semaine qui arrive ».","Jour de vigilance ou phénomène marquant : un carrousel ou un Reel en plus, la veille au soir.","Chaque jour : répondre aux commentaires et aux messages."],
- reels:["« La semaine de Léo » : les 7 jours à venir en 15 secondes, avec le sourire de chaque jour.","Le mistral en action : une vidéo des platanes qui dansent, une phrase du jour par-dessus.","« Devine la température » : sondage en story le samedi, réponse dans le Reel du dimanche.","Même endroit, deux météos : une vue de Marseille sous le mistral, puis sous la pluie.","Les dictons provençaux de la météo : vrai ou faux ?"],
+ reels:["Le week-end en 3 temps (jeudi) : une vidéo de ciel libre de droits (Pexels), puis 3 phrases courtes : samedi matin, samedi après-midi, dimanche.","La semaine qui arrive (dimanche) : 2 ou 3 temps forts, par exemple « mistral mardi, pluie jeudi ».","Les images du carrousel qui défilent sur une musique tendance.","Un jour de vigilance ou de mistral fort : une vidéo de vent ou de pluie, et la consigne principale en texte.","Image libre de droits : jamais présentée comme filmée aujourd'hui ; ajoute « image d'illustration » en cas de doute."],
  hashtags:"#meteo #provence #bouchesdurhone #marseille #aixenprovence"
 };
 function slidePin(i){
@@ -2345,10 +2360,10 @@ async function buildKit(){
   k.innerHTML=
     bloc("Nom du profil",'<p class="txt">'+esc(KIT.nom)+'</p><span class="sub">À mettre dans le champ « Nom ». Le nom d\'utilisateur, lui, est '+PSEUDO.slice(1)+'. Instagram cherche aussi dans ce champ : « Bouches-du-Rhône » aide les gens du coin à te trouver.</span>',"nom")+
     bloc("Bio du profil",'<p class="txt">'+esc(KIT.bio)+'</p><span class="sub">'+KIT.bio.length+' caractères sur 150 autorisés. Ajoute le lien de l\'app dans le champ « Liens ».</span>',"bio")+
-    bloc("Rythme de publication",'<ul>'+KIT.rythme.map(t=>"<li>"+esc(t)+"</li>").join("")+'</ul>')+
-    bloc("Idées de Reels",'<ol>'+KIT.reels.map(t=>"<li>"+esc(t)+"</li>").join("")+'</ol>')+
     bloc("Hashtags de base",'<p class="txt">'+esc(KIT.hashtags)+'</p>',"hashtags")+
     KIT.pins.map((p,i)=>bloc("Légende du post épinglé "+(i+1),'<p class="txt">'+esc(p.legende)+'</p>',"pin"+i)).join("");
+  $("semaine").innerHTML=bloc("Rythme de publication",'<ul>'+KIT.rythme.map(t=>"<li>"+esc(t)+"</li>").join("")+'</ul>')+
+    bloc("Idées de Reels",'<ol>'+KIT.reels.map(t=>"<li>"+esc(t)+"</li>").join("")+'</ol>');
   const pb=$("pinBox");pb.innerHTML="";KIT.pins.forEach((p,i)=>addSlide(pb,slidePin(i),"Post épinglé "+(i+1),CLE+"-epingle-"+(i+1)+".jpg"));
   const hb=$("hlBox");hb.innerHTML="";HL.forEach(([kind,label])=>addSlide(hb,slideHighlight(kind),label,CLE+"-une-"+kind+".jpg","hl"));
   kitBuilt=true;
