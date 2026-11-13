@@ -629,6 +629,17 @@ details.plus[open] .tiles{margin-top:10px}
       <div class="sec-h"><h2>Ta semaine</h2></div>
       <div style="display:flex;flex-direction:column;gap:12px" id="semaine"></div>
     </section>
+    <section>
+      <div class="sec-h"><h2>Présenter l'app dans un groupe Facebook</h2><span class="sub">Une fois par groupe</span></div>
+      <ol class="card steps">
+        <li><b>Demande d'abord l'accord</b> de l'admin du groupe.</li>
+        <li><b>Choisis la commune</b> du groupe, puis <b>copie le texte</b>.</li>
+        <li><b>Publie dans le groupe</b> avec une capture de l'app ouverte sur cette commune.</li>
+      </ol>
+      <select class="caption" id="fbCommune" aria-label="Commune du groupe" style="min-height:0;margin-top:12px;font-weight:700"></select>
+      <textarea class="caption" id="fbTexte" aria-label="Texte de présentation pour le groupe Facebook" style="margin-top:8px;min-height:300px"></textarea>
+      <div style="margin-top:8px"><button class="sbtn" type="button" id="copyFb">Copier le texte</button></div>
+    </section>
     <details class="plus">
       <summary><span>Stories à la une</span><small>4 couvertures</small></summary>
       <div class="slides" id="hlBox" style="margin-top:12px"></div>
@@ -2513,6 +2524,26 @@ async function buildKit(){
   kitBuilt=true;
 }
 $("copyCap").addEventListener("click",e=>copyText($("caption").value,e.currentTarget,"Légende copiée !"));
+/* Présentation pour les groupes Facebook de communes */
+(()=>{const sel=$("fbCommune"),txt=$("fbTexte");
+const noms=[...new Set(COMMUNES.map(c=>c.n))].sort((a,b)=>a.localeCompare(b,"fr"));
+noms.forEach(n=>{const o=document.createElement("option");o.value=o.textContent=n;sel.appendChild(o)});
+const texte=n=>`Sortir le linge ou pas, à ${n} ? ☔
+
+Je suis Léo, j'habite les Bouches-du-Rhône, et j'ai créé une petite appli météo pour notre coin, avec ${n} dedans bien sûr.
+
+Vous y voyez la pluie des 2 prochaines heures, quart d'heure par quart d'heure, le mistral, la météo heure par heure et sur 7 jours, les vigilances Météo-France… et un petit sourire chaque jour 😄
+
+Elle est gratuite, sans pub et sans inscription :
+👉 https://lameteodeleo.github.io
+
+Astuce : ajoutez-la à votre écran d'accueil, elle s'ouvre comme une vraie appli.
+
+Le temps bien prévu, rien d'imprévu !
+Et vous, à ${n}, vous regardez la météo plutôt le matin ou le soir ? 👇`;
+const maj=()=>{txt.value=texte(sel.value)};
+sel.addEventListener("change",maj);maj();
+$("copyFb").addEventListener("click",e=>copyText(txt.value,e.currentTarget,"Texte copié !"));})();
 
 /* ---------- Navigation ---------- */
 let studioOuvert=false;
