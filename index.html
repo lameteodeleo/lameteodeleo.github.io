@@ -2022,7 +2022,17 @@ const txtPluie=p=>p.jour>=0.3?"pluie jusqu'à "+mm(p.jour):p.nuit>=1?"pluie la n
 function bilanDep(j){
   const L=COMMUNES.map(c=>({nom:c.n,m:meteo(c,st.scen,j)})), M=L.map(o=>o.m), d=typeDominant(M);
   const par=f=>L.slice().sort((a,b)=>f(a.m)-f(b.m)), T=par(m=>m.max), R=par(m=>m.raf), P=par(m=>m.plNuit?0:m.pl);
-  return {L,dom:d.dom,sec:d.sec,min:Math.min(...M.map(m=>m.min)),tMax:mediane(M.map(m=>m.max)),tMin:mediane(M.map(m=>m.min)),frais:T[0],chaud:T[T.length-1],vent:R[R.length-1],pluie:P[P.length-1],pl:pluies(M),
+  // Quand tombe la pluie ? D'après les heures (7 h à 21 h) des communes où il pleut
+  let moment=null;
+  if(enReel()&&["pluie","orage"].includes(d.dom)){
+    const P=k=>(k>=51&&k<=67)||(k>=80&&k<=82)||k>=95, deb=[], fin=[];
+    for(const o of L){const r=DATA.par[o.nom], h=r&&r.h&&r.h[j];if(!h)continue;
+      const w=h.map((e,i)=>e&&P(e[1])?i:-1).filter(i=>i>=0);if(w.length){deb.push(w[0]);fin.push(w[w.length-1])}}
+    if(deb.length>=L.length*.3){const hd=7+2*mediane(deb), hf=7+2*mediane(fin);
+      moment=hd>=15?{titre:d.dom==="orage"?"Orages en fin de journée":"Pluie en fin de journée",sous:"Au sec jusqu'en début d'après-midi.",leg:"au sec le matin, pluie en fin de journée"}:
+        hf<=11?{titre:d.dom==="orage"?"Orages le matin":"Pluie le matin",sous:"Plus calme l'après-midi.",leg:"pluie le matin, plus calme l'après-midi"}:null}
+  }
+  return {L,dom:d.dom,sec:d.sec,moment,titre:moment?moment.titre:(TITRE[d.dom]||LIB[d.dom]),min:Math.min(...M.map(m=>m.min)),tMax:mediane(M.map(m=>m.max)),tMin:mediane(M.map(m=>m.min)),frais:T[0],chaud:T[T.length-1],vent:R[R.length-1],pluie:P[P.length-1],pl:pluies(M),
     nbPluie:M.filter(m=>!m.plNuit&&m.pl>=1).length,al:M.map(m=>m.alert).find(Boolean)||null};
 }
 function bilanSecteur(k,j){
@@ -2049,11 +2059,11 @@ function slideCover(j){
   x.fillStyle=al?B.white:B.sun;x.font="800 34px "+FB;x.fillText(fmt(dayDate(j)).toUpperCase(),70,300);
   x.fillStyle=B.white;x.globalAlpha=.8;x.font="700 32px "+FB;x.fillText("Bouches-du-Rhône",70,348);x.globalAlpha=1;
   cIcon(x,R.dom,70,400,250,true);
-  const titre=al?al.titre:TITRE[R.dom]||LIB[R.dom];
+  const titre=al?al.titre:R.titre;
   x.fillStyle=B.white;x.font="800 104px "+FD;
   const nb=wrapText(x,titre,70,780,940,108,2);
   x.globalAlpha=.9;x.font="600 40px "+FB;
-  const sous=al?"Suivez les consignes officielles.":(R.sec?"Et "+AUSSI[R.sec]+" par endroits.":"Sur tout le département.");
+  const sous=al?"Suivez les consignes officielles.":R.moment?R.moment.sous:(R.sec?"Et "+AUSSI[R.sec]+" par endroits.":"Sur tout le département.");
   x.fillText(sous,70,790+nb*108-28);x.globalAlpha=1;
   // Trois chiffres : le plus chaud, le vent, la pluie
   const cases=[["TEMPÉRATURE MAX",R.chaud.m.max+"°"],["RAFALES MAX",R.vent.m.raf+" km/h"],["PLUIE",R.pl.jour>=0.3?"jusqu'à "+mm(R.pl.jour):R.pl.nuit>=1?"la nuit seulement":"aucune"]];
@@ -2170,7 +2180,7 @@ function slideSuite(j){
     x.fillStyle=B.white;rr(x,70,y,940,286,32);x.fill();
     cIcon(x,R.dom,100,y+58,170,false);
     x.fillStyle=B.muted;x.font="800 28px "+FB;x.fillText(jour.toUpperCase(),310,y+78);
-    x.fillStyle=B.ink;ajuste(x,TITRE[R.dom]||LIB[R.dom],480,50,"800",FD);x.fillText(TITRE[R.dom]||LIB[R.dom],310,y+146);
+    x.fillStyle=B.ink;ajuste(x,R.titre,480,50,"800",FD);x.fillText(R.titre,310,y+146);
     x.fillStyle=B.muted;x.font="700 28px "+FB;
     {const t="Rafales jusqu'à "+R.vent.m.raf+" km/h · "+txtPluie(R.pl);ajuste(x,t,560,28,"700",FB);x.fillText(t,310,y+200)}
     x.textAlign="right";x.fillStyle=B.ink;x.font="800 64px "+FD;x.fillText(R.tMax+"°",984,y+130);
@@ -2204,7 +2214,7 @@ function slideStory(){
   drawMark(x,135,190,130,true);
   logoCanvas(x,230,210,70,B.white,al?B.white:B.sun);
   x.fillStyle=B.white;x.globalAlpha=.85;x.font="700 34px "+FB;x.fillText(fmt(dayDate(J)),70,330);x.globalAlpha=1;
-  x.font="800 64px "+FD;{const t=al?al.titre:(TITRE[RS.dom]||"Le temps du jour");ajuste(x,t,940,64,"800",FD);x.fillText(t,70,420)}
+  x.font="800 64px "+FD;{const t=al?al.titre:(RS.titre||"Le temps du jour");ajuste(x,t,940,64,"800",FD);x.fillText(t,70,420)}
   ORDRE.forEach((k,i)=>{
     const m=bilanSecteur(k,J), y=480+i*120;
     x.fillStyle="rgba(255,255,255,.1)";rr(x,70,y,940,100,26);x.fill();
@@ -2261,7 +2271,7 @@ async function buildSlides(){
   const sb=$("storyBox");sb.innerHTML="";addSlide(sb,slideStory(),"Story du jour","lameteodeleo-"+day+"-story.jpg","story");
   const R=bilanDep(J), al=R.al, c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,J);
   const lines=ORDRE.map(k=>{const b=bilanSecteur(k,J);return "• "+SECTEURS[k].n+" : "+b.min+"° à "+b.max+"°, "+LIB[b.type].toLowerCase()});
-  $("caption").value=(al?("⚠️ "+al.titre+" sur les Bouches-du-Rhône.\n\n"+al.cons.join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr"):(motDuJour(c,m,J)+"\n\n"+fmt(dj)+" : "+(TITRE[R.dom]||LIB[R.dom]).toLowerCase()+(R.sec?", et "+AUSSI[R.sec]+" par endroits":"")+".\n"+lines.join("\n")+"\n\nLa météo de chaque commune, heure par heure : lien en bio.\nEt chez vous, il fait quoi ? 👇"))+"\n\n#meteo #provence #bouchesdurhone #marseille "+(al?"#vigilance":(TAG_TEMPS[R.dom]||"#aixenprovence"));
+  $("caption").value=(al?("⚠️ "+al.titre+" sur les Bouches-du-Rhône.\n\n"+al.cons.join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr"):(motDuJour(c,m,J)+"\n\n"+fmt(dj)+" : "+(R.moment?R.moment.leg:(TITRE[R.dom]||LIB[R.dom]).toLowerCase())+(!R.moment&&R.sec?", et "+AUSSI[R.sec]+" par endroits":"")+".\n"+lines.join("\n")+"\n\nLa météo de chaque commune, heure par heure : lien en bio.\nEt chez vous, il fait quoi ? 👇"))+"\n\n#meteo #provence #bouchesdurhone #marseille "+(al?"#vigilance":(TAG_TEMPS[R.dom]||"#aixenprovence"));
 }
 /* Logo en image : icône d'app (carrée) et photo de profil Instagram (ronde) */
 function drawMark(x,cx,cy,s,bg){
