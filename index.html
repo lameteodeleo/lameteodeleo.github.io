@@ -1170,7 +1170,8 @@ function prochainesHeures(c){
   if(liste.length<6)return null;
   return liste.map(([t,temp,code,prob,raf,dir],i)=>{
     const d=new Date(t), hh=d.getHours();let type=classer(code,raf,dir,temp,temp);
-    if(estNuit(d,hh*60)) type=versNuit(type); // l'icône montre le ciel au début de l'heure affichée
+    // « Maint. » : le ciel à cette minute ; les heures suivantes : le ciel au début de l'heure affichée
+    if(estNuit(d,i===0?now.getHours()*60+now.getMinutes():hh*60)) type=versNuit(type);
     return {lbl:i===0?"Maint.":hh+" h",h:hh,demain:d.getDate()!==now.getDate(),t:Math.round(temp),type,prob:prob==null?0:Math.round(prob),raf:Math.round(raf||0)};
   });
 }
@@ -1620,7 +1621,7 @@ function render(){
   // 7 jours
   const days=[0,1,2,3,4,5,6].map(i=>({i,m:meteo(c,st.scen,i)}));
   const gmin=Math.min(...days.map(d=>d.m.min)), gmax=Math.max(...days.map(d=>d.m.max)), span=Math.max(1,gmax-gmin);
-  $("days").innerHTML=days.map(d=>'<button type="button" class="day" data-i="'+d.i+'" aria-pressed="'+(d.i===st.jour)+'" aria-label="'+fmt(dayDate(d.i))+', '+LIB[d.m.type]+', '+d.m.min+' à '+d.m.max+' degrés'+(d.m.prob>=30?', risque de pluie '+d.m.prob+' pour cent':'')+'"><span class="dn">'+dayName(d.i)+'</span><span class="ic">'+ICONS[d.m.type]+(d.m.prob>=30&&d.m.type!=="neige"?'<small>'+d.m.prob+' %</small>':'')+'</span><span class="lo">'+d.m.min+'°</span><span class="bar" aria-hidden="true"><span style="left:'+((d.m.min-gmin)/span*100)+'%;right:'+((gmax-d.m.max)/span*100)+'%"></span></span><span class="hi">'+d.m.max+'°</span></button>').join("");
+  $("days").innerHTML=days.map(d=>'<button type="button" class="day" data-i="'+d.i+'" aria-pressed="'+(d.i===st.jour)+'" aria-label="'+fmt(dayDate(d.i))+', '+LIB[d.m.type]+', '+d.m.min+' à '+d.m.max+' degrés'+(d.m.prob>=30?', risque de pluie '+d.m.prob+' pour cent':'')+'"><span class="dn">'+dayName(d.i)+'</span><span class="ic">'+ICONS[d.m.type]+(d.m.prob>=30&&d.m.type!=="neige"?'<small>'+(d.m.plNuit?'la nuit':d.m.prob+' %')+'</small>':'')+'</span><span class="lo">'+d.m.min+'°</span><span class="bar" aria-hidden="true"><span style="left:'+((d.m.min-gmin)/span*100)+'%;right:'+((gmax-d.m.max)/span*100)+'%"></span></span><span class="hi">'+d.m.max+'°</span></button>').join("");
   // tuiles
   const sun=soleil(dayDate(st.jour));
   const windTxt=m.raf>=60?"Vent fort":m.raf>=40?"Vent soutenu":m.raf>=20?"Vent modéré":"Vent faible";
@@ -1634,7 +1635,7 @@ function render(){
   T.push('<div class="card tile"><span class="k">'+SMALL.wind+'Rafales</span><span class="v">'+m.raf+' km/h</span><span class="d">'+windTxt+dirDe+'</span></div>');
   if(tAir){const [lbl]=AQI(tAir.aqi), pf=pollenFort(tAir.pol);T.push('<div class="card tile"><span class="k">'+CICO.air+"Air</span><span class=\"v\">"+lbl+'</span><span class="d">Indice européen '+tAir.aqi+(pf?" · pollens "+POLNOM[pf.k].replace(/^d'|^de /,"")+" "+(pf.niv===2?"élevés":"modérés"):" · pollens faibles")+'</span></div>')}
   if(tMer) T.push('<div class="card tile"><span class="k">'+CICO.mer+'La mer</span><span class="v">'+(tMer.eau!=null?tMer.eau+"°":"–")+'</span><span class="d">Vagues jusqu\'à '+fr(tMer.vague)+' m · '+tMer.zone+'</span></div>');
-  T.push('<div class="card tile"><span class="k">'+SMALL.sun+'Indice UV</span><span class="v">'+m.uv+' · '+uvLabel(m.uv)+'</span><div class="uvbar" aria-hidden="true"><i style="left:'+Math.min(100,m.uv/11*100)+'%"></i></div><span class="d">'+(m.uv>=3&&m.uvDe!=null&&m.uvA!=null?'Protection de '+m.uvDe+' h à '+m.uvA+' h':m.uv<3?'Pas de protection nécessaire':'Protection conseillée')+'</span></div>');
+  T.push('<div class="card tile"><span class="k">'+SMALL.sun+'Indice UV</span><span class="v">'+m.uv+' · '+uvLabel(m.uv)+'</span><div class="uvbar" aria-hidden="true"><i style="left:'+Math.min(100,m.uv/11*100)+'%"></i></div><span class="d">'+(m.uv>=3&&m.uvDe!=null&&m.uvA!=null?'Protection de '+m.uvDe+' h à '+m.uvA+' h':m.uv<3?'Pas de protection nécessaire':(st.jour===0&&estNuit(new Date(),new Date().getHours()*60+new Date().getMinutes())?'Maximum de la journée':'Protection conseillée'))+'</span></div>');
   T.push('<div class="card tile"><span class="k">'+SMALL.rise+'Soleil</span><span class="v soleil">'+sun.lever+' <i>→</i> '+sun.coucher+'</span><span class="d">Lever et coucher · '+sun.duree+' de jour</span></div>');
   $("tiles").innerHTML=T.join("");
   const cs=conseils(m,c);$("tipsTitre").textContent=cs.titre;
