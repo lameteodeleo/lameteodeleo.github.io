@@ -412,7 +412,7 @@ async function verifier(ok) {
   const faits = new Set(V.jours.map(j => j.date));
   const aJuger = Object.keys(V.prev).filter(d => d < auj && !faits.has(d)).sort();
   // Premier lancement : on vérifie tout de suite que les mesures des stations sont bien lisibles
-  if (!prec) { try { const hier = dateParis(-2).replace(/-/g, ""); const { tete, out } = lireCSV(await fichierObs("13", +auj.slice(0, 4)), new Set([hier])); console.log(`Test des mesures : ${out.length} stations du 13 le ${hier} ; colonnes ${tete.join(";").slice(0, 300)} ; exemple ${JSON.stringify(out[0])}`); } catch (e) { console.warn("Test des mesures impossible : " + e.message); } }
+  if (!prec) { try { const txt = await fichierObs("13", +auj.slice(0, 4)); const ds = [...new Set(txt.split("\n").slice(1).map(l => l.split(";")[5]).filter(Boolean))].sort(); const der = ds[ds.length - 1]; const { out } = lireCSV(txt, new Set([der])); console.log(`Test des mesures : dernier jour publié ${der} (${out.length} stations du 13, ${out.filter(o => o.tx != null).length} avec TX) ; exemple ${JSON.stringify(out.find(o => o.tx != null))}`); } catch (e) { console.warn("Test des mesures impossible : " + e.message); } }
   if (aJuger.length) {
     const dates = new Set(aJuger.map(d => d.replace(/-/g, "")));
     const mesures = [];
