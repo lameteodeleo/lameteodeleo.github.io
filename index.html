@@ -725,6 +725,15 @@ function classer(code,raf,dirDeg,tmax,tmin){
   }
   return t;
 }
+/* Comme une météo pro : l'icône de pluie (ou d'orage, de neige) n'apparaît que si la précipitation est probable,
+   au moins 50 %, et, pour une journée, d'au moins 0,5 mm. Sinon : ciel nuageux. Le pourcentage s'affiche dès 30 %. */
+const PRECIPC=k=>(k>=51&&k<=67)||(k>=71&&k<=77)||(k>=80&&k<=86)||k>=95;
+function codeFiable(code,prob,pl){
+  if(!PRECIPC(code)) return code;
+  if(prob!=null&&prob<50) return 3;
+  if(pl!=null&&pl<0.5) return 3;
+  return code;
+}
 const SMALL={wind:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3"/></svg>',
  drop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>',
  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>',
@@ -1102,12 +1111,12 @@ function reel(c,jour){
   const r=DATA.par[c.n]; if(!r||!r.d[jour]) return null;
   const [date,code,max,min,raf,dir,pl,prob,uv,feel,uvDe,uvA]=r.d[jour];
   // Un code « pluie » sans pluie mesurable (moins de 0,3 mm) : on affiche des nuages, pour rester cohérent avec « 0 mm »
-  let codeOK=((code>=51&&code<=67)||(code>=80&&code<=82))&&(pl==null||pl<0.3)?3:code;
+  let codeOK=codeFiable(code,prob,pl==null?0:pl);
   // Le code du jour couvre les 24 heures : une pluie tombée seulement la nuit ne doit pas faire afficher « Pluie »
   // pour une journée sèche. On regarde alors le temps de 7 h à 19 h, comme l'affiche « Heure par heure ».
   const PRECIP=k=>(k>=51&&k<=67)||(k>=71&&k<=86)||k>=95, hj=r.h&&r.h[jour];let plNuit=false;
   if(PRECIP(codeOK)&&hj){const jj=hj.slice(0,7).filter(e=>e&&e[1]!=null);
-    if(jj.length>=5&&!jj.some(e=>PRECIP(e[1]))&&Math.max(...jj.map(e=>e[2]||0))<50){
+    if(jj.length>=5&&!jj.some(e=>PRECIP(codeFiable(e[1],e[2])))&&Math.max(...jj.map(e=>e[2]||0))<50){
       const n={};jj.forEach(e=>n[e[1]]=(n[e[1]]||0)+1);
       codeOK=+Object.entries(n).sort((a,b)=>b[1]-a[1]||b[0]-a[0])[0][0];plNuit=true}}
   return {date,uvDe,uvA,plNuit,type:classer(codeOK,raf,dir,max,min),min:Math.round(min),max:Math.round(max),raf:Math.round(raf),pl:Math.round(pl*10)/10,prob:prob==null?0:Math.round(prob),uv:Math.round(uv||0),feel:Math.round(feel==null?max:feel),dir:dirTxt(dir),deg:dir,alert:alerteVig(c,jour)};
@@ -1163,7 +1172,7 @@ function pollenFort(pol){
 }
 function heuresReelles(c,jour){
   const r=DATA.par[c.n];if(!r||!r.h||!r.h[jour])return null;
-  return r.h[jour].map(([t,code,prob,raf,dir])=>t==null?null:{t:Math.round(t),type:classer(code,raf,dir,t,t),prob:prob==null?0:Math.round(prob)});
+  return r.h[jour].map(([t,code,prob,raf,dir])=>t==null?null:{t:Math.round(t),type:classer(codeFiable(code,prob),raf,dir,t,t),prob:prob==null?0:Math.round(prob)});
 }
 /* Aujourd'hui : les 24 prochaines heures, à partir de l'heure en cours */
 function prochainesHeures(c){
@@ -1172,7 +1181,7 @@ function prochainesHeures(c){
   const liste=r.n24.filter(x=>x[0]>=cle);
   if(liste.length<6)return null;
   return liste.map(([t,temp,code,prob,raf,dir],i)=>{
-    const d=new Date(t), hh=d.getHours();let type=classer(code,raf,dir,temp,temp);
+    const d=new Date(t), hh=d.getHours();let type=classer(codeFiable(code,prob),raf,dir,temp,temp);
     // « Maint. » : le ciel à cette minute ; les heures suivantes : le ciel au début de l'heure affichée
     if(estNuit(d,i===0?now.getHours()*60+now.getMinutes():hh*60)) type=versNuit(type);
     return {lbl:i===0?"Maint.":hh+" h",h:hh,demain:d.getDate()!==now.getDate(),t:Math.round(temp),type,prob:prob==null?0:Math.round(prob),raf:Math.round(raf||0)};
@@ -1611,11 +1620,11 @@ function render(){
   $("hoursTitle").textContent=prochaines?"Les prochaines heures":"Heure par heure";
   $("hoursDay").textContent=prochaines?"24 heures à venir":st.jour===0?"Aujourd'hui":fmt(dayDate(st.jour));
   const hr=(enReel()&&!prochaines)?heuresReelles(c,st.jour):null;
-  if(prochaines) $("hours").innerHTML=prochaines.map(x=>'<div class="hour"><small>'+x.lbl+'</small>'+ICONS[x.type]+'<b>'+x.t+'°</b><span class="p"'+(x.prob>=20?' title="Risque de pluie">'+SMALL.drop+x.prob+" %":x.raf>=40?' title="Rafales de vent" style="color:var(--muted)">'+x.raf+" km/h":'>')+'</span></div>').join("");
+  if(prochaines) $("hours").innerHTML=prochaines.map(x=>'<div class="hour"><small>'+x.lbl+'</small>'+ICONS[x.type]+'<b>'+x.t+'°</b><span class="p"'+(x.prob>=30?' title="Risque de pluie">'+SMALL.drop+x.prob+" %":x.raf>=40?' title="Rafales de vent" style="color:var(--muted)">'+x.raf+" km/h":'>')+'</span></div>').join("");
   else if(hr) $("hours").innerHTML=hr.map((x,i)=>{
     const hh=7+i*2;if(!x)return "";
     if(estNuit(dayDate(st.jour),hh*60)) x=Object.assign({},x,{type:versNuit(x.type)});
-    const p=(x.prob>=20)?SMALL.drop+x.prob+" %":"";
+    const p=(x.prob>=30)?SMALL.drop+x.prob+" %":"";
     return '<div class="hour"><small>'+hh+' h</small>'+ICONS[x.type]+'<b>'+x.t+'°</b><span class="p">'+p+'</span></div>';
   }).join("");
   else $("hours").innerHTML=heures(m,st.jour,st.scen).map((ic,i)=>{
@@ -2018,7 +2027,7 @@ function typeDominant(L){const n={};L.forEach(m=>n[m.type]=(n[m.type]||0)+1);
 const mediane=t=>{const a=t.slice().sort((x,y)=>x-y);return a.length?a[Math.floor(a.length/2)]:0};
 /* Pluie : celle de la journée (7 h à 19 h) et celle tombée seulement la nuit, comptées à part */
 const pluies=M=>({jour:Math.max(0,...M.filter(m=>!m.plNuit).map(m=>m.pl)),nuit:Math.max(0,...M.filter(m=>m.plNuit).map(m=>m.pl))});
-const txtPluie=p=>p.jour>=0.3?"pluie jusqu'à "+mm(p.jour):p.nuit>=1?"pluie la nuit seulement":"pas de pluie";
+const txtPluie=p=>p.jour>=0.5?"pluie jusqu'à "+mm(p.jour):p.nuit>=1?"pluie la nuit seulement":"pas de pluie";
 function bilanDep(j){
   const L=COMMUNES.map(c=>({nom:c.n,m:meteo(c,st.scen,j)})), M=L.map(o=>o.m), d=typeDominant(M);
   const par=f=>L.slice().sort((a,b)=>f(a.m)-f(b.m)), T=par(m=>m.max), R=par(m=>m.raf), P=par(m=>m.plNuit?0:m.pl);
