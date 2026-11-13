@@ -165,8 +165,9 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .day .ic small{font-size:.66rem;font-weight:800;color:var(--cool);line-height:1;margin-top:-1px;white-space:nowrap}
 .day .lo{color:var(--muted);text-align:right}
 .day .hi{font-weight:800}
-.bar{position:relative;height:6px;border-radius:3px;background:var(--line)}
-.bar span{position:absolute;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,var(--cool),var(--warm))}
+.bar{position:relative;height:8px;border-radius:4px;background:var(--line)}
+.bar span{position:absolute;top:0;bottom:0;border-radius:4px;min-width:8px}
+.bar i{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#fff;border:2.5px solid var(--bg);box-shadow:0 0 0 1px rgba(0,0,0,.25)}
 /* tuiles détails */
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tiles>.tile:last-child:nth-child(odd){grid-column:1/-1}
@@ -481,6 +482,7 @@ details.plus[open] .tiles{margin-top:10px}
       <div class="sec-h"><h2>7 jours</h2><span class="sub">Touchez un jour pour le détail</span></div>
       <div class="card days" id="days"></div>
       <p class="days-note" id="daysNote" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg> Lune devant le pourcentage : la pluie tombe surtout la nuit, la journée reste plutôt sèche.</p>
+      <p class="days-note" id="barNote">Barre : du plus frais au plus chaud de la journée, sur la même échelle pour les 7 jours. Bleu = froid, vert = doux, orange = chaud, rouge = très chaud.<span id="barNow"> Point blanc : la température actuelle.</span></p>
     </section>
 
     <section>
@@ -1692,10 +1694,13 @@ function render(){
     return '<div class="hour"><small>'+hh+' h</small>'+ICONS[ic]+'<b>'+ht+'°</b><span class="p">'+p+'</span></div>';
   }).join("");
   requestAnimationFrame(majHNav);
-  // 7 jours
+  // 7 jours : la barre va de la minimale à la maximale, sur une échelle commune ; ses couleurs suivent les vraies températures
+  const coulT=t=>{const P=[[-5,"#7B8CF5"],[0,"#6EA8F0"],[5,"#5BC0E6"],[10,"#4FC6B0"],[15,"#9ACD5A"],[20,"#F2C94C"],[25,"#F2994A"],[30,"#EB5757"],[35,"#C2185B"]];
+    if(t<=P[0][0])return P[0][1];for(let k=1;k<P.length;k++)if(t<=P[k][0]){const [a,ca]=P[k-1],[b,cb]=P[k],f=(t-a)/(b-a),h=c=>[1,3,5].map(o=>parseInt(c.substr(o,2),16));const A=h(ca),Bc=h(cb);return "rgb("+A.map((v,n)=>Math.round(v+(Bc[n]-v)*f)).join(",")+")"}return P[P.length-1][1]};
   const days=[0,1,2,3,4,5,6].map(i=>({i,m:meteo(c,st.scen,i)}));
   const gmin=Math.min(...days.map(d=>d.m.min)), gmax=Math.max(...days.map(d=>d.m.max)), span=Math.max(1,gmax-gmin);
-  $("days").innerHTML=days.map(d=>'<button type="button" class="day" data-i="'+d.i+'" aria-pressed="'+(d.i===st.jour)+'" aria-label="'+fmt(dayDate(d.i))+', '+LIB[d.m.ico||d.m.type]+', '+d.m.min+' à '+d.m.max+' degrés'+(d.m.prob>=30?', risque de pluie '+d.m.prob+' pour cent'+(d.m.plNuit?', surtout la nuit':''):'')+'"><span class="dn">'+dayName(d.i)+'</span><span class="ic">'+ICONS[d.m.ico||d.m.type]+(d.m.prob>=30&&d.m.type!=="neige"?'<small'+(d.m.plNuit?' class="nuit" title="Pluie surtout la nuit"':'')+'>'+(d.m.plNuit?'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>':'')+d.m.prob+' %</small>':'')+'</span><span class="lo">'+d.m.min+'°</span><span class="bar" aria-hidden="true"><span style="left:'+((d.m.min-gmin)/span*100)+'%;right:'+((gmax-d.m.max)/span*100)+'%"></span></span><span class="hi">'+d.m.max+'°</span></button>').join("");
+  $("days").innerHTML=days.map(d=>'<button type="button" class="day" data-i="'+d.i+'" aria-pressed="'+(d.i===st.jour)+'" aria-label="'+fmt(dayDate(d.i))+', '+LIB[d.m.ico||d.m.type]+', '+d.m.min+' à '+d.m.max+' degrés'+(d.m.prob>=30?', risque de pluie '+d.m.prob+' pour cent'+(d.m.plNuit?', surtout la nuit':''):'')+'"><span class="dn">'+dayName(d.i)+'</span><span class="ic">'+ICONS[d.m.ico||d.m.type]+(d.m.prob>=30&&d.m.type!=="neige"?'<small'+(d.m.plNuit?' class="nuit" title="Pluie surtout la nuit"':'')+'>'+(d.m.plNuit?'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>':'')+d.m.prob+' %</small>':'')+'</span><span class="lo">'+d.m.min+'°</span><span class="bar" aria-hidden="true"><span style="left:'+((d.m.min-gmin)/span*100)+'%;right:'+((gmax-d.m.max)/span*100)+'%;background:linear-gradient(90deg,'+coulT(d.m.min)+','+coulT((d.m.min+d.m.max)/2)+','+coulT(d.m.max)+')"></span>'+(d.i===0&&heroNow&&heroNow.t!=null?'<i style="left:'+Math.max(0,Math.min(100,(heroNow.t-gmin)/span*100))+'%"></i>':'')+'</span><span class="hi">'+d.m.max+'°</span></button>').join("");
+  $("barNow").hidden=!(heroNow&&heroNow.t!=null);
   $("daysNote").hidden=!days.some(d=>d.m.plNuit&&d.m.prob>=30&&d.m.type!=="neige");
   // tuiles
   const sun=soleil(dayDate(st.jour));
