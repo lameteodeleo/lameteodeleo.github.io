@@ -32,7 +32,11 @@
 <body>
 <noscript><div style="max-width:640px;margin:24px auto;padding:0 16px;font:16px/1.5 system-ui,sans-serif"><h1>La météo de Léo : la météo des Bouches-du-Rhône, commune par commune</h1><p>Prévisions heure par heure et à 7 jours, pluie dans les 2 heures, mistral, indice UV, qualité de l'air et conseils du jour. Gratuit, sans publicité et sans inscription. Les prévisions s'appuient sur les modèles de Météo-France.</p><p>Communes couvertes, entre autres : Aix-en-Provence, Allauch, Arles, Aubagne, Auriol, Avignon, Berre-l'Étang, Bouc-Bel-Air, Cadenet, Cassis, Châteaurenard, Eyguières, Fontvieille, Fos-sur-Mer, Fuveau, Gardanne, Graveson, Istres, La Ciotat, Lambesc, Lauris, Le Puy-Sainte-Réparade, Les Pennes-Mirabeau, Mallemort, Marignane, Marseille, Martigues, Miramas, Noves, Orgon, Pertuis, Peyrolles-en-Provence, Port-de-Bouc, Pélissanne, Rognes, Rousset, Saint-Martin-de-Crau, Saint-Maximin-la-Sainte-Baume, Saint-Rémy-de-Provence, Saintes-Maries-de-la-Mer, Salon-de-Provence, Sénas, Tarascon, Trets, Venelles, Vitrolles, Éguilles.</p><p>Activez JavaScript pour afficher les prévisions.</p></div></noscript>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap">
+<link rel="stylesheet" id="gfonts" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap">
+<script>
+/* Tous les chiffres (et le °, le %) s'affichent en Nunito Sans, plus lisible : on crée une police "Chiffres" limitée à ces caractères, placée en tête des polices de titres. */
+(()=>{try{const l=document.getElementById("gfonts");fetch(l.href).then(r=>r.text()).then(css=>{(css.match(/@font-face\s*{[^}]*}/g)||[]).forEach(f=>{if(!/Nunito Sans/.test(f)||!/U\+0000-00FF/.test(f))return;const u=(f.match(/url\(([^)]+)\)/)||[])[1],w=(f.match(/font-weight:\s*([^;]+);/)||[])[1]||"400",st=(f.match(/font-style:\s*([^;]+);/)||[])[1]||"normal";if(!u)return;const ff=new FontFace("Chiffres","url("+u+")",{weight:w.trim(),style:st.trim(),display:"swap",unicodeRange:"U+0030-0039,U+0025,U+00B0,U+2212"});document.fonts.add(ff);ff.load().catch(()=>{})})}).catch(()=>{})}catch(e){}})();
+</script>
 <style>
 /* Layout : appli mobile une colonne. Ordre de lecture : commune → temps du jour → vigilance → mot du jour → heures → 7 jours → détails → conseils. Onglets publics en bas (Ma météo / Le 13), espace créateur à part. */
 :root{
@@ -40,7 +44,7 @@
   --brand:#4B3BB8; --brand-soft:#ECE9FB; --sun:#FFC21A; --sun-ink:#433100;
   --alert:#B3261E; --alert-soft:#FCEBE9; --orange:#9A4F0E; --orange-soft:#FDF0E3; --jaune-soft:#FFF8D6; --jaune-line:#E3C200; --cool:#4A6FD1; --warm:#D9822B; --ok:#2F7D5B;
   --shadow:0 1px 2px rgba(19,38,57,.05),0 6px 20px rgba(19,38,57,.06);
-  --f-display:"Bricolage Grotesque","Arial Rounded MT Bold",system-ui,sans-serif;
+  --f-display:"Chiffres","Bricolage Grotesque","Arial Rounded MT Bold",system-ui,sans-serif;
   --f-body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
@@ -2048,7 +2052,7 @@ $("share").addEventListener("click",e=>copyText($("mot").textContent+" — "+NOM
 Object.entries(SCEN).forEach(([k,s])=>{const b=document.createElement("button");b.type="button";b.className="chip";b.dataset.k=k;b.textContent=s.label;b.addEventListener("click",()=>{st.scen=k;st.demo=true;$("demoPill").hidden=false;save();markScen();buildSlides()});$("scen").appendChild(b)});
 const markScen=()=>document.querySelectorAll("#scen .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k==="__reel"?String(enReel()):String(!enReel()&&b.dataset.k===st.scen)));
 const B={ink:"#1D1838",bg:"#F3F1FA",sun:"#FFC21A",sunInk:"#433100",brand:"#4B3BB8",white:"#FFFFFF",muted:"#655F86",alert:"#B3261E",cool:"#4A6FD1"};
-const FD='"Bricolage Grotesque", Arial, sans-serif', FB='"Nunito Sans", Arial, sans-serif';
+const FD='"Chiffres", "Bricolage Grotesque", Arial, sans-serif', FB='"Nunito Sans", Arial, sans-serif';
 function wrapText(ctx,text,x,y,maxW,lh,maxLines){
   const words=text.split(" ");let line="",lines=[];
   for(const w of words){const t=line?line+" "+w:w;if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w}else line=t}
