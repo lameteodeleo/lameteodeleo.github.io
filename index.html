@@ -701,19 +701,35 @@ function iconParts(t){
     case "chaleur": return sunParts(24,24,8,5,"hot");
     case "lune": return [["M29 9a15 15 0 1 0 10 24a12 12 0 1 1-10-24z","sun"]];
     case "nuitNuageux": return [["M19 6a9 9 0 1 0 7 15a7 7 0 1 1-7-15z","sun"],[cloudD(3),"cloud"]];
-    case "neige": return [[cloudD(-6),"cloud"],[circ(17,38,1.2)+circ(25,42,1.2)+circ(33,38,1.2),"rain"]];
+    case "neige": return [[cloudD(-6),"cloud"],["M17 35v9M13.1 37.2l7.8 4.6M13.1 41.8l7.8-4.6M31 35v9M27.1 37.2l7.8 4.6M27.1 41.8l7.8-4.6","rain"]];
     case "vent": return [["M7 20h26a5 5 0 1 0-5-5M7 29h20a5 5 0 1 1-5 5M7 38h12","cloud"]];
     case "nuageux": return [...sunParts(14,14,5,3,"sun"),[cloudD(3),"cloud"]];
     case "mistral": return [["M7 18h22a5 5 0 1 0-5-5M7 26h29a5 5 0 1 1-5 5M7 34h14","wind"]];
     case "pluie": return [[cloudD(-6),"cloud"],["M17 37l-2 5M25 37l-2 5M33 37l-2 5","rain"]];
+    case "couvert": return [["M21 15a9 9 0 0 1 16.5 3a6.5 6.5 0 0 1 4 11","cloud"],[cloudD(5),"cloud"]];
+    case "averses": return [...sunParts(12,12,4,2.5,"sun"),[cloudD(-3),"cloud"],["M20 39l-2 4.5M28 39l-2 4.5","rain"]];
+    case "pluieForte": return [[cloudD(-7),"cloud"],["M14 35l-3 8M21 35l-3 8M28 35l-3 8M35 35l-3 8","rain"]];
+    case "bruine": return [[cloudD(-6),"cloud"],[circ(17,38,.6)+circ(25,38,.6)+circ(33,38,.6)+circ(21,43,.6)+circ(29,43,.6),"rain"]];
+    case "verglas": return [[cloudD(-6),"cloud"],["M18 36l-2 6","rain"],["M30 35v9M26.1 37.2l7.8 4.6M26.1 41.8l7.8-4.6","rain"]];
     case "orage": return [[cloudD(-6),"cloud"],["M26 32l-5 7h6l-3 6","sun"]];
     case "gel": return [["M24 7v34M9.3 15.5l29.4 17M9.3 32.5l29.4-17M20 10.5l4 3 4-3M20 37.5l4-3 4 3","rain"]];
     default: return [["M9 16h30M7 24h34M10 32h28M14 40h20","cloud"]];
   }
 }
-const TYPES=["lune","nuitNuageux","soleil","nuageux","mistral","vent","pluie","gel","brouillard","neige","chaleur","orage"];
+const TYPES=["lune","nuitNuageux","soleil","nuageux","mistral","vent","pluie","gel","brouillard","neige","chaleur","orage","couvert","averses","pluieForte","bruine","verglas"];
 const ICONS={};TYPES.forEach(t=>ICONS[t]='<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">'+iconParts(t).map(([d,k])=>'<path d="'+d+'" stroke="'+PAL[k]+'"/>').join("")+'</g></svg>');
-const LIB={lune:"Nuit claire",nuitNuageux:"Nuit nuageuse",soleil:"Ensoleillé",nuageux:"Éclaircies",mistral:"Mistral",vent:"Vent fort",pluie:"Pluie",gel:"Gelée matinale",brouillard:"Brouillard",neige:"Neige",chaleur:"Très chaud",orage:"Orages"};
+const LIB={lune:"Nuit claire",nuitNuageux:"Nuit nuageuse",soleil:"Ensoleillé",nuageux:"Éclaircies",mistral:"Mistral",vent:"Vent fort",pluie:"Pluie",gel:"Gelée matinale",brouillard:"Brouillard",neige:"Neige",chaleur:"Très chaud",orage:"Orages",couvert:"Couvert",averses:"Averses",pluieForte:"Forte pluie",bruine:"Bruine",verglas:"Pluie verglaçante"};
+/* Icône plus précise, comme une météo pro (le type général reste utilisé pour les conseils et les textes).
+   Couvert = ciel entièrement nuageux ; averses = pluie passagère avec éclaircies ; bruine = pluie très fine ; forte pluie ; pluie verglaçante. */
+function variante(code,type,nuit){
+  if((type==="nuageux"||type==="nuitNuageux")&&code===3) return "couvert";
+  if(type!=="pluie") return type;
+  if([56,57,66,67].includes(code)) return "verglas";
+  if([63,65,82].includes(code)) return "pluieForte";
+  if(code>=80&&code<=81) return nuit?"pluie":"averses";
+  if(code>=51&&code<=55) return "bruine";
+  return "pluie";
+}
 /* Classement des vraies prévisions (codes météo WMO d'Open-Meteo) en types de l'app.
    Le mistral = vent de secteur nord à nord-ouest (290° à 20°) avec rafales d'au moins 40 km/h. Sinon, rafales de 55 km/h et plus = « vent ». */
 function classer(code,raf,dirDeg,tmax,tmin){
@@ -1121,7 +1137,12 @@ function reel(c,jour){
     if(jj.length>=5&&!jj.some(e=>PRECIP(codeFiable(e[1],e[2])))&&Math.max(...jj.map(e=>e[2]||0))<50){
       const n={};jj.forEach(e=>n[e[1]]=(n[e[1]]||0)+1);
       codeOK=+Object.entries(n).sort((a,b)=>b[1]-a[1]||b[0]-a[0])[0][0];plNuit=true}}
-  return {date,uvDe,uvA,plNuit,type:classer(codeOK,raf,dir,max,min),min:Math.round(min),max:Math.round(max),raf:Math.round(raf),pl:Math.round(pl*10)/10,prob:prob==null?0:Math.round(prob),uv:Math.round(uv||0),feel:Math.round(feel==null?max:feel),dir:dirTxt(dir),deg:dir,alert:alerteVig(c,jour)};
+  const type=classer(codeOK,raf,dir,max,min);let ico=type;
+  if(type==="nuageux"){const jj=hj?hj.slice(0,7).filter(e=>e&&e[1]!=null):[];
+    // Journée « couverte » seulement si le ciel est couvert la plupart du temps entre 7 h et 19 h
+    if(jj.length>=5&&jj.filter(e=>e[1]===3).length>=Math.ceil(jj.length*.7)) ico="couvert"}
+  else if(type==="pluie") ico=pl>=15?"pluieForte":variante(codeOK===63||codeOK===65?61:codeOK,type,false);
+  return {date,uvDe,uvA,plNuit,type,ico,min:Math.round(min),max:Math.round(max),raf:Math.round(raf),pl:Math.round(pl*10)/10,prob:prob==null?0:Math.round(prob),uv:Math.round(uv||0),feel:Math.round(feel==null?max:feel),dir:dirTxt(dir),deg:dir,alert:alerteVig(c,jour)};
 }
 function chargerDonnees(d){
   if(!d||!Array.isArray(d.communes)||d.communes.length<50) throw new Error("données incomplètes");
@@ -1174,7 +1195,7 @@ function pollenFort(pol){
 }
 function heuresReelles(c,jour){
   const r=DATA.par[c.n];if(!r||!r.h||!r.h[jour])return null;
-  return r.h[jour].map(([t,code,prob,raf,dir])=>t==null?null:{t:Math.round(t),type:classer(codeFiable(code,prob),raf,dir,t,t),prob:prob==null?0:Math.round(prob)});
+  return r.h[jour].map(([t,code,prob,raf,dir])=>t==null?null:{t:Math.round(t),code:codeFiable(code,prob),type:classer(codeFiable(code,prob),raf,dir,t,t),prob:prob==null?0:Math.round(prob)});
 }
 /* Aujourd'hui : les 24 prochaines heures, à partir de l'heure en cours */
 function prochainesHeures(c){
@@ -1185,8 +1206,8 @@ function prochainesHeures(c){
   return liste.map(([t,temp,code,prob,raf,dir],i)=>{
     const d=new Date(t), hh=d.getHours();let type=classer(codeFiable(code,prob),raf,dir,temp,temp);
     // « Maint. » : le ciel à cette minute ; les heures suivantes : le ciel au début de l'heure affichée
-    if(estNuit(d,i===0?now.getHours()*60+now.getMinutes():hh*60)) type=versNuit(type);
-    return {lbl:i===0?"Maint.":hh+" h",h:hh,demain:d.getDate()!==now.getDate(),t:Math.round(temp),type,prob:prob==null?0:Math.round(prob),raf:Math.round(raf||0)};
+    const nuit=estNuit(d,i===0?now.getHours()*60+now.getMinutes():hh*60);if(nuit) type=versNuit(type);
+    return {lbl:i===0?"Maint.":hh+" h",h:hh,demain:d.getDate()!==now.getDate(),t:Math.round(temp),type,ico:variante(codeFiable(code,prob),type,nuit),prob:prob==null?0:Math.round(prob),raf:Math.round(raf||0)};
   });
 }
 function heures(m,jour,scenKey){
@@ -1586,18 +1607,18 @@ function render(){
     fb.innerHTML=FL.map(n=>{const i=idx(n),mm=(enReel()?reel(COMMUNES[i],0):null);return '<button type="button" data-i="'+i+'"'+(i===st.c?' aria-current="true"':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>'+n+(mm?' <b>'+mm.max+'°</b>':'')+'</button>'}).join(""); }$("fav").setAttribute("aria-label",fav?"Retirer des favoris":"Ajouter aux favoris");
   $("when").textContent=(st.jour===0?"Aujourd'hui":st.jour===1?"Demain":"Prévision")+" · "+fmt(dayDate(st.jour));
   $("hero").dataset.t=m.type;
-  $("heroIco").innerHTML=ICONS[m.type];
-  $("cond").textContent=LIB[m.type]+(m.plNuit&&m.pl>=0.3?" · pluie la nuit":"");
+  $("heroIco").innerHTML=ICONS[m.ico||m.type];
+  $("cond").textContent=LIB[m.ico||m.type]+(m.plNuit&&m.pl>=0.3?" · pluie la nuit":"");
   const vif=LIVE[c.n];let cur=enReel()&&DATA.par[c.n]&&DATA.par[c.n].cur, quand=null, heroNow=null;
   if(enReel()&&vif&&vif.t>DATA.maj){cur=vif.cur;quand=vif.t}
   if(st.jour===0&&enReel()) liveMaintenant(c);
   renderPluie(c);
   if(st.jour===0&&cur){
     const now=new Date();let tNow=classer(cur[2],cur[3],cur[4],cur[0],cur[0]);
-    if(estNuit(now,now.getHours()*60+now.getMinutes())) tNow=versNuit(tNow);
+    const nuitNow=estNuit(now,now.getHours()*60+now.getMinutes());if(nuitNow) tNow=versNuit(tNow);const iNow=variante(cur[2],tNow,nuitNow);
     $("tempLbl").textContent=quand?"Maintenant · "+quand.getHours()+" h "+String(quand.getMinutes()).padStart(2,"0"):"Maintenant · "+DATA.maj.getHours()+" h";$("temp").textContent=Math.round(cur[0])+"°";
-    heroNow={t:Math.round(cur[0]),type:tNow};
-    $("hero").dataset.t=tNow;$("heroIco").innerHTML=ICONS[tNow];$("cond").textContent=LIB[tNow];
+    heroNow={t:Math.round(cur[0]),type:tNow,ico:iNow};
+    $("hero").dataset.t=tNow;$("heroIco").innerHTML=ICONS[iNow];$("cond").textContent=LIB[iNow];
     m=Object.assign({},m,{feel:Math.round(cur[1])});
   }
   else if(st.jour===0){$("tempLbl").textContent="Maintenant · "+new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}).replace(":"," h ");$("temp").textContent=tAt(m,new Date().getHours()+new Date().getMinutes()/60)+"°"}
@@ -1622,12 +1643,12 @@ function render(){
   $("hoursTitle").textContent=prochaines?"Les prochaines heures":"Heure par heure";
   $("hoursDay").textContent=prochaines?"24 heures à venir":st.jour===0?"Aujourd'hui":fmt(dayDate(st.jour));
   const hr=(enReel()&&!prochaines)?heuresReelles(c,st.jour):null;
-  if(prochaines) $("hours").innerHTML=prochaines.map(x=>'<div class="hour"><small>'+x.lbl+'</small>'+ICONS[x.type]+'<b>'+x.t+'°</b><span class="p"'+(x.prob>=30?' title="Risque de pluie">'+SMALL.drop+x.prob+" %":x.raf>=40?' title="Rafales de vent" style="color:var(--muted)">'+x.raf+" km/h":'>')+'</span></div>').join("");
+  if(prochaines) $("hours").innerHTML=prochaines.map(x=>'<div class="hour"><small>'+x.lbl+'</small>'+ICONS[x.ico||x.type]+'<b>'+x.t+'°</b><span class="p"'+(x.prob>=30?' title="Risque de pluie">'+SMALL.drop+x.prob+" %":x.raf>=40?' title="Rafales de vent" style="color:var(--muted)">'+x.raf+" km/h":'>')+'</span></div>').join("");
   else if(hr) $("hours").innerHTML=hr.map((x,i)=>{
     const hh=7+i*2;if(!x)return "";
-    if(estNuit(dayDate(st.jour),hh*60)) x=Object.assign({},x,{type:versNuit(x.type)});
+    {const nuit=estNuit(dayDate(st.jour),hh*60);const ty=nuit?versNuit(x.type):x.type;x=Object.assign({},x,{type:ty,ico:variante(x.code,ty,nuit)})}
     const p=(x.prob>=30)?SMALL.drop+x.prob+" %":"";
-    return '<div class="hour"><small>'+hh+' h</small>'+ICONS[x.type]+'<b>'+x.t+'°</b><span class="p">'+p+'</span></div>';
+    return '<div class="hour"><small>'+hh+' h</small>'+ICONS[x.ico||x.type]+'<b>'+x.t+'°</b><span class="p">'+p+'</span></div>';
   }).join("");
   else $("hours").innerHTML=heures(m,st.jour,st.scen).map((ic,i)=>{
     const hh=7+i*2, ht=tAt(m,hh);
@@ -1638,7 +1659,7 @@ function render(){
   // 7 jours
   const days=[0,1,2,3,4,5,6].map(i=>({i,m:meteo(c,st.scen,i)}));
   const gmin=Math.min(...days.map(d=>d.m.min)), gmax=Math.max(...days.map(d=>d.m.max)), span=Math.max(1,gmax-gmin);
-  $("days").innerHTML=days.map(d=>'<button type="button" class="day" data-i="'+d.i+'" aria-pressed="'+(d.i===st.jour)+'" aria-label="'+fmt(dayDate(d.i))+', '+LIB[d.m.type]+', '+d.m.min+' à '+d.m.max+' degrés'+(d.m.prob>=30?', risque de pluie '+d.m.prob+' pour cent'+(d.m.plNuit?', surtout la nuit':''):'')+'"><span class="dn">'+dayName(d.i)+'</span><span class="ic">'+ICONS[d.m.type]+(d.m.prob>=30&&d.m.type!=="neige"?'<small'+(d.m.plNuit?' class="nuit" title="Pluie surtout la nuit"':'')+'>'+(d.m.plNuit?'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>':'')+d.m.prob+' %</small>':'')+'</span><span class="lo">'+d.m.min+'°</span><span class="bar" aria-hidden="true"><span style="left:'+((d.m.min-gmin)/span*100)+'%;right:'+((gmax-d.m.max)/span*100)+'%"></span></span><span class="hi">'+d.m.max+'°</span></button>').join("");
+  $("days").innerHTML=days.map(d=>'<button type="button" class="day" data-i="'+d.i+'" aria-pressed="'+(d.i===st.jour)+'" aria-label="'+fmt(dayDate(d.i))+', '+LIB[d.m.ico||d.m.type]+', '+d.m.min+' à '+d.m.max+' degrés'+(d.m.prob>=30?', risque de pluie '+d.m.prob+' pour cent'+(d.m.plNuit?', surtout la nuit':''):'')+'"><span class="dn">'+dayName(d.i)+'</span><span class="ic">'+ICONS[d.m.ico||d.m.type]+(d.m.prob>=30&&d.m.type!=="neige"?'<small'+(d.m.plNuit?' class="nuit" title="Pluie surtout la nuit"':'')+'>'+(d.m.plNuit?'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>':'')+d.m.prob+' %</small>':'')+'</span><span class="lo">'+d.m.min+'°</span><span class="bar" aria-hidden="true"><span style="left:'+((d.m.min-gmin)/span*100)+'%;right:'+((gmax-d.m.max)/span*100)+'%"></span></span><span class="hi">'+d.m.max+'°</span></button>').join("");
   $("daysNote").hidden=!days.some(d=>d.m.plNuit&&d.m.prob>=30&&d.m.type!=="neige");
   // tuiles
   const sun=soleil(dayDate(st.jour));
@@ -1674,7 +1695,7 @@ function renderSecteurs(){
   renderCarte();
   $("sgrid").innerHTML=ORDRE.map(k=>{
     const s=SECTEURS[k];
-    const rows=s.v.map(n=>{const c=COMMUNES[idx(n)],m=meteo(c,st.scen,0);return '<button type="button" class="crow" data-n="'+n+'">'+ICONS[m.type]+'<span class="n">'+n+'</span><span class="lo">'+m.min+'°</span><span class="hi">'+m.max+'°</span></button>'}).join("");
+    const rows=s.v.map(n=>{const c=COMMUNES[idx(n)],m=meteo(c,st.scen,0);return '<button type="button" class="crow" data-n="'+n+'">'+ICONS[m.ico||m.type]+'<span class="n">'+n+'</span><span class="lo">'+m.min+'°</span><span class="hi">'+m.max+'°</span></button>'}).join("");
     return '<div class="card scard"><h3>'+s.n+'<small>'+s.c.length+' communes</small></h3>'+rows+'</div>';
   }).join("");
 }
@@ -1709,8 +1730,8 @@ function renderMap(){
     const nom=SHORT[n]||n, w=Math.max(46,nom.length*4.9+12), h=27, gauche=cote==="g";
     const bx=gauche?x-6-w:x+6, by=y-h/2;
     const cls=m.max<=10?" froid":m.max>=28?" chaud":"";
-    const ico=ICONS[m.type].replace('<svg ','<svg x="'+(bx+3).toFixed(1)+'" y="'+(by+2.5).toFixed(1)+'" width="14" height="14" ');
-    g+='<g class="mk" data-n="'+n+'" tabindex="0" role="button" aria-label="'+n+', '+LIB[m.type]+', maximale '+m.max+' degrés">'+
+    const ico=ICONS[m.ico||m.type].replace('<svg ','<svg x="'+(bx+3).toFixed(1)+'" y="'+(by+2.5).toFixed(1)+'" width="14" height="14" ');
+    g+='<g class="mk" data-n="'+n+'" tabindex="0" role="button" aria-label="'+n+', '+LIB[m.ico||m.type]+', maximale '+m.max+' degrés">'+
       '<line x1="'+x.toFixed(1)+'" y1="'+y.toFixed(1)+'" x2="'+(gauche?bx+w:bx).toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="var(--brand)" stroke-width="1"/>'+
       '<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h+'" rx="7" class="pill"/>'+ico+
       '<text x="'+(bx+19).toFixed(1)+'" y="'+(by+13.5).toFixed(1)+'" class="t'+cls+'">'+m.max+'°</text>'+
@@ -1736,7 +1757,7 @@ const themeSombre=()=>{const t=document.documentElement.dataset.theme;return t?t
 function pillHTML(n,m,petit,dx,dy){
   const cls=mapMode!=="temp"?"":m.max<=10?"froid":m.max>=28?"chaud":"";
   const val=mapMode==="pluie"?(m.pl>=0.3?fr(m.pl>=10?Math.round(m.pl):m.pl)+" mm":"0 mm"):mapMode==="vent"?m.raf+" km/h":m.max+"°";
-  return '<div class="lpill'+(petit?" petit":"")+'" style="margin-left:'+(dx||0)+'px;margin-top:'+(dy||0)+'px">'+ICONS[m.type]+'<span><span class="'+cls+'">'+val+'</span><small>'+(SHORT[n]||n)+'</small></span></div>';
+  return '<div class="lpill'+(petit?" petit":"")+'" style="margin-left:'+(dx||0)+'px;margin-top:'+(dy||0)+'px">'+ICONS[m.ico||m.type]+'<span><span class="'+cls+'">'+val+'</span><small>'+(SHORT[n]||n)+'</small></span></div>';
 }
 /* La carte en couleurs : chaque commune prend la couleur de sa température, de sa pluie ou de son vent */
 let mapMode="temp", LZONES=null;
@@ -1932,7 +1953,7 @@ function closeSearch(){sheet.hidden=true;document.body.style.overflow="";if(last
 function group(title,items){
   if(!items.length)return "";
   const t=normQ(q.value);
-  return '<div class="grp">'+title+'</div>'+items.map((x,j)=>{let tp="";if(enReel()){const m=reel(x.c,0);if(m)tp='<span class="ot">'+(ICONS[m.type]||"")+m.max+'°</span>'}
+  return '<div class="grp">'+title+'</div>'+items.map((x,j)=>{let tp="";if(enReel()){const m=reel(x.c,0);if(m)tp='<span class="ot">'+(ICONS[m.ico||m.type]||"")+m.max+'°</span>'}
     return '<button type="button" role="option" class="opt'+(items.length===1?" only":j===items.length-1?" last":"")+'" data-i="'+x.i+'"><span>'+surligner(x.c.n,t)+'</span><span class="od"><small>'+SECTEURS[x.c.s].short+'</small>'+tp+'</span></button>'}).join("");
 }
 const RECENTS_CLE="mer-recents";let recents=[];try{recents=JSON.parse(localStorage.getItem(RECENTS_CLE)||"[]")}catch(e){}
