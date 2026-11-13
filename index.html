@@ -2533,19 +2533,28 @@ $("copyCap").addEventListener("click",e=>copyText($("caption").value,e.currentTa
 (()=>{const sel=$("fbCommune"),txt=$("fbTexte");
 const noms=[...new Set(COMMUNES.map(c=>c.n))].sort((a,b)=>a.localeCompare(b,"fr"));
 noms.forEach(n=>{const o=document.createElement("option");o.value=o.textContent=n;sel.appendChild(o)});
-const texte=n=>`Sortir le linge ou pas, à ${n} ? ☔
+// Le lien mène directement à la page de la commune ; une anecdote locale vérifiée donne envie de lire jusqu'au bout
+const lien=n=>"https://lameteodeleo.github.io/meteo/"+norm(n).replace(/ /g,"-")+"/";
+const a=n=>/^Le /.test(n)?n.replace(/^Le /,"au "):/^Les /.test(n)?n.replace(/^Les /,"aux "):"à "+n;
+const texte=n=>{const an=SAVIEZ_COMMUNE[n];return `Sortir le linge ou pas, ${a(n)} ? ☔
 
-Je suis Léo, j'habite les Bouches-du-Rhône, et j'ai créé une petite appli météo pour notre coin, avec ${n} dedans bien sûr.
+Bonjour à tous ! Je m'appelle Léo, j'habite dans les Bouches-du-Rhône, et j'ai créé une appli météo gratuite pour notre coin. ${n} y a sa propre page :
+👉 ${lien(n)}
 
-Vous y voyez la pluie des 2 prochaines heures, quart d'heure par quart d'heure, le mistral, la météo heure par heure et sur 7 jours, les vigilances Météo-France… et un petit sourire chaque jour 😄
+Vous y trouvez :
+• la pluie des 2 prochaines heures, au quart d'heure près
+• la météo heure par heure et sur 7 jours
+• le mistral et les rafales
+• les vigilances officielles de Météo-France
+• et un petit sourire chaque jour 😄
 
-Elle est gratuite, sans pub et sans inscription :
-👉 https://lameteodeleo.github.io
+Les prévisions viennent des modèles de Météo-France et sont mises à jour toutes les 2 heures. Pas de pub, pas d'inscription.
 
 Astuce : ajoutez-la à votre écran d'accueil, elle s'ouvre comme une vraie appli.
-
-Le temps bien prévu, rien d'imprévu !
-Et vous, à ${n}, vous regardez la météo plutôt le matin ou le soir ? 👇`;
+${an&&an.length?`
+💡 Le saviez-vous ? ${an[0]}
+`:""}
+Et vous, ${a(n)}, vous regardez la météo plutôt le matin ou le soir ? 👇`};
 const maj=()=>{txt.value=texte(sel.value)};
 sel.addEventListener("change",maj);maj();
 $("copyFb").addEventListener("click",e=>copyText(txt.value,e.currentTarget,"Texte copié !"));})();
