@@ -421,7 +421,7 @@ async function verifier(ok) {
   const faits = new Set(V.jours.map(j => j.date));
   const aJuger = Object.keys(V.prev).filter(d => d < auj && !faits.has(d)).sort();
   // Premier lancement : on vérifie tout de suite que les mesures des stations sont bien lisibles
-  if (!prec || !prec.test4) { try { const tous = await catalogue(); console.log(`Catalogue : ${tous.length} fichiers ; du 13 : ` + tous.filter(r => /Q_13_/.test(r.url)).map(r => r.url.split("/").pop() + " (" + (r.last_modified || "").slice(0, 10) + ")").join(" | ")); } catch (e) { console.warn("Catalogue illisible : " + e.message); } }
+  if (!prec || !prec.test5) { try { const tous = await catalogue(); const r13 = tous.find(r => /Q_13_latest.*RR-T-Vent/.test(r.url)); console.log("Catalogue : lien " + r13.url); const txt = await lireTexte(r13.url); const ls = txt.split("\n"); const ds = ls.slice(1).map(l => l.split(";")[5]).filter(Boolean); const mois = {}; ds.forEach(d => mois[d.slice(0, 6)] = (mois[d.slice(0, 6)] || 0) + 1); console.log(`Catalogue : ${ls.length} lignes, ${txt.length} caractères, par mois ${JSON.stringify(mois)}, fin ${ls.slice(-3).join(" || ").slice(0, 400)}`); } catch (e) { console.warn("Catalogue illisible : " + e.message); } }
   if (!prec || !prec.test2) { try { const txt = await fichierObs("13", +auj.slice(0, 4)); const ds = [...new Set(txt.split("\n").slice(1).map(l => l.split(";")[5]).filter(Boolean))].sort(); const der = ds[ds.length - 1]; const { out } = lireCSV(txt, new Set([der])); console.log(`Test des mesures : dernier jour publié ${der} (${out.length} stations du 13, ${out.filter(o => o.tx != null).length} avec TX) ; exemple ${JSON.stringify(out.find(o => o.tx != null))}`); } catch (e) { console.warn("Test des mesures impossible : " + e.message); } }
   if (aJuger.length) {
     const dates = new Set(aJuger.map(d => d.replace(/-/g, "")));
@@ -457,7 +457,7 @@ async function verifier(ok) {
   for (const d of Object.keys(V.prev).sort().slice(0, -10)) delete V.prev[d];
   for (const d of Object.keys(V.prev)) if (d < dateParis(-9)) delete V.prev[d];
   V.jours = V.jours.sort((a, b) => a.date < b.date ? -1 : 1).slice(-60);
-  await writeFile("site/data/verif.json", JSON.stringify({ maj: new Date().toISOString(), test2: 1, test3: 1, test4: 1, ...V }));
+  await writeFile("site/data/verif.json", JSON.stringify({ maj: new Date().toISOString(), test2: 1, test3: 1, test4: 1, test5: 1, ...V }));
   return V.jours.slice(-14).map(({ pires, ...r }) => ({ ...r, pires }));
 }
 
