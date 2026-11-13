@@ -412,6 +412,7 @@ async function verifier(ok) {
   const faits = new Set(V.jours.map(j => j.date));
   const aJuger = Object.keys(V.prev).filter(d => d < auj && !faits.has(d)).sort();
   // Premier lancement : on vérifie tout de suite que les mesures des stations sont bien lisibles
+  if (!prec || !prec.test3) { try { for (const q of ["Q_13", "Q_13_latest", "QUOT 13"]) { const cat = await lireJSON(`https://www.data.gouv.fr/api/2/datasets/${DATASET_QUOT}/resources/?page_size=50&q=${encodeURIComponent(q)}`, 2); console.log(`Catalogue « ${q} » : ` + (cat.data || []).map(r => r.title + " → " + r.url + " (" + (r.last_modified || "") + ")").join(" | ").slice(0, 1500)); } } catch (e) { console.warn("Catalogue illisible : " + e.message); } }
   if (!prec || !prec.test2) { try { const txt = await fichierObs("13", +auj.slice(0, 4)); const ds = [...new Set(txt.split("\n").slice(1).map(l => l.split(";")[5]).filter(Boolean))].sort(); const der = ds[ds.length - 1]; const { out } = lireCSV(txt, new Set([der])); console.log(`Test des mesures : dernier jour publié ${der} (${out.length} stations du 13, ${out.filter(o => o.tx != null).length} avec TX) ; exemple ${JSON.stringify(out.find(o => o.tx != null))}`); } catch (e) { console.warn("Test des mesures impossible : " + e.message); } }
   if (aJuger.length) {
     const dates = new Set(aJuger.map(d => d.replace(/-/g, "")));
@@ -447,7 +448,7 @@ async function verifier(ok) {
   for (const d of Object.keys(V.prev).sort().slice(0, -10)) delete V.prev[d];
   for (const d of Object.keys(V.prev)) if (d < dateParis(-9)) delete V.prev[d];
   V.jours = V.jours.sort((a, b) => a.date < b.date ? -1 : 1).slice(-60);
-  await writeFile("site/data/verif.json", JSON.stringify({ maj: new Date().toISOString(), test2: 1, ...V }));
+  await writeFile("site/data/verif.json", JSON.stringify({ maj: new Date().toISOString(), test2: 1, test3: 1, ...V }));
   return V.jours.slice(-14).map(({ pires, ...r }) => ({ ...r, pires }));
 }
 
