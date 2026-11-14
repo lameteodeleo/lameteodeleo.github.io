@@ -414,7 +414,7 @@ async function verifier(ok) {
   const auj = dateParis(0);
   // Garde la prévision de demain (écrasée à chaque mise à jour jusqu'à minuit)
   const dem = {}; let dDem = null;
-  for (const x of ok) { const J = x.d && x.d[1]; if (!J) continue; dDem = J[0]; dem[x.n] = [J[2], J[3], J[6], J[4], x.lat, x.lon]; }
+  for (const x of ok) { const J = x.d && x.d[1]; if (!J) continue; dDem = J[0]; dem[x.n] = [J[2], J[3], J[6], J[4], x.lat, x.lon, J[1], J[7]]; }
   if (dDem && dDem > auj) V.prev[dDem] = dem;
   // Juge les jours passés qui ont une prévision et pas encore de score
   const faits = new Set(V.jours.map(j => j.date));
@@ -429,7 +429,7 @@ async function verifier(ok) {
     for (const d of aJuger) {
       const P = V.prev[d], M = mesures.filter(m => m.jour === d.replace(/-/g, "") && m.lat != null && m.tx != null && m.tn != null);
       if (M.length < 5) { console.log(`Vérification du ${d} : mesures pas encore publiées (${M.length} stations), on réessaiera.`); continue; }
-      const res = { date: d, stations: 0, tx: [0, 0, 0], tn: [0, 0, 0], pluie: [0, 0], vent: [0, 0, 0], pires: [] };
+      const res = { date: d, stations: 0, tx: [0, 0, 0], tn: [0, 0, 0], pluie: [0, 0], icone: [0, 0, 0, 0], vent: [0, 0, 0], pires: [] };
       for (const m of M) {
         let best = null, bd = 6;
         for (const [n, p] of Object.entries(P)) { const k = distKm(m.lat, m.lon, p[4], p[5]); if (k < bd) { bd = k; best = n; } }
@@ -439,6 +439,11 @@ async function verifier(ok) {
         res.tx[0]++; res.tx[1] += Math.abs(ex) <= 2 ? 1 : 0; res.tx[2] += Math.abs(ex);
         res.tn[0]++; res.tn[1] += Math.abs(en) <= 2 ? 1 : 0; res.tn[2] += Math.abs(en);
         if (m.rr != null) { res.pluie[0]++; res.pluie[1] += ((p[2] >= 1) === (m.rr >= 1)) ? 1 : 0; }
+        // L'icône affichée (pluie, pluie faible ou temps sec) face à la pluie mesurée : il a plu dès 0,2 mm (plus petite mesure d'un pluviomètre)
+        if (m.rr != null && p[6] != null) {
+          const prevu = /pluie|averses|orages|neige/i.test(ciel(p[6], p[7], p[2] ?? 0)), mesure = m.rr >= 0.2;
+          res.icone[0]++; if (prevu === mesure) res.icone[1]++; else if (prevu) res.icone[2]++; else res.icone[3]++;
+        }
         if (m.fxi != null) { const kmh = m.fxi * 3.6; res.vent[0]++; res.vent[1] += Math.abs(p[3] - kmh) <= 15 ? 1 : 0; res.vent[2] += Math.abs(p[3] - kmh); }
         res.pires.push({ n: best, st: m.nom, ex: Math.round(ex * 10) / 10, en: Math.round(en * 10) / 10, rrP: p[2], rrM: m.rr, vP: p[3], vM: m.fxi == null ? null : Math.round(m.fxi * 3.6) });
       }
@@ -446,7 +451,7 @@ async function verifier(ok) {
       res.pires = res.pires.sort((a, b) => Math.max(Math.abs(b.ex), Math.abs(b.en)) - Math.max(Math.abs(a.ex), Math.abs(a.en))).slice(0, 3);
       for (const k of ["tx", "tn", "vent"]) if (res[k][0]) res[k][2] = Math.round(res[k][2] / res[k][0] * 10) / 10;
       V.jours.push(res);
-      console.log(`Vérification du ${d} : ${res.stations} stations ; max justes à 2° près ${res.tx[1]}/${res.tx[0]} (écart moyen ${res.tx[2]}°) ; min ${res.tn[1]}/${res.tn[0]} (${res.tn[2]}°) ; pluie oui/non ${res.pluie[1]}/${res.pluie[0]} ; rafales à 15 km/h près ${res.vent[1]}/${res.vent[0]}`);
+      console.log(`Vérification du ${d} : ${res.stations} stations ; max justes à 2° près ${res.tx[1]}/${res.tx[0]} (écart moyen ${res.tx[2]}°) ; min ${res.tn[1]}/${res.tn[0]} (${res.tn[2]}°) ; pluie oui/non ${res.pluie[1]}/${res.pluie[0]} ; icône de pluie ${res.icone[1]}/${res.icone[0]} (fausses alertes ${res.icone[2]}, oublis ${res.icone[3]}) ; rafales à 15 km/h près ${res.vent[1]}/${res.vent[0]}`);
     }
   }
   // On garde 10 jours de prévisions en attente et 60 jours de scores

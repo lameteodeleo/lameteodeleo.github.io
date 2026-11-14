@@ -2690,7 +2690,7 @@ function renderFiab(){
   const ligne=(lib,a,ecart,unit,m7)=>a&&a[0]?'<li><b>'+lib+' : '+pc(a)+' %</b>'+(ecart!=null?' (écart moyen '+String(ecart).replace(".",",")+unit+')':'')+(m7!=null&&F.length>1?' · sur 7 jours : '+m7+' %':'')+'</li>':'';
   el.innerHTML='<span class="sub">Prévision faite la veille pour <b>'+jour(d.date)+'</b>, comparée à '+d.stations+' stations Météo-France.</span><ul style="margin:8px 0 0 18px;padding:0;line-height:1.6">'+
     ligne("Températures max justes à 2° près",d.tx,d.tx[2],"°",moy("tx"))+ligne("Températures min justes à 2° près",d.tn,d.tn[2],"°",moy("tn"))+
-    ligne("Pluie bien annoncée (oui ou non)",d.pluie,null,"",moy("pluie"))+ligne("Rafales justes à 15 km/h près",d.vent,d.vent[2]," km/h",moy("vent"))+'</ul>'+
+    ligne("Pluie bien annoncée (oui ou non)",d.pluie,null,"",moy("pluie"))+(d.icone&&d.icone[0]?'<li><b>Icône de pluie juste : '+pc(d.icone)+' %</b> ('+d.icone[2]+' fausse'+(d.icone[2]>1?'s':'')+' alerte'+(d.icone[2]>1?'s':'')+', '+d.icone[3]+' pluie'+(d.icone[3]>1?'s':'')+' ratée'+(d.icone[3]>1?'s':'')+')'+(moy("icone")!=null&&F.filter(x=>x.icone&&x.icone[0]).length>1?' · sur 7 jours : '+moy("icone")+' %':'')+'</li>':'')+ligne("Rafales justes à 15 km/h près",d.vent,d.vent[2]," km/h",moy("vent"))+'</ul>'+
     (d.pires&&d.pires.length?'<span class="sub" style="display:block;margin-top:8px">Plus gros écarts : '+d.pires.map(p=>p.n+' (max '+(p.ex>0?"+":"")+String(p.ex).replace(".",",")+'°, min '+(p.en>0?"+":"")+String(p.en).replace(".",",")+'°)').join(" ; ")+'.</span>':'')+
     '<span class="sub" style="display:block;margin-top:8px">Au-dessus de 80 %, c\'est du travail de pro. En dessous de 60 % plusieurs jours de suite, dis-le-moi.</span>';
 }
