@@ -602,6 +602,15 @@ const BORD_DE_MER = ["Marseille", "Cassis", "La Ciotat", "Le Rove", "Ensuès-la-
 for (const x of ok) if (BORD_DE_MER.includes(norm(x.n))) x.cote = 1;
 const vig = await bonus("Vigilance", () => vigilance([...new Set(ok.map(x => x.dep))]));
 await mkdir("site/data", { recursive: true });
+// Test à la demande : lit les mesures horaires d'hier et affiche ce qu'on en tire, sans rien enregistrer
+if (process.env.TEST_MESURES === "true") await bonus("Test des mesures", async () => {
+  const d = dateParis(-1), cles = new Set(); for (let k = 0; k <= 24; k++) cles.add(cleUTC(d, k));
+  for (const dep of ["13", "84"]) {
+    const url = await urlHoraire(dep), r = await lireHoraire(url, cles, UA);
+    console.log(`Test ${dep} : ${url.split("/").pop()} ; ${r.lignes} lignes, ${r.gardees} gardées, ${r.postes.length} stations ; colonnes ${r.tete.join(";").slice(0, 400)}`);
+    for (const p of r.postes.slice(0, 3)) console.log(`  ${p.nom} (${p.lat}, ${p.lon}) : ` + Object.entries(p.h).slice(6, 10).map(([k, m]) => `${k} T=${m.t} RR1=${m.rr} FXI=${m.fxi} DXI=${m.dxi}`).join(" | "));
+  }
+});
 const fiabilite = await bonus("Vérification", () => verifier(ok));
 await writeFile("site/data/meteo.json", JSON.stringify({
   maj: new Date().toISOString(),

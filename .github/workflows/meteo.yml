@@ -7,6 +7,11 @@ on:
   push:
     branches: [main]      # et à chaque modification du code
   workflow_dispatch:      # bouton « Run workflow » pour lancer à la main
+    inputs:
+      test_mesures:
+        description: "Tester la lecture des mesures horaires de Météo-France (journal seulement)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -29,6 +34,7 @@ jobs:
         run: node scripts/update.mjs
         env:
           MF_VIGILANCE_KEY: ${{ secrets.MF_VIGILANCE_KEY }}
+          TEST_MESURES: ${{ inputs.test_mesures }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
