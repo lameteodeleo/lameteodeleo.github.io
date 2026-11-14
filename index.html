@@ -2635,7 +2635,7 @@ const a=n=>/^Le /.test(n)?n.replace(/^Le /,"au "):/^Les /.test(n)?n.replace(/^Le
 const de=n=>/^Le /.test(n)?n.replace(/^Le /,"du "):/^Les /.test(n)?n.replace(/^Les /,"des "):/^[AEIOUYÉÈÊaeiouy]/.test(n)?"d'"+n:"de "+n;
 const texte=n=>{const an=SAVIEZ_COMMUNE[n];return `Une météo complète, faite pour ${n} 🌤️
 
-Bonjour à tous ! Je m'appelle Léo, j'habite dans les Bouches-du-Rhône, et j'ai créé une appli météo gratuite pour notre coin. Retrouvez la météo ${de(n)} ici :
+Bonjour à tous ! Je m'appelle Léo, j'habite dans les Bouches-du-Rhône, et j'ai créé une appli météo gratuite pour toutes les communes du 13. Retrouvez la météo ${de(n)} ici :
 👉 ${lien(n)}
 
 Vous y trouvez :
