@@ -452,9 +452,11 @@ async function verifier(ok) {
     for (const d of aJuger) {
       const P = V.prev[d], M = mesures.filter(m => m.jour === d.replace(/-/g, "") && m.lat != null && m.tx != null && m.tn != null);
       if (M.length < 5) { console.log(`Vérification du ${d} : mesures pas encore publiées (${M.length} stations), on réessaiera.`); continue; }
-      const Hd = horaires.filter(p => Object.keys(p.h).some(k => k.startsWith(d.replace(/-/g, ""))));
-      // Les mesures horaires arrivent parfois plus tard : on les attend jusqu'à deux jours
-      if (Hd.length < 3 && d >= dateParis(-2)) { console.log(`Vérification du ${d} : mesures horaires pas encore publiées (${Hd.length} stations), on réessaiera.`); continue; }
+      // Une station compte quand sa journée est presque complète (au moins 20 heures sur 25, de 0 h à 24 h heure de Paris)
+      const cd = []; for (let k = 0; k <= 24; k++) cd.push(cleUTC(d, k));
+      const Hd = horaires.filter(p => cd.filter(k => p.h[k]).length >= 20);
+      // Météo-France publie la journée complète avec 1 à 2 jours de retard : on l'attend jusqu'à 4 jours
+      if (Hd.length < 5 && d >= dateParis(-4)) { console.log(`Vérification du ${d} : mesures horaires pas encore publiées (${Hd.length} stations), on réessaiera.`); continue; }
       const res = noterJour(d, P, M, Hd, ciel, HEURES);
       if (res.stations < 5) { console.log(`Vérification du ${d} : trop peu de stations proches d'une commune (${res.stations}).`); continue; }
       V.jours.push(res);
