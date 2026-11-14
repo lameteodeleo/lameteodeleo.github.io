@@ -613,19 +613,37 @@ if (process.env.TEST_MESURES === "true") await bonus("Test des mesures", async (
     for (const p of r.postes.slice(0, 3)) console.log(`  ${p.nom} (${p.lat}, ${p.lon}) : ` + Object.entries(p.h).slice(6, 10).map(([k, m]) => `${k} T=${m.t} RR1=${m.rr} FXI=${m.fxi} DXI=${m.dxi} U=${m.u} FF=${m.ff} GLO=${m.glo}`).join(" | "));
     console.log(`  Colonnes après T : ${r.tete.slice(r.tete.indexOf("T")).join(";")}`);
   }
-  // Qualité de l'air mesurée (LCSQA) : on regarde les fichiers disponibles et leur contenu pour les stations de la région
-  const ds = await lireJSON("https://www.data.gouv.fr/api/1/datasets/5b98b648634f415309d52a50/", 2);
-  const res = ds.resources || [];
-  console.log(`Air : ${res.length} fichiers ; derniers : ` + res.slice(0, 6).map(r => `${r.title} [${(r.url || "").split("/").pop()}]`).join(" | "));
-  console.log(`Air : autres : ` + res.filter(r => !/FR_E2_\d/.test(r.url || "")).slice(0, 10).map(r => `${r.title} [${r.url}]`).join(" | "));
-  const f = res.find(r => (r.url || "").includes(dateParis(-1))) || res[0];
-  if (f) {
-    const txt = await lireTexte(f.url); const L = txt.split(/\r?\n/);
-    console.log(`Air : ${f.url.split("/").pop()} ; ${L.length} lignes ; entête ${L[0]}`);
-    const sud = L.filter(l => /AtmoSud|ATMOSUD|Marseille|MARSEILLE/i.test(l));
-    console.log(`Air : ${sud.length} lignes AtmoSud ; exemples :\n` + sud.slice(0, 4).join("\n"));
-    const sites = new Map(); for (const l of sud) { const v = l.split(";"); sites.set(v[5], v.slice(4, 12).join(";")); }
-    console.log(`Air : ${sites.size} sites :\n` + [...sites.values()].join("\n"));
+  // UV mesuré : combien de stations ont l'indice UV
+  {
+    const d = dateParis(-2), cles = new Set(); for (let k = 0; k <= 24; k++) cles.add(cleUTC(d, k));
+    for (const dep of ["13", "84", "83", "30"]) {
+      try {
+        const url = await urlHoraire(dep);
+        const r = await fetch(url, { headers: UA }); const { Readable } = await import("node:stream"); const { createGunzip } = await import("node:zlib"); const { createInterface } = await import("node:readline");
+        const rl = createInterface({ input: Readable.fromWeb(r.body).pipe(createGunzip()), crlfDelay: Infinity }); let tete = null; const uv = new Map();
+        for await (const l of rl) { const v = l.split(";"); if (!tete) { tete = v; continue; } if (!cles.has(v[5])) continue; const iu = tete.indexOf("UV_INDICE"), ig = tete.indexOf("GLO"); const k = v[1] + " (" + v[2] + "," + v[3] + ")"; const o = uv.get(k) || { uv: 0, glo: 0, max: 0 }; if (v[iu] && v[iu].trim()) { o.uv++; o.max = Math.max(o.max, parseFloat(v[iu].replace(",", "."))); } if (v[ig] && v[ig].trim()) o.glo++; uv.set(k, o); }
+        console.log(`UV ${dep} le ${d} : ` + [...uv.entries()].filter(([, o]) => o.uv || o.glo).map(([k, o]) => `${k} UV ${o.uv} h (max ${o.max}) GLO ${o.glo} h`).join(" | "));
+      } catch (e) { console.warn("UV " + dep + " : " + e.message); }
+    }
+  }
+  // Qualité de l'air mesurée (LCSQA) : liste des fichiers du jour et métadonnées des stations
+  {
+    const base = "https://files.data.gouv.fr/ineris/lcsqa/concentrations-de-polluants-atmospheriques-reglementes/temps-reel/";
+    const idx = await lireTexte(base); console.log("Air index : " + idx.replace(/\s+/g, " ").slice(0, 600));
+    const an = await lireTexte(base + new Date().getFullYear() + "/").catch(e => "ERR " + e.message);
+    const liens = [...an.matchAll(/href="([^"]+)"/g)].map(m => m[1]); console.log("Air année : " + liens.slice(-6).join(" | "));
+    const f = liens.filter(l => l.includes(dateParis(-1))).pop() || liens[liens.length - 1];
+    if (f) {
+      const url = f.startsWith("http") ? f : base + new Date().getFullYear() + "/" + f.replace(/^.*\//, "");
+      const txt = await lireTexte(url); const L = txt.split(/\r?\n/);
+      console.log(`Air fichier ${url.split("/").pop()} : ${L.length} lignes ; entête ${L[0]}`);
+      const sud = L.filter(l => /SUD|PACA/i.test(l));
+      console.log(`Air : ${sud.length} lignes région ; exemples :\n` + sud.slice(0, 3).join("\n"));
+      const sites = new Map(); for (const l of sud) { const v = l.split(";"); sites.set(v[5] + " " + v[6], (sites.get(v[5] + " " + v[6]) || new Set()).add(v[8] + "/" + v[9])); }
+      console.log(`Air : ${sites.size} sites :\n` + [...sites.entries()].map(([k, s]) => k + " → " + [...s].join(",")).join("\n"));
+    }
+    const xml = await lireTexte("https://static.data.gouv.fr/resources/donnees-temps-reel-de-mesure-des-concentrations-de-polluants-atmospheriques-reglementes-1/20260825-130000/fr-2026-d-07082026-1.xml");
+    const k = xml.search(/Marseille|MARSEILLE/); console.log(`Air XML : ${xml.length} caractères ; extrait :\n` + xml.slice(Math.max(0, k - 1500), k + 1500));
   }
 });
 const fiabilite = await bonus("Vérification", () => verifier(ok));
