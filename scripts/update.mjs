@@ -606,6 +606,11 @@ const vig = await bonus("Vigilance", () => vigilance([...new Set(ok.map(x => x.d
 await mkdir("site/data", { recursive: true });
 // Test à la demande : lit les mesures horaires d'hier et affiche ce qu'on en tire, sans rien enregistrer
 if (process.env.TEST_MESURES === "true") await bonus("Test des mesures", async () => {
+  // Le plan du site tel que Google le reçoit
+  for (const u of ["https://lameteodeleo.github.io/sitemap.xml", "https://lameteodeleo.github.io/robots.txt"]) {
+    const r = await fetch(u, { headers: { "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" } }); const t = await r.text();
+    console.log(`Plan ${u} : HTTP ${r.status}, type ${r.headers.get("content-type")}, ${t.length} caractères, ${(t.match(/<loc>/g) || []).length} adresses ; début : ${t.slice(0, 160).replace(/\n/g, " ")} ; fin : ${t.slice(-60).replace(/\n/g, " ")}`);
+  }
   const d = dateParis(-1), cles = new Set(); for (let k = 0; k <= 24; k++) cles.add(cleUTC(d, k));
   for (const dep of ["13", "84"]) {
     const url = await urlHoraire(dep), r = await lireHoraire(url, cles, UA);
