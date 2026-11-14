@@ -163,6 +163,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .days-note{margin:8px 4px 0;font-size:.8rem;color:var(--muted);line-height:1.4}.days-note svg{width:11px;height:11px;color:var(--cool);vertical-align:-1px}
 .day .ic small.nuit{display:inline-flex;align-items:center;gap:2px}.day .ic small.nuit svg{width:11px;height:11px}
 .day .ic small{font-size:.66rem;font-weight:800;color:var(--cool);line-height:1;margin-top:-1px;white-space:nowrap}
+.day .ic small em{display:block;font-style:normal;font-weight:700;font-size:.9em;opacity:.8;margin-top:2px;text-align:center}
 .day .lo{color:var(--muted);text-align:right}
 .day .hi{font-weight:800}
 .bar{position:relative;height:8px;border-radius:4px;background:var(--line)}
@@ -1700,7 +1701,7 @@ function render(){
     if(t<=P[0][0])return P[0][1];for(let k=1;k<P.length;k++)if(t<=P[k][0]){const [a,ca]=P[k-1],[b,cb]=P[k],f=(t-a)/(b-a),h=c=>[1,3,5].map(o=>parseInt(c.substr(o,2),16));const A=h(ca),Bc=h(cb);return "rgb("+A.map((v,n)=>Math.round(v+(Bc[n]-v)*f)).join(",")+")"}return P[P.length-1][1]};
   const days=[0,1,2,3,4,5,6].map(i=>({i,m:meteo(c,st.scen,i)}));
   const gmin=Math.min(...days.map(d=>d.m.min)), gmax=Math.max(...days.map(d=>d.m.max)), span=Math.max(1,gmax-gmin);
-  $("days").innerHTML=days.map(d=>'<button type="button" class="day" data-i="'+d.i+'" aria-pressed="'+(d.i===st.jour)+'" aria-label="'+fmt(dayDate(d.i))+', '+LIB[d.m.ico||d.m.type]+', '+d.m.min+' à '+d.m.max+' degrés'+(d.m.prob>=30?', risque de pluie '+d.m.prob+' pour cent'+(d.m.plNuit?', surtout la nuit':''):'')+'"><span class="dn">'+dayName(d.i)+'</span><span class="ic">'+ICONS[d.m.ico||d.m.type]+(d.m.prob>=30&&d.m.type!=="neige"?'<small>'+d.m.prob+' %</small>':'')+'</span><span class="lo">'+d.m.min+'°</span><span class="bar" aria-hidden="true"><span style="left:'+((d.m.min-gmin)/span*100)+'%;right:'+((gmax-d.m.max)/span*100)+'%;background:linear-gradient(90deg,'+coulT(d.m.min)+','+coulT((d.m.min+d.m.max)/2)+','+coulT(d.m.max)+')"></span>'+(d.i===0&&heroNow&&heroNow.t!=null?'<i style="left:'+Math.max(0,Math.min(100,(heroNow.t-gmin)/span*100))+'%"></i>':'')+'</span><span class="hi">'+d.m.max+'°</span></button>').join("");
+  $("days").innerHTML=days.map(d=>'<button type="button" class="day" data-i="'+d.i+'" aria-pressed="'+(d.i===st.jour)+'" aria-label="'+fmt(dayDate(d.i))+', '+LIB[d.m.ico||d.m.type]+', '+d.m.min+' à '+d.m.max+' degrés'+(d.m.prob>=30?', risque de pluie '+d.m.prob+' pour cent'+(d.m.plNuit?', surtout la nuit':''):'')+'"><span class="dn">'+dayName(d.i)+'</span><span class="ic">'+ICONS[d.m.ico||d.m.type]+(d.m.prob>=30&&d.m.type!=="neige"?'<small>'+d.m.prob+' %'+(d.m.plNuit?'<em>nuit</em>':'')+'</small>':'')+'</span><span class="lo">'+d.m.min+'°</span><span class="bar" aria-hidden="true"><span style="left:'+((d.m.min-gmin)/span*100)+'%;right:'+((gmax-d.m.max)/span*100)+'%;background:linear-gradient(90deg,'+coulT(d.m.min)+','+coulT((d.m.min+d.m.max)/2)+','+coulT(d.m.max)+')"></span>'+(d.i===0&&heroNow&&heroNow.t!=null?'<i style="left:'+Math.max(0,Math.min(100,(heroNow.t-gmin)/span*100))+'%"></i>':'')+'</span><span class="hi">'+d.m.max+'°</span></button>').join("");
   $("barNow").hidden=!(heroNow&&heroNow.t!=null);
   // tuiles
   const sun=soleil(dayDate(st.jour));
