@@ -2632,9 +2632,10 @@ noms.forEach(n=>{const o=document.createElement("option");o.value=o.textContent=
 // Le lien mène directement à la page de la commune ; une anecdote locale vérifiée donne envie de lire jusqu'au bout
 const lien=n=>"https://lameteodeleo.github.io/meteo/"+norm(n).replace(/ /g,"-")+"/";
 const a=n=>/^Le /.test(n)?n.replace(/^Le /,"au "):/^Les /.test(n)?n.replace(/^Les /,"aux "):"à "+n;
-const texte=n=>{const an=SAVIEZ_COMMUNE[n];return `Sortir le linge ou pas, ${a(n)} ? ☔
+const de=n=>/^Le /.test(n)?n.replace(/^Le /,"du "):/^Les /.test(n)?n.replace(/^Les /,"des "):/^[AEIOUYÉÈÊaeiouy]/.test(n)?"d'"+n:"de "+n;
+const texte=n=>{const an=SAVIEZ_COMMUNE[n];return `Une météo complète, faite pour ${n} 🌤️
 
-Bonjour à tous ! Je m'appelle Léo, j'habite dans les Bouches-du-Rhône, et j'ai créé une appli météo gratuite pour notre coin. ${n} y a sa propre page :
+Bonjour à tous ! Je m'appelle Léo, j'habite dans les Bouches-du-Rhône, et j'ai créé une appli météo gratuite pour notre coin. Retrouvez la météo ${de(n)} ici :
 👉 ${lien(n)}
 
 Vous y trouvez :
