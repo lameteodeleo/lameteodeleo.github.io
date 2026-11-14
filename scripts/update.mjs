@@ -79,7 +79,7 @@ async function communesOfficielles() {
 // 2. Prévisions Open-Meteo, par paquets de 25 communes
 const PARAMS = new URLSearchParams({
   current: "temperature_2m,apparent_temperature,weather_code,wind_gusts_10m,wind_direction_10m",
-  hourly: "temperature_2m,weather_code,precipitation_probability,wind_gusts_10m,wind_direction_10m,uv_index",
+  hourly: "temperature_2m,weather_code,precipitation_probability,wind_gusts_10m,wind_direction_10m,uv_index,precipitation",
   daily: "weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,wind_gusts_10m_max,wind_direction_10m_dominant,precipitation_sum,precipitation_probability_max,uv_index_max",
   timezone: "Europe/Paris", forecast_days: "7", wind_speed_unit: "kmh"
 });
@@ -89,7 +89,7 @@ const PARAMS = new URLSearchParams({
 const PARAMS_MF = new URLSearchParams({
   models: "meteofrance_seamless",
   current: "temperature_2m,apparent_temperature,weather_code,wind_gusts_10m,wind_direction_10m",
-  hourly: "temperature_2m,weather_code,wind_gusts_10m,wind_direction_10m",
+  hourly: "temperature_2m,weather_code,wind_gusts_10m,wind_direction_10m,precipitation",
   daily: "weather_code,temperature_2m_max,temperature_2m_min,wind_gusts_10m_max,precipitation_sum",
   timezone: "Europe/Paris", forecast_days: "3", wind_speed_unit: "kmh"
 });
@@ -138,15 +138,17 @@ function appliquerMF(x, p) {
     });
     if (h && h.time) {
       const pos = {}; h.time.forEach((t, k) => { pos[t] = k; });
-      const maj = (t, cible, iT, iC, iR, iD) => {
+      // La quantité de pluie de l'heure vient du même modèle que le temps affiché, pour que l'icône et les millimètres concordent
+      const maj = (t, cible, iT, iC, iR, iD, iP) => {
         const k = pos[t]; if (k == null || !vu(h.temperature_2m[k])) return;
         cible[iT] = r1(h.temperature_2m[k]);
         if (vu(h.weather_code[k])) cible[iC] = h.weather_code[k];
         if (vu(h.wind_gusts_10m[k])) cible[iR] = Math.round(h.wind_gusts_10m[k]);
         if (vu(h.wind_direction_10m[k])) cible[iD] = h.wind_direction_10m[k];
+        if (h.precipitation && vu(h.precipitation[k])) cible[iP] = r1(h.precipitation[k]);
       };
-      for (const e of x.n24) maj(e[0], e, 1, 2, 4, 5);
-      x.d.forEach((J, k) => { if (k < JOURS_MF) HEURES.forEach((hh, i) => { const e = x.h[k][i]; if (e && e.length > 1) maj(J[0] + "T" + String(hh).padStart(2, "0") + ":00", e, 0, 1, 3, 4); }); });
+      for (const e of x.n24) maj(e[0], e, 1, 2, 4, 5, 6);
+      x.d.forEach((J, k) => { if (k < JOURS_MF) HEURES.forEach((hh, i) => { const e = x.h[k][i]; if (e && e.length > 1) maj(J[0] + "T" + String(hh).padStart(2, "0") + ":00", e, 0, 1, 3, 4, 5); }); });
     }
     x.mf = 1;
   } catch (e) { console.warn("Météo-France ignoré pour " + x.n + " : " + e.message); }
@@ -199,11 +201,11 @@ async function traiterLot(lot) {
       const debut = pos[(c.time || "").slice(0, 13) + ":00"];
       x.n24 = debut == null ? [] : h.time.slice(debut, debut + 24).map((t, k) => {
         const i = debut + k;
-        return [t, r1(h.temperature_2m[i]), h.weather_code[i], h.precipitation_probability[i], Math.round(h.wind_gusts_10m[i] ?? 0), h.wind_direction_10m[i]];
+        return [t, r1(h.temperature_2m[i]), h.weather_code[i], h.precipitation_probability[i], Math.round(h.wind_gusts_10m[i] ?? 0), h.wind_direction_10m[i], r1(h.precipitation[i] ?? 0)];
       });
       x.h = d.time.map(date => HEURES.map(hh => {
         const k = pos[date + "T" + String(hh).padStart(2, "0") + ":00"];
-        return k == null ? [null] : [r1(h.temperature_2m[k]), h.weather_code[k], h.precipitation_probability[k], Math.round(h.wind_gusts_10m[k] ?? 0), h.wind_direction_10m[k]];
+        return k == null ? [null] : [r1(h.temperature_2m[k]), h.weather_code[k], h.precipitation_probability[k], Math.round(h.wind_gusts_10m[k] ?? 0), h.wind_direction_10m[k], r1(h.precipitation[k] ?? 0)];
       }));
       if (mf && mf[j]) appliquerMF(x, mf[j]);
     });
@@ -466,13 +468,18 @@ const esc = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(
 function ciel(code, prob, pl) {
   const precip = (code >= 51 && code <= 67) || (code >= 71 && code <= 86) || code >= 95;
   const fort = [63, 65, 67, 73, 75, 81, 82, 95, 96, 99].includes(code) || pl >= 5;
-  if (precip && !fort && ((prob != null && prob < 50) || pl < 0.5)) code = 3;
+  // Même règle que l'app : pluie dès 50 % et 0,5 mm, pluie faible dès 60 % et 0,1 mm, sinon nuageux
+  if (precip && !fort && ((prob != null && prob < 50) || pl < 0.5)) {
+    if (prob != null && prob >= 60 && pl >= 0.1) return (code >= 71 && code <= 86) ? "Neige" : "Pluie faible";
+    code = 3;
+  } else if (!precip && code !== 45 && code !== 48 && prob != null && prob >= 50 && pl >= 0.5) return pl >= 15 ? "Forte pluie" : "Pluie";
+  else if (!precip && prob != null && prob >= 60 && pl >= 0.1) return "Pluie faible";
   if (code <= 1) return "Ensoleillé"; if (code === 2) return "Éclaircies"; if (code === 3) return "Nuageux";
   if (code === 45 || code === 48) return "Brouillard"; if (code >= 95) return "Orages";
   if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "Neige";
   if ([56, 57, 66, 67].includes(code)) return "Pluie verglaçante";
   if (pl >= 15 || [65, 82].includes(code)) return "Forte pluie";
-  if (code >= 80) return "Averses"; if (code <= 55) return "Bruine"; return "Pluie";
+  if (code >= 80) return "Averses"; if (code <= 55) return "Pluie faible"; return "Pluie";
 }
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 const mistral = (raf, dir) => raf >= 40 && dir != null && (dir >= 290 || dir <= 20);

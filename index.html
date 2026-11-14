@@ -765,9 +765,9 @@ function iconParts(t){
 }
 const TYPES=["lune","nuitNuageux","soleil","nuageux","mistral","vent","pluie","gel","brouillard","neige","chaleur","orage","couvert","averses","pluieForte","bruine","verglas"];
 const ICONS={};TYPES.forEach(t=>ICONS[t]='<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">'+iconParts(t).map(([d,k])=>'<path d="'+d+'" stroke="'+PAL[k]+'"'+(/z$/.test(d)?' fill="'+PAL[k]+'" fill-opacity=".22"':'')+'/>').join("")+'</g></svg>');
-const LIB={lune:"Nuit claire",nuitNuageux:"Nuit nuageuse",soleil:"Ensoleillé",nuageux:"Éclaircies",mistral:"Mistral",vent:"Vent fort",pluie:"Pluie",gel:"Gelée matinale",brouillard:"Brouillard",neige:"Neige",chaleur:"Très chaud",orage:"Orages",couvert:"Couvert",averses:"Averses",pluieForte:"Forte pluie",bruine:"Bruine",verglas:"Pluie verglaçante"};
+const LIB={lune:"Nuit claire",nuitNuageux:"Nuit nuageuse",soleil:"Ensoleillé",nuageux:"Éclaircies",mistral:"Mistral",vent:"Vent fort",pluie:"Pluie",gel:"Gelée matinale",brouillard:"Brouillard",neige:"Neige",chaleur:"Très chaud",orage:"Orages",couvert:"Couvert",averses:"Averses",pluieForte:"Forte pluie",bruine:"Pluie faible",verglas:"Pluie verglaçante"};
 /* Icône plus précise, comme une météo pro (le type général reste utilisé pour les conseils et les textes).
-   Couvert = ciel entièrement nuageux ; averses = pluie passagère avec éclaircies ; bruine = pluie très fine ; forte pluie ; pluie verglaçante. */
+   Couvert = ciel entièrement nuageux ; averses = pluie passagère avec éclaircies ; bruine = pluie faible ; forte pluie ; pluie verglaçante. */
 function variante(code,type,nuit){
   if((type==="nuageux"||type==="nuitNuageux")&&code===3) return "couvert";
   if(type!=="pluie") return type;
@@ -788,16 +788,23 @@ function classer(code,raf,dirDeg,tmax,tmin){
   }
   return t;
 }
-/* Comme une météo pro : l'icône de pluie (ou d'orage, de neige) n'apparaît que si la précipitation est probable,
-   au moins 50 %, et, pour une journée, d'au moins 0,5 mm. Sinon : ciel nuageux. Le pourcentage s'affiche dès 30 %. */
+/* Comme une météo pro, l'icône suit à la fois le risque et la quantité prévue :
+   - pluie : risque d'au moins 50 % et au moins 0,5 mm ;
+   - pluie faible (petites gouttes) : risque d'au moins 60 % et au moins 0,1 mm ;
+   - sinon : ciel nuageux. Le pourcentage s'affiche dès 30 %.
+   pl = millimètres de l'heure (ou de la journée) ; absent dans les anciennes données. */
 const PRECIPC=k=>(k>=51&&k<=67)||(k>=71&&k<=77)||(k>=80&&k<=86)||k>=95;
+const NEIGEC=k=>(k>=71&&k<=77)||k===85||k===86;
 function codeFiable(code,prob,pl){
-  if(!PRECIPC(code)) return code;
-  // Sécurité : pluie forte, averse forte ou orage annoncés par le modèle, ou au moins 5 mm sur la journée : on garde toujours l'icône
-  if([63,65,67,73,75,81,82,95,96,99].includes(code)||(pl!=null&&pl>=5)) return code;
-  if(prob!=null&&prob<50) return 3;
-  if(pl!=null&&pl<0.5) return 3;
-  return code;
+  const q=pl==null?null:pl, p=prob==null?null:prob;
+  // Sécurité : pluie forte, averse forte ou orage annoncés par le modèle, ou au moins 5 mm : on garde toujours l'icône
+  if(PRECIPC(code)&&([63,65,67,73,75,81,82,95,96,99].includes(code)||(q!=null&&q>=5))) return code;
+  if(PRECIPC(code)&&(p==null||p>=50)&&(q==null||q>=0.5)) return code;
+  // Le modèle annonce des nuages mais prévoit au moins 0,5 mm avec un risque d'au moins 50 % : c'est de la pluie
+  if(!PRECIPC(code)&&code!==45&&code!==48&&p!=null&&p>=50&&q!=null&&q>=0.5) return 61;
+  // Pluie faible : risque élevé et un peu de pluie prévue, même si le modèle annonce seulement des nuages
+  if(p!=null&&p>=60&&(q!=null?q>=0.1:PRECIPC(code))) return NEIGEC(code)?71:[56,57,66,67].includes(code)?56:51;
+  return PRECIPC(code)?3:code;
 }
 const SMALL={wind:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3"/></svg>',
  drop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>',
@@ -1181,7 +1188,7 @@ function reel(c,jour){
   // pour une journée sèche. On regarde alors le temps de 7 h à 19 h, comme l'affiche « Heure par heure ».
   const PRECIP=k=>(k>=51&&k<=67)||(k>=71&&k<=86)||k>=95, hj=r.h&&r.h[jour];let plNuit=false;
   if(PRECIP(codeOK)&&hj){const jj=hj.slice(0,7).filter(e=>e&&e[1]!=null);
-    if(jj.length>=5&&!jj.some(e=>PRECIP(codeFiable(e[1],e[2])))&&Math.max(...jj.map(e=>e[2]||0))<50){
+    if(jj.length>=5&&!jj.some(e=>PRECIP(codeFiable(e[1],e[2],e[5])))&&Math.max(...jj.map(e=>e[2]||0))<50){
       const n={};jj.forEach(e=>n[e[1]]=(n[e[1]]||0)+1);
       codeOK=+Object.entries(n).sort((a,b)=>b[1]-a[1]||b[0]-a[0])[0][0];plNuit=true}}
   const type=classer(codeOK,raf,dir,max,min);let ico=type;
@@ -1242,7 +1249,7 @@ function pollenFort(pol){
 }
 function heuresReelles(c,jour){
   const r=DATA.par[c.n];if(!r||!r.h||!r.h[jour])return null;
-  return r.h[jour].map(([t,code,prob,raf,dir])=>t==null?null:{t:Math.round(t),code:codeFiable(code,prob),type:classer(codeFiable(code,prob),raf,dir,t,t),prob:prob==null?0:Math.round(prob)});
+  return r.h[jour].map(([t,code,prob,raf,dir,mm])=>t==null?null:{t:Math.round(t),code:codeFiable(code,prob,mm),type:classer(codeFiable(code,prob,mm),raf,dir,t,t),prob:prob==null?0:Math.round(prob)});
 }
 /* Aujourd'hui : les 24 prochaines heures, à partir de l'heure en cours */
 function prochainesHeures(c){
@@ -1250,11 +1257,11 @@ function prochainesHeures(c){
   const now=new Date(), cle=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0")+"T"+String(now.getHours()).padStart(2,"0")+":00";
   const liste=r.n24.filter(x=>x[0]>=cle);
   if(liste.length<6)return null;
-  return liste.map(([t,temp,code,prob,raf,dir],i)=>{
-    const d=new Date(t), hh=d.getHours();let type=classer(codeFiable(code,prob),raf,dir,temp,temp);
+  return liste.map(([t,temp,code,prob,raf,dir,mm],i)=>{
+    const d=new Date(t), hh=d.getHours();let type=classer(codeFiable(code,prob,mm),raf,dir,temp,temp);
     // « Maint. » : le ciel à cette minute ; les heures suivantes : le ciel au début de l'heure affichée
     const nuit=estNuit(d,i===0?now.getHours()*60+now.getMinutes():hh*60);if(nuit) type=versNuit(type);
-    return {lbl:i===0?"Maint.":hh+" h",h:hh,demain:d.getDate()!==now.getDate(),t:Math.round(temp),type,ico:variante(codeFiable(code,prob),type,nuit),prob:prob==null?0:Math.round(prob),raf:Math.round(raf||0)};
+    return {lbl:i===0?"Maint.":hh+" h",h:hh,demain:d.getDate()!==now.getDate(),t:Math.round(temp),type,ico:variante(codeFiable(code,prob,mm),type,nuit),prob:prob==null?0:Math.round(prob),raf:Math.round(raf||0)};
   });
 }
 function heures(m,jour,scenKey){
@@ -2112,7 +2119,7 @@ function logoCanvas(x,px,py,size,color,accent){x.font="800 "+size+"px "+FD;x.fil
 /* ---------- Carrousel Instagram : 7 images, une idée par image ----------
    1 accroche · 2 carte · 3 secteurs · 4 la journée · 5 conseils · 6 jours suivants · 7 sourire et lien */
 let postJour=new Date().getHours()>=18?1:0;   // le soir, on prépare le carrousel du lendemain
-const TITRE={soleil:"Grand soleil",nuageux:"Soleil et nuages",mistral:"Journée de mistral",vent:"Vent fort",pluie:"Journée de pluie",orage:"Risque d'orages",gel:"Gelées au réveil",brouillard:"Brouillard le matin",neige:"De la neige",chaleur:"Forte chaleur",couvert:"Ciel couvert",averses:"Averses",pluieForte:"Fortes pluies",bruine:"Bruine",verglas:"Pluie verglaçante"};
+const TITRE={soleil:"Grand soleil",nuageux:"Soleil et nuages",mistral:"Journée de mistral",vent:"Vent fort",pluie:"Journée de pluie",orage:"Risque d'orages",gel:"Gelées au réveil",brouillard:"Brouillard le matin",neige:"De la neige",chaleur:"Forte chaleur",couvert:"Ciel couvert",averses:"Averses",pluieForte:"Fortes pluies",bruine:"Pluie faible",verglas:"Pluie verglaçante"};
 const AUSSI={soleil:"du soleil",nuageux:"des éclaircies",mistral:"du mistral",vent:"du vent",pluie:"de la pluie",orage:"des orages",gel:"des gelées",brouillard:"du brouillard",neige:"de la neige",chaleur:"une forte chaleur"};
 const POIDS={orage:3,neige:3,pluie:1.5,mistral:1.3,chaleur:1.3};
 function typeDominant(L){const n={};L.forEach(m=>n[m.type]=(n[m.type]||0)+1);
