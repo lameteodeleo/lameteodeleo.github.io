@@ -2036,16 +2036,22 @@ $("locate").addEventListener("click",()=>{
   if(!navigator.geolocation){locMsg("Localisation indisponible sur cet appareil. Choisissez votre commune avec la recherche.");return}
   $("locate").classList.add("cherche");locMsg("Recherche de votre position…");
   const fin=()=>$("locate").classList.remove("cherche");
-  navigator.geolocation.getCurrentPosition(p=>{fin();
+  // 1er essai : position approximative (wifi, réseau), rapide ; si elle tarde ou échoue, 2e essai avec le GPS
+  const trouve=p=>{fin();
     const {latitude:la,longitude:lo}=p.coords;let best=null,bd=1e9;
     for(const [n,[a,b]] of Object.entries(COORDS)){const d=(a-la)**2+((b-lo)*Math.cos(la*Math.PI/180))**2;if(d<bd){bd=d;best=n}}
     if(best&&bd<0.25){st.c=idx(best);st.jour=0;render();locMsg("Vous êtes près de "+best+".")}
     else locMsg("Vous êtes hors de la zone couverte (Bouches-du-Rhône et alentours). Choisissez une commune avec la recherche.");
-  },err=>{fin();
-    if(err&&err.code===1) locMsg(iOS?"Localisation bloquée. Sur iPhone : Réglages › Confidentialité et sécurité › Service de localisation › Safari › « Lorsque l'app est active ». Puis réessayez.":"Localisation bloquée. Autorisez-la (⋮ › Paramètres du site › Position) et activez la position du téléphone, puis réessayez.");
-    else if(err&&err.code===3) locMsg("Position trop longue à trouver. Vérifiez que la localisation du téléphone est activée, puis réessayez.");
-    else locMsg("Position introuvable. Activez la localisation du téléphone, puis réessayez.");
-  },{enableHighAccuracy:false,timeout:15000,maximumAge:600000});
+  };
+  const echec=err=>{fin();
+    if(err&&err.code===1) locMsg(iOS?"Localisation bloquée. Sur iPhone : Réglages › Confidentialité et sécurité › Service de localisation › Safari › « Lorsque l'app est active ». Puis réessayez.":"Localisation bloquée pour ce site. Touchez le cadenas ou les réglages à gauche de l'adresse, puis « Autorisations » › « Position » › « Autoriser ». Puis réessayez.");
+    else locMsg(iOS?"Position introuvable. Vérifiez que le Service de localisation est activé, approchez-vous d'une fenêtre, puis réessayez. Vous pouvez aussi choisir votre commune avec la recherche.":"Position introuvable. Sur Android : Paramètres › Localisation › activez « Précision de la localisation Google » (ou « Recherche Wi-Fi »), approchez-vous d'une fenêtre, puis réessayez. Vous pouvez aussi choisir votre commune avec la recherche.");
+  };
+  navigator.geolocation.getCurrentPosition(trouve,err=>{
+    if(err&&err.code===1){echec(err);return}
+    locMsg("Recherche plus précise, avec le GPS… (jusqu'à 30 secondes)");
+    navigator.geolocation.getCurrentPosition(trouve,echec,{enableHighAccuracy:true,timeout:30000,maximumAge:600000});
+  },{enableHighAccuracy:false,timeout:8000,maximumAge:600000});
 });
 $("fav").addEventListener("click",()=>{const n=COMMUNES[st.c].n,ajout=!st.favs.includes(n);st.favs=ajout?[...st.favs,n]:st.favs.filter(x=>x!==n);render();
   locMsg(ajout?n+" est dans vos favoris, tout en haut de l'écran.":n+" n'est plus dans vos favoris.")});
