@@ -2690,14 +2690,14 @@ function renderFiab(){
   const jour=x=>new Date(x+"T12:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
   // Cumul sur les n derniers jours : compteurs additionnés, écarts et biais pondérés par le nombre de mesures
   const cumul=(k,n)=>{const L=F.slice(-n).map(x=>x[k]).filter(a=>a&&a[0]);if(!L.length)return null;
-    const t=L.reduce((a,c)=>a+c[0],0), o=[t];for(let i=1;i<L[0].length;i++)o.push(i>=2&&L[0].length===4&&(k==="tx"||k==="tn"||k==="vent"||k==="hT"||k==="hRaf")?Math.round(L.reduce((a,c)=>a+(c[i]||0)*c[0],0)/t*10)/10:L.reduce((a,c)=>a+(c[i]||0),0));return o};
+    const t=L.reduce((a,c)=>a+c[0],0), o=[t];for(let i=1;i<L[0].length;i++)o.push(i>=2&&L[0].length===4&&(k==="tx"||k==="tn"||k==="vent"||k==="hT"||k==="hRaf"||k==="ress")?Math.round(L.reduce((a,c)=>a+(c[i]||0)*c[0],0)/t*10)/10:L.reduce((a,c)=>a+(c[i]||0),0));return o};
   const pc=a=>a&&a[0]?Math.round(a[1]/a[0]*100):null;
   const cel=a=>{const v=pc(a);return v==null?'<td class="vide">–</td>':'<td class="'+(v>=80?"bon":v>=60?"moyen":"faible")+'">'+v+' %</td>'};
   const tend={
     t:a=>a&&a[0]?(Math.abs(a[3])<0.5?"juste en moyenne":a[3]>0?"prévu "+f1(a[3])+"° trop chaud":"prévu "+f1(-a[3])+"° trop froid"):"",
     v:a=>a&&a[0]?(Math.abs(a[3])<3?"juste en moyenne":a[3]>0?"prévu "+Math.round(a[3])+" km/h trop fort":"prévu "+Math.round(-a[3])+" km/h trop faible"):"",
     i:a=>a&&a[0]?a[2]+" fausse"+(a[2]>1?"s":"")+" alerte"+(a[2]>1?"s":"")+", "+a[3]+" oubli"+(a[3]>1?"s":""):""};
-  const L=[["Températures max (à 2° près)","tx","t"],["Températures min (à 2° près)","tn","t"],["Température heure par heure (à 2° près)","hT","t"],
+  const L=[["Températures max (à 2° près)","tx","t"],["Températures min (à 2° près)","tn","t"],["Température heure par heure (à 2° près)","hT","t"],["Ressenti max (à 2° près)","ress","t"],
     ["Pluie du jour (plus ou moins de 1 mm)","pluie",""],["Icône de pluie du jour","icone","i"],["Icône de pluie heure par heure","hIcone","i"],
     ["Rafales du jour (à 15 km/h près)","vent","v"],["Rafales heure par heure (à 15 km/h près)","hRaf","v"]];
   let h='<span class="sub">Dernier jour vérifié : <b>'+jour(d.date)+'</b>, '+d.stations+' stations Météo-France. '+F.length+' jour'+(F.length>1?"s":"")+' de mesures au total.</span>'+
@@ -2722,8 +2722,8 @@ function renderFiab(){
   const P=[], jours=F.length;
   if(jours<7)P.push("Les pistes de réglage apparaissent après 7 jours de mesures (encore "+(7-jours)+" jour"+(7-jours>1?"s":"")+").");
   else{
-    const tx=cumul("tx",30),tn=cumul("tn",30),hT=cumul("hT",30),rv=cumul("vent",30),hi=cumul("hIcone",30);
-    [[tx,"Les max"],[tn,"Les min"],[hT,"Les températures heure par heure"]].forEach(([a,l])=>{if(a&&a[0]>=50&&Math.abs(a[3])>=1)P.push(l+" sont prévues "+f1(Math.abs(a[3]))+"° trop "+(a[3]>0?"chaudes":"froides")+" en moyenne : une correction est possible.")});
+    const tx=cumul("tx",30),tn=cumul("tn",30),hT=cumul("hT",30),rs=cumul("ress",30),rv=cumul("vent",30),hi=cumul("hIcone",30);
+    [[tx,"Les max"],[tn,"Les min"],[hT,"Les températures heure par heure"],[rs,"Les ressentis max"]].forEach(([a,l])=>{if(a&&a[0]>=50&&Math.abs(a[3])>=1)P.push(l+" sont prévues "+f1(Math.abs(a[3]))+"° trop "+(a[3]>0?"chaudes":"froides")+" en moyenne : une correction est possible.")});
     if(rv&&rv[0]>=50&&Math.abs(rv[3])>=8)P.push("Les rafales sont prévues "+Math.round(Math.abs(rv[3]))+" km/h trop "+(rv[3]>0?"fortes":"faibles")+" en moyenne : une correction est possible.");
     if(hi&&hi[0]>=100){if(hi[2]>=10&&hi[2]>2*hi[3])P.push("Trop d'icônes de pluie pour rien ("+hi[2]+" fausses alertes contre "+hi[3]+" oublis) : on peut relever les seuils de pluie.");
       else if(hi[3]>=10&&hi[3]>2*hi[2])P.push("Des pluies ratées ("+hi[3]+" oublis contre "+hi[2]+" fausses alertes) : on peut baisser les seuils de pluie.")}
