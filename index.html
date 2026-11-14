@@ -2537,7 +2537,7 @@ function majLegende(){if(!LEG)return;const {R,al,c,m,J,dj}=LEG, fb=RESEAU==="fac
   const lien=fb?"Votre commune, heure par heure : https://lameteodeleo.github.io":"Votre commune, heure par heure : lien en bio.";
   const tags=fb?"#meteo #provence #bouchesdurhone":"#meteo #provence #bouchesdurhone #marseille "+(al?"#vigilance":(TAG_TEMPS[R.dom]||"#aixenprovence"));
   $("caption").value=al
-    ?"⚠️ "+al.titre+" sur les Bouches-du-Rhône, "+fmt(dj)+".\n\n"+al.cons.slice(0,2).join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr\n"+lien+"\n\n"+tags
+    ?"⚠️ "+al.titre+" sur les Bouches-du-Rhône, "+fmt(dj).toLowerCase()+".\n\n"+al.cons.slice(0,2).join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr\n"+lien+"\n\n"+tags
     :quand+" dans le 13 : "+(R.moment?R.moment.leg:R.titre.toLowerCase())+", "+chiffre+".\n\n"+motDuJour(c,m,J)+"\n\nEt chez vous, ça donne quoi ? Dites votre commune en commentaire 👇\n"+lien+"\n\n"+tags;
 }
 /* Logo en image : icône d'app (carrée) et photo de profil Instagram (ronde) */
