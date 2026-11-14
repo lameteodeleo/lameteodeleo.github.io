@@ -125,12 +125,12 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .facts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.92rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .facts b{color:var(--ink)}
 /* vigilance */
-.alert{--al:var(--alert);--al-fond:#B3261E;--al-doux:var(--alert-soft);background:var(--surface);border:1.5px solid var(--al);border-radius:20px;overflow:hidden;padding:0}
-.alert.orange{--al:var(--orange);--al-fond:#B4530A;--al-doux:var(--orange-soft)}
-.al-tete{display:flex;gap:12px;align-items:center;background:var(--al-fond);color:#fff;padding:13px 16px}
-.al-tete svg{flex:0 0 auto;width:30px;height:30px;color:#fff}
+.alert{--al:var(--alert);--al-fond:#E0201B;--al-txt:#fff;--al-doux:var(--alert-soft);background:var(--surface);border:1.5px solid var(--al);border-radius:20px;overflow:hidden;padding:0}
+.alert.orange{--al:var(--orange);--al-fond:#FF8A00;--al-txt:#2A1600;--al-doux:var(--orange-soft)}
+.alert{border-color:var(--al-fond)}.al-tete{display:flex;gap:12px;align-items:center;background:var(--al-fond);color:var(--al-txt);padding:13px 16px}
+.al-tete svg{flex:0 0 auto;width:30px;height:30px;color:var(--al-txt)}
 .al-tete small{display:block;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.92}
-.al-tete h3{margin:0;color:#fff;font-size:1.12rem;font-weight:800;line-height:1.2}
+.al-tete h3{margin:0;color:var(--al-txt);font-size:1.12rem;font-weight:800;line-height:1.2}
 .alert ul{list-style:none;margin:0;padding:14px 16px 4px;display:flex;flex-direction:column;gap:9px;font-size:.92rem}
 .alert li{display:flex;gap:10px;align-items:flex-start;line-height:1.35}
 .alert li::before{content:"";flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--al);margin-top:6px}
@@ -2090,7 +2090,7 @@ Object.entries(SCEN).forEach(([k,s])=>{const b=document.createElement("button");
 const markScen=()=>document.querySelectorAll("#scen .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k==="__reel"?String(enReel()):String(!enReel()&&b.dataset.k===st.scen)));
 const B={ink:"#1D1838",bg:"#F3F1FA",sun:"#FFC21A",sunInk:"#433100",brand:"#4B3BB8",white:"#FFFFFF",muted:"#655F86",alert:"#B3261E",cool:"#4A6FD1"};
 /* Couleur des visuels en vigilance : orange pour l'orange, rouge pour le rouge */
-const CA=al=>al&&al.niveau>=4?{fort:"#B3261E",fonce:"#6E1712",doux:"#FCEBE9",clair:"#FF8A80"}:{fort:"#B4530A",fonce:"#6B3005",doux:"#FDF0E3",clair:"#FFB27A"};
+const CA=al=>al&&al.niveau>=4?{fort:"#E0201B",fonce:"#8A0E0A",doux:"#FDE8E7",clair:"#FF8A80",texte:"#C9180F"}:{fort:"#EE6B00",fonce:"#A84400",doux:"#FFF0E0",clair:"#FFC58A",texte:"#B4530A"};
 const FD='"Chiffres", "Bricolage Grotesque", Arial, sans-serif', FB='"Nunito Sans", Arial, sans-serif';
 function wrapText(ctx,text,x,y,maxW,lh,maxLines){
   const words=text.split(" ");let line="",lines=[];
@@ -2156,9 +2156,9 @@ function ajuste(x,txt,maxW,taille,graisse,police){let fs=taille;x.font=graisse+"
 /* En-tête et pied communs aux images 2 à 6 */
 function entete(x,n,titre,j,al){
   x.fillStyle=al?CA(al).doux:B.bg;x.fillRect(0,0,1080,1350);
-  x.fillStyle=al?CA(al).fort:B.muted;x.font="800 28px "+FB;x.fillText(n+" / 7",70,108);
+  x.fillStyle=al?CA(al).texte:B.muted;x.font="800 28px "+FB;x.fillText(n+" / 7",70,108);
   drawMark(x,982,98,62,true);x.textAlign="right";x.fillText(NOM,936,108);x.textAlign="left";
-  x.fillStyle=al?CA(al).fort:B.ink;ajuste(x,titre,940,72,"800",FD);x.fillText(titre,70,206);
+  x.fillStyle=al?CA(al).texte:B.ink;ajuste(x,titre,940,72,"800",FD);x.fillText(titre,70,206);
   x.font="700 30px "+FB;x.fillStyle=B.muted;x.fillText(fmt(dayDate(j))+" · Bouches-du-Rhône",70,256);
   x.font="700 25px "+FB;x.fillText("La météo de chaque commune, heure par heure : lien en bio",70,1296);
 }
@@ -2337,7 +2337,7 @@ function slideStory(){
   const c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,J);
   const txt=al?al.cons.slice(0,2).join(" "):motDuJour(c,m,J);
   x.fillStyle=al?B.white:B.sun;rr(x,70,1230,940,290,40);x.fill();
-  x.fillStyle=al?CA(al).fort:B.sunInk;x.font="800 28px "+FB;x.fillText(al?"CONSIGNES":"LE SOURIRE DU JOUR",112,1292);
+  x.fillStyle=al?CA(al).texte:B.sunInk;x.font="800 28px "+FB;x.fillText(al?"CONSIGNES":"LE SOURIRE DU JOUR",112,1292);
   x.font="600 44px "+FD;wrapText(x,txt,112,1354,856,54,3);
   // Sous cette phrase, la place est libre pour l'autocollant « Lien » d'Instagram
   x.fillStyle=B.white;x.font="800 40px "+FD;x.textAlign="center";x.fillText("Chaque commune, heure par heure ↓",540,1610);
@@ -2437,8 +2437,8 @@ async function creerReel(btn){
         if(ls.some(l=>x.measureText(l).width>W-140)){x.font="800 "+fs+"px "+FD;const t=ls.join(" ").split(" ");ls.length=0;let l="";for(const w of t){const u=l?l+" "+w:w;if(x.measureText(u).width>W-140&&l){ls.push(l);l=w}else l=u}ls.push(l)}
         const lh=Math.round(fs*1.08), y0=1170-(ls.length-1)*lh;ls.forEach((l,i)=>centre(l,y0+i*lh,"800 "+fs+"px "+FD,B.white))}
       centre(hook.lab,1250,"800 54px "+FB,B.white);
-      const b=ease((t-1.1)/.4);if(b>0){x.globalAlpha=b;x.fillStyle=B.sun;rr(x,150,1330,W-300,110,55);x.fill();x.globalAlpha=1;
-        {x.font="800 44px "+FB;let fs=44;while(x.measureText(phrase).width>W-360&&fs>30){fs-=2;x.font="800 "+fs+"px "+FB}centre(phrase,1402,"800 "+fs+"px "+FB,B.sunInk,b)}}
+      const b=ease((t-1.1)/.4);if(b>0){x.globalAlpha=b;x.fillStyle=al?B.white:B.sun;rr(x,150,1330,W-300,110,55);x.fill();x.globalAlpha=1;
+        {x.font="800 44px "+FB;let fs=44;while(x.measureText(phrase).width>W-360&&fs>30){fs-=2;x.font="800 "+fs+"px "+FB}centre(phrase,1402,"800 "+fs+"px "+FB,al?CA(al).texte:B.sunInk,b)}}
     }else if(sc.type==="temp"){fond();titreSc("Les températures",t);sousSc(jourTxt,t);
       [[R.chaud.m.max,"Le plus chaud",R.chaud.nom,"chaleur","#F2994A"],[parMin.m.min,"Le plus frais, au réveil",parMin.nom,"gel","#6EA8F0"]].forEach(([v,k,o,ic,col],i)=>
         carte(620+i*480,420,t,.25+i*.35,()=>{x.fillStyle=col;x.font="800 50px "+FB;x.fillText(k,130,720+i*480);
