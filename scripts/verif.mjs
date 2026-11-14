@@ -31,7 +31,7 @@ export async function lireHoraire(url, cles, entetes) {
     for await (const ligne of rl) {
       if (!tete) {
         tete = ligne.split(";").map(t => t.trim()); iD = tete.indexOf("AAAAMMJJHH");
-        for (const k of ["NUM_POSTE", "NOM_USUEL", "LAT", "LON", "T", "RR1", "FXI", "DXI"]) I[k] = tete.indexOf(k);
+        for (const k of ["NUM_POSTE", "NOM_USUEL", "LAT", "LON", "T", "RR1", "FXI", "DXI", "U", "FF", "GLO"]) I[k] = tete.indexOf(k);
         if (iD < 0) throw new Error("colonne AAAAMMJJHH absente : " + tete.slice(0, 12).join(";"));
         continue;
       }
@@ -40,12 +40,19 @@ export async function lireHoraire(url, cles, entetes) {
       const nb = k => { const i = I[k]; if (i < 0 || v[i] === undefined) return null; const s = v[i].trim(); if (s === "") return null; const x = parseFloat(s.replace(",", ".")); return isNaN(x) ? null : x; };
       const id = v[I.NUM_POSTE]; let p = postes.get(id);
       if (!p) { p = { poste: id, nom: (v[I.NOM_USUEL] || "").trim(), lat: nb("LAT"), lon: nb("LON"), h: {} }; postes.set(id, p); }
-      p.h[cle] = { t: nb("T"), rr: nb("RR1"), fxi: nb("FXI"), dxi: nb("DXI") }; gardees++;
+      p.h[cle] = { t: nb("T"), rr: nb("RR1"), fxi: nb("FXI"), dxi: nb("DXI"), u: nb("U"), ff: nb("FF"), glo: nb("GLO") }; gardees++;
     }
     return { tete, postes: [...postes.values()], lignes, gardees };
   } finally { clearTimeout(to); }
 }
 
+// Température ressentie, exactement la formule d'Open-Meteo (Steadman) qui calcule le ressenti affiché dans l'app :
+// température, humidité, vent moyen à 10 m (m/s) et, au soleil, rayonnement (W/m²)
+export function ressenti(t, u, ff, rayonnement) {
+  const v2 = ff * 0.75, e = u / 100 * 6.105 * Math.exp(17.27 * t / (237.7 + t));
+  const Q = Math.max(0, 0.1 * ((rayonnement ?? 550) - 550));
+  return t + 0.348 * e - 0.70 * v2 + 0.70 * (Q / (v2 + 10)) - 4.25;
+}
 const distKm = (a, b, c, d) => { const R = 6371, x = (d - b) * Math.PI / 180 * Math.cos((a + c) / 2 * Math.PI / 180), y = (c - a) * Math.PI / 180; return R * Math.hypot(x, y); };
 const nord = d => d != null && (d >= 290 || d <= 20);
 const r1 = v => Math.round(v * 10) / 10;
@@ -59,10 +66,10 @@ const ajoute = (c, ecart, tol) => { c[0]++; if (Math.abs(ecart) <= tol) c[1]++; 
 const finit = c => { if (c[0]) { c[2] = r1(c[2] / c[0]); c[3] = r1(c[3] / c[0]); } return c; };
 
 // Note un jour. P = prévisions de la veille par commune ; Q = mesures quotidiennes ; H = postes horaires ; ciel = règle des icônes de l'app
-// P[n] = [max, min, pluie mm, rafale max, lat, lon, code, risque %, heures, secteur]
+// P[n] = [max, min, pluie mm, rafale max, lat, lon, code, risque %, heures, secteur, ressenti max]
 // heures = [[temp, code, risque, rafale, direction, mm] pour 7 h, 9 h, ..., 21 h]
 export function noterJour(d, P, Q, H, ciel, HEURES) {
-  const res = { date: d, stations: 0, tx: cpt(), tn: cpt(), pluie: [0, 0], icone: [0, 0, 0, 0], vent: cpt(),
+  const res = { date: d, stations: 0, tx: cpt(), tn: cpt(), pluie: [0, 0], icone: [0, 0, 0, 0], vent: cpt(), ress: cpt(),
     hT: cpt(), hIcone: [0, 0, 0, 0], cal: TRANCHES.slice(0, -1).map(() => [0, 0]), hRaf: cpt(), mistral: [0, 0, 0, 0], sect: {}, pires: [], src: { q: 0, h: 0 } };
   const proche = (lat, lon) => { let best = null, bd = 6; for (const [n, p] of Object.entries(P)) { const k = distKm(lat, lon, p[4], p[5]); if (k < bd) { bd = k; best = n; } } return best; };
   const prevuPluie = (code, prob, mm) => /pluie|averses|orages|neige/i.test(ciel(code, prob, mm ?? 0));
@@ -103,9 +110,15 @@ export function noterJour(d, P, Q, H, ciel, HEURES) {
         if (m.dxi != null) { const a = f[3] >= 40 && nord(f[4]), b = obs >= 40 && nord(m.dxi); res.mistral[0]++; if (a) res.mistral[1]++; if (b) res.mistral[2]++; if (a && b) res.mistral[3]++; }
       }
     });
+    // Ressenti maximal du jour, de 0 h à 24 h : recalculé à partir des mesures de la station (GLO en J/cm² par heure)
+    if (P[n][10] != null) {
+      let mx = null, nbh = 0;
+      for (let k = 1; k <= 24; k++) { const m = st.h[cleUTC(d, k)]; if (!m || m.t == null || m.u == null || m.ff == null) continue; nbh++; const a = ressenti(m.t, m.u, m.ff, m.glo == null ? null : m.glo * 10000 / 3600); if (mx == null || a > mx) mx = a; }
+      if (nbh >= 20) { ajoute(res.ress, P[n][10] - mx, 2); utile = true; }
+    }
     if (utile) { res.src.h++; if (!vus.has(st.poste)) res.stations++; }
   }
-  for (const k of ["tx", "tn", "vent", "hT", "hRaf"]) finit(res[k]);
+  for (const k of ["tx", "tn", "vent", "hT", "hRaf", "ress"]) finit(res[k]);
   for (const S of Object.values(res.sect)) for (const k of ["tx", "tn"]) S[k] = [S[k][0], S[k][0] ? r1(S[k][1] / S[k][0]) : 0];
   res.pires = res.pires.sort((a, b) => Math.max(Math.abs(b.ex), Math.abs(b.en)) - Math.max(Math.abs(a.ex), Math.abs(a.en))).slice(0, 3);
   return res;

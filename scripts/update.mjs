@@ -427,7 +427,7 @@ async function verifier(ok) {
   for (const x of ok) {
     const J = x.d && x.d[1]; if (!J) continue; dDem = J[0];
     const H = x.h && x.h[1] ? x.h[1].map(e => e && e.length > 1 ? [e[0], e[1], e[2], e[3], e[4], e[5] ?? null] : null) : null;
-    dem[x.n] = [J[2], J[3], J[6], J[4], x.lat, x.lon, J[1], J[7], H, x.s];
+    dem[x.n] = [J[2], J[3], J[6], J[4], x.lat, x.lon, J[1], J[7], H, x.s, J[9]];
   }
   if (dDem && dDem > auj) V.prev[dDem] = dem;
   // Juge les jours passés qui ont une prévision et pas encore de score
@@ -610,7 +610,22 @@ if (process.env.TEST_MESURES === "true") await bonus("Test des mesures", async (
   for (const dep of ["13", "84"]) {
     const url = await urlHoraire(dep), r = await lireHoraire(url, cles, UA);
     console.log(`Test ${dep} : ${url.split("/").pop()} ; ${r.lignes} lignes, ${r.gardees} gardées, ${r.postes.length} stations ; colonnes ${r.tete.join(";").slice(0, 400)}`);
-    for (const p of r.postes.slice(0, 3)) console.log(`  ${p.nom} (${p.lat}, ${p.lon}) : ` + Object.entries(p.h).slice(6, 10).map(([k, m]) => `${k} T=${m.t} RR1=${m.rr} FXI=${m.fxi} DXI=${m.dxi}`).join(" | "));
+    for (const p of r.postes.slice(0, 3)) console.log(`  ${p.nom} (${p.lat}, ${p.lon}) : ` + Object.entries(p.h).slice(6, 10).map(([k, m]) => `${k} T=${m.t} RR1=${m.rr} FXI=${m.fxi} DXI=${m.dxi} U=${m.u} FF=${m.ff} GLO=${m.glo}`).join(" | "));
+    console.log(`  Colonnes après T : ${r.tete.slice(r.tete.indexOf("T")).join(";")}`);
+  }
+  // Qualité de l'air mesurée (LCSQA) : on regarde les fichiers disponibles et leur contenu pour les stations de la région
+  const ds = await lireJSON("https://www.data.gouv.fr/api/1/datasets/5b98b648634f415309d52a50/", 2);
+  const res = ds.resources || [];
+  console.log(`Air : ${res.length} fichiers ; derniers : ` + res.slice(0, 6).map(r => `${r.title} [${(r.url || "").split("/").pop()}]`).join(" | "));
+  console.log(`Air : autres : ` + res.filter(r => !/FR_E2_\d/.test(r.url || "")).slice(0, 10).map(r => `${r.title} [${r.url}]`).join(" | "));
+  const f = res.find(r => (r.url || "").includes(dateParis(-1))) || res[0];
+  if (f) {
+    const txt = await lireTexte(f.url); const L = txt.split(/\r?\n/);
+    console.log(`Air : ${f.url.split("/").pop()} ; ${L.length} lignes ; entête ${L[0]}`);
+    const sud = L.filter(l => /AtmoSud|ATMOSUD|Marseille|MARSEILLE/i.test(l));
+    console.log(`Air : ${sud.length} lignes AtmoSud ; exemples :\n` + sud.slice(0, 4).join("\n"));
+    const sites = new Map(); for (const l of sud) { const v = l.split(";"); sites.set(v[5], v.slice(4, 12).join(";")); }
+    console.log(`Air : ${sites.size} sites :\n` + [...sites.values()].join("\n"));
   }
 });
 const fiabilite = await bonus("Vérification", () => verifier(ok));
