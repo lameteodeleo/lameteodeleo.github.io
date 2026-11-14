@@ -5,7 +5,7 @@
 
 import { mkdir, writeFile, cp, readdir } from "node:fs/promises";
 import { gunzipSync } from "node:zlib";
-import { noterJour, cleUTC, lireHoraire } from "./verif.mjs";
+import { noterJour, cleUTC, lireHoraire, stationsAir, lireAir, noterAir } from "./verif.mjs";
 
 // Secteurs de l'app. Une commune du 13 absente de ces listes est rattachée au secteur le plus proche.
 const SECTEURS = {"mc": ["Marseille","Allauch","Plan-de-Cuques","Aubagne","La Penne-sur-Huveaune","Carnoux-en-Provence","Cassis","Ceyreste","La Ciotat","Roquefort-la-Bédoule","Gémenos","Cuges-les-Pins","Roquevaire","Auriol","La Destrousse","Peypin","Belcodène","La Bouilladisse","Cadolive","Saint-Savournin","Septèmes-les-Vallons","Le Rove","Ensuès-la-Redonne","Carry-le-Rouet","Sausset-les-Pins"],"aix": ["Aix-en-Provence","Éguilles","Venelles","Le Tholonet","Saint-Marc-Jaumegarde","Vauvenargues","Beaurecueil","Châteauneuf-le-Rouge","Rousset","Peynier","Trets","Puyloubier","Fuveau","Gréasque","Mimet","Gardanne","Meyreuil","Bouc-Bel-Air","Simiane-Collongue","Cabriès","Les Pennes-Mirabeau","Ventabren","Saint-Cannat","Rognes","Le Puy-Sainte-Réparade","Meyrargues","Peyrolles-en-Provence","Jouques","Saint-Paul-lès-Durance","Saint-Estève-Janson","Saint-Antonin-sur-Bayon","La Roque-d'Anthéron"],"berre": ["Martigues","Châteauneuf-les-Martigues","Gignac-la-Nerthe","Marignane","Saint-Victoret","Vitrolles","Rognac","Berre-l'Étang","Velaux","Coudoux","La Fare-les-Oliviers","Saint-Chamas","Istres","Fos-sur-Mer","Port-de-Bouc","Saint-Mitre-les-Remparts","Port-Saint-Louis-du-Rhône","Miramas","Cornillon-Confoux"],"salon": ["Salon-de-Provence","Pélissanne","Lançon-Provence","Grans","Lambesc","Alleins","Aurons","Vernègues","Lamanon","Eyguières","Sénas","Mallemort","Charleval","Orgon","Plan-d'Orgon","Cabannes","Saint-Andiol","Verquières","Mollégès","Noves","Eyragues","Châteaurenard","Rognonas","Barbentane","Graveson","Maillane","Saint-Rémy-de-Provence","Eygalières","Aureille","Mouriès","Maussane-les-Alpilles","Paradou","Les Baux-de-Provence","Mas-Blanc-des-Alpilles"],"arles": ["Arles","Saintes-Maries-de-la-Mer","Saint-Martin-de-Crau","Tarascon","Boulbon","Saint-Étienne-du-Grès","Saint-Pierre-de-Mézoargues","Fontvieille"]};
@@ -417,10 +417,10 @@ async function urlHoraire(dep) {
   if (!res) throw new Error(`fichier horaire du ${dep} introuvable (${tous.map(r => r.url.split("/").pop()).slice(0, 6).join(", ") || "aucun fichier"})`);
   return res.url;
 }
-async function verifier(ok) {
+async function verifier(ok, qa) {
   let prec = null;
   try { prec = await lireJSON("https://lameteodeleo.github.io/data/verif.json?t=" + Date.now(), 3); } catch (e) { console.warn("Historique de vérification introuvable (" + e.message + ") : on repart de zéro."); }
-  const V = { prev: (prec && prec.prev) || {}, jours: (prec && prec.jours) || [] };
+  const V = { prev: (prec && prec.prev) || {}, jours: (prec && prec.jours) || [], prevAir: (prec && prec.prevAir) || {}, coordsAir: (prec && prec.coordsAir) || null };
   const auj = dateParis(0);
   // Garde la prévision de demain (écrasée à chaque mise à jour jusqu'à minuit) : le jour et ses heures
   const dem = {}; let dDem = null;
@@ -430,6 +430,8 @@ async function verifier(ok) {
     dem[x.n] = [J[2], J[3], J[6], J[4], x.lat, x.lon, J[1], J[7], H, x.s, J[9]];
   }
   if (dDem && dDem > auj) V.prev[dDem] = dem;
+  // Et la qualité de l'air prévue pour demain, secteur par secteur : [indice, ozone, particules fines]
+  if (dDem && dDem > auj && qa) { const A = {}; for (const [sec, L] of Object.entries(qa)) { const e = L.find(x => x[0] === dDem); if (e) A[sec] = [e[1], e[2], e[3]]; } if (Object.keys(A).length) V.prevAir[dDem] = A; }
   // Juge les jours passés qui ont une prévision et pas encore de score
   const faits = new Set(V.jours.map(j => j.date));
   const aJuger = Object.keys(V.prev).filter(d => d < auj && !faits.has(d)).sort();
@@ -458,6 +460,17 @@ async function verifier(ok) {
       // Météo-France publie la journée complète avec 1 à 2 jours de retard : on l'attend jusqu'à 4 jours
       if (Hd.length < 5 && d >= dateParis(-4)) { console.log(`Vérification du ${d} : mesures horaires pas encore publiées (${Hd.length} stations), on réessaiera.`); continue; }
       const res = noterJour(d, P, M, Hd, ciel, HEURES);
+      // Qualité de l'air : le fichier du jour des stations AtmoSud (un raté ici n'empêche pas le reste de la vérification)
+      if (V.prevAir[d]) await bonus("Air mesuré du " + d, async () => {
+        if (!V.coordsAir || !V.coordsAir.date || V.coordsAir.date < dateParis(-30)) {
+          const ds = await lireJSON("https://www.data.gouv.fr/api/1/datasets/5b98b648634f415309d52a50/", 2);
+          const meta = (ds.resources || []).find(r => /\.xml$/.test(r.url || "") && /Dataset D/i.test(r.title || ""));
+          if (meta) { V.coordsAir = { date: auj, st: stationsAir(await lireTexte(meta.url)) }; console.log(`Stations de qualité de l'air : ${Object.keys(V.coordsAir.st).length} positions lues`); }
+        }
+        const csv = await lireTexte(`https://files.data.gouv.fr/ineris/lcsqa/concentrations-de-polluants-atmospheriques-reglementes/temps-reel/${d.slice(0, 4)}/FR_E2_${d}.csv`);
+        const air = noterAir(V.prevAir[d], P, lireAir(csv), (V.coordsAir && V.coordsAir.st) || {});
+        if (air) { res.air = air; console.log(`Air du ${d} : niveau juste ${air.niveau[1]}/${air.niveau[0]} secteurs (à un niveau près ${air.niveau[2]}) ; ozone ${air.o3[1]}/${air.o3[0]} (biais ${air.o3[3]}) ; particules ${air.pm[1]}/${air.pm[0]} (biais ${air.pm[3]}) ; ${air.stations} stations`); }
+      });
       if (res.stations < 5) { console.log(`Vérification du ${d} : trop peu de stations proches d'une commune (${res.stations}).`); continue; }
       V.jours.push(res);
       console.log(`Vérification du ${d} : ${res.stations} stations (${res.src.q} quotidiennes, ${res.src.h} horaires) ; max ${res.tx[1]}/${res.tx[0]} (écart ${res.tx[2]}°, biais ${res.tx[3]}°) ; min ${res.tn[1]}/${res.tn[0]} (biais ${res.tn[3]}°) ; ` +
@@ -468,6 +481,7 @@ async function verifier(ok) {
   // On garde 10 jours de prévisions en attente et 90 jours de scores
   for (const d of Object.keys(V.prev).sort().slice(0, -10)) delete V.prev[d];
   for (const d of Object.keys(V.prev)) if (d < dateParis(-9)) delete V.prev[d];
+  for (const d of Object.keys(V.prevAir)) if (d < dateParis(-9) || !V.prev[d] && d <= auj) delete V.prevAir[d];
   V.jours = V.jours.sort((a, b) => a.date < b.date ? -1 : 1).slice(-90);
   await writeFile("site/data/verif.json", JSON.stringify({ maj: new Date().toISOString(), ...V }));
   return V.jours.slice(-30);
@@ -644,7 +658,7 @@ if (process.env.TEST_MESURES === "true") await bonus("Test des mesures", async (
     const st = xml.indexOf("<aqd:AQD_Station"); console.log(`Air XML station :\n` + xml.slice(st, st + 3500));
   }
 });
-const fiabilite = await bonus("Vérification", () => verifier(ok));
+const fiabilite = await bonus("Vérification", () => verifier(ok, qualiteAir));
 await writeFile("site/data/meteo.json", JSON.stringify({
   maj: new Date().toISOString(),
   source: "Open-Meteo (CC BY 4.0) : modèles Météo-France AROME et ARPEGE, complétés par le modèle global",

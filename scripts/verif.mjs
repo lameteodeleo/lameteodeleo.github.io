@@ -123,3 +123,63 @@ export function noterJour(d, P, Q, H, ciel, HEURES) {
   res.pires = res.pires.sort((a, b) => Math.max(Math.abs(b.ex), Math.abs(b.en)) - Math.max(Math.abs(a.ex), Math.abs(a.en))).slice(0, 3);
   return res;
 }
+
+// ---------- Qualité de l'air : prévision de la veille face aux stations de fond d'AtmoSud (données LCSQA, data.gouv.fr) ----------
+// Indice européen calculé comme Open-Meteo (seuils 2024 de l'Agence européenne de l'environnement, valeurs horaires)
+const SEUILS = { O3: [0, 60, 100, 120, 160, 180], NO2: [0, 10, 25, 60, 100, 150], "PM2.5": [0, 5, 15, 50, 90, 140], PM10: [0, 15, 45, 120, 195, 270] };
+function position(seuils, v) {
+  let prec = NaN, pente = NaN;
+  for (let i = 0; i < seuils.length; i++) { pente = seuils[i] - prec; if (v < seuils[i]) return i - 1 + (v - prec) / pente; prec = seuils[i]; }
+  return seuils.length - 1 + (v - prec) / pente;
+}
+export const indiceAir = (polluant, v) => SEUILS[polluant] ? Math.max(0, position(SEUILS[polluant], v) * 20) : null;
+// Mêmes niveaux que l'app : Bonne, Assez bonne, Moyenne, Médiocre, Mauvaise, Très mauvaise
+export const niveauAir = a => Math.min(5, Math.floor(a / 20));
+
+// Coordonnées des stations à partir des métadonnées officielles (XML)
+export function stationsAir(xml) {
+  const out = {};
+  for (const m of xml.matchAll(/<aqd:AQD_Station[\s\S]*?<\/aqd:AQD_Station>/g)) {
+    const b = m[0], code = (b.match(/<aqd:natlStationCode>([^<]+)</) || [])[1], pos = (b.match(/<gml:pos[^>]*>([-\d.]+)\s+([-\d.]+)</) || []);
+    if (code && pos[1] && /^FR0[23]|^FR24/.test(code)) out[code] = [+pos[1], +pos[2]];
+  }
+  return out;
+}
+
+// Mesures horaires d'un jour : maximum de 8 h à 20 h par station et par polluant (stations de fond seulement, loin des routes et des usines)
+export function lireAir(csv) {
+  const L = csv.split(/\r?\n/), st = {};
+  for (let i = 1; i < L.length; i++) {
+    const v = L[i].split(";").map(x => x.replace(/^"|"$/g, "").trim()); if (v.length < 16) continue;
+    if (!/ATMO ?SUD/i.test(v[2]) || v[9] !== "Fond") continue;
+    const pol = v[8]; if (!SEUILS[pol]) continue;
+    const h = +(v[0].slice(11, 13)); if (!(h >= 8 && h <= 20)) continue;
+    const x = parseFloat((v[15] || "").replace(",", ".")); if (isNaN(x) || x < 0) continue;
+    const s = st[v[5]] || (st[v[5]] = { nom: v[6], max: {}, indice: 0 });
+    s.max[pol] = Math.max(s.max[pol] ?? 0, x); s.indice = Math.max(s.indice, indiceAir(pol, x));
+  }
+  return st;
+}
+
+// prevAir = { secteur: [indice, ozone, PM2.5] } ; P = communes de la veille (position et secteur)
+export function noterAir(prevAir, P, mesures, coords) {
+  const parSecteur = {};
+  for (const [code, s] of Object.entries(mesures)) {
+    const c = coords[code]; if (!c) continue;
+    let best = null, bd = 8; for (const p of Object.values(P)) { const k = distKm(c[0], c[1], p[4], p[5]); if (k < bd) { bd = k; best = p[9]; } }
+    if (!best || !prevAir[best]) continue;
+    (parSecteur[best] ||= []).push(s);
+  }
+  const res = { niveau: [0, 0, 0], o3: cpt(), pm: cpt(), stations: 0 };
+  const moy = a => a.reduce((x, y) => x + y, 0) / a.length;
+  for (const [sec, L] of Object.entries(parSecteur)) {
+    const [aqi, o3, pm] = prevAir[sec]; res.stations += L.length;
+    const mesure = moy(L.map(s => s.indice)), a = niveauAir(aqi), b = niveauAir(mesure);
+    res.niveau[0]++; if (a === b) res.niveau[1]++; if (Math.abs(a - b) <= 1) res.niveau[2]++;
+    const o = L.filter(s => s.max.O3 != null), p = L.filter(s => s.max["PM2.5"] != null);
+    if (o.length && o3 != null) ajoute(res.o3, o3 - moy(o.map(s => s.max.O3)), 20);
+    if (p.length && pm != null) ajoute(res.pm, pm - moy(p.map(s => s.max["PM2.5"])), 5);
+  }
+  finit(res.o3); finit(res.pm);
+  return res.niveau[0] ? res : null;
+}
