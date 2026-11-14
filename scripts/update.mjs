@@ -631,24 +631,17 @@ if (process.env.TEST_MESURES === "true") await bonus("Test des mesures", async (
       } catch (e) { console.warn("UV " + dep + " : " + e.message); }
     }
   }
-  // Qualité de l'air mesurée (LCSQA) : liste des fichiers du jour et métadonnées des stations
+  // Qualité de l'air mesurée (LCSQA) : fichier CSV du jour et structure des métadonnées
   {
-    const base = "https://files.data.gouv.fr/ineris/lcsqa/concentrations-de-polluants-atmospheriques-reglementes/temps-reel/";
-    const idx = await lireTexte(base); console.log("Air index : " + idx.replace(/\s+/g, " ").slice(0, 600));
-    const an = await lireTexte(base + new Date().getFullYear() + "/").catch(e => "ERR " + e.message);
-    const liens = [...an.matchAll(/href="([^"]+)"/g)].map(m => m[1]); console.log("Air année : " + liens.slice(-6).join(" | "));
-    const f = liens.filter(l => l.includes(dateParis(-1))).pop() || liens[liens.length - 1];
-    if (f) {
-      const url = f.startsWith("http") ? f : base + new Date().getFullYear() + "/" + f.replace(/^.*\//, "");
-      const txt = await lireTexte(url); const L = txt.split(/\r?\n/);
-      console.log(`Air fichier ${url.split("/").pop()} : ${L.length} lignes ; entête ${L[0]}`);
-      const sud = L.filter(l => /SUD|PACA/i.test(l));
-      console.log(`Air : ${sud.length} lignes région ; exemples :\n` + sud.slice(0, 3).join("\n"));
-      const sites = new Map(); for (const l of sud) { const v = l.split(";"); sites.set(v[5] + " " + v[6], (sites.get(v[5] + " " + v[6]) || new Set()).add(v[8] + "/" + v[9])); }
-      console.log(`Air : ${sites.size} sites :\n` + [...sites.entries()].map(([k, s]) => k + " → " + [...s].join(",")).join("\n"));
-    }
+    const base = "https://files.data.gouv.fr/ineris/lcsqa/concentrations-de-polluants-atmospheriques-reglementes/temps-reel/" + new Date().getFullYear() + "/";
+    const txt = await lireTexte(base + "FR_E2_" + dateParis(-1) + ".csv"); const L = txt.split(/\r?\n/);
+    console.log(`Air CSV : ${L.length} lignes ; entête ${L[0]}`);
+    const sud = L.filter(l => /ATMO SUD|AtmoSud|ATMOSUD/i.test(l));
+    console.log(`Air : ${sud.length} lignes AtmoSud ; exemples :\n` + sud.slice(0, 3).join("\n"));
+    const sites = new Map(); for (const l of sud) { const v = l.split(";"); const k = v.slice(4, 8).join(";"); sites.set(k, (sites.get(k) || new Set()).add(v[8] + "/" + v[9])); }
+    console.log(`Air : ${sites.size} sites :\n` + [...sites.entries()].slice(0, 80).map(([k, s]) => k + " → " + [...s].join(",")).join("\n"));
     const xml = await lireTexte("https://static.data.gouv.fr/resources/donnees-temps-reel-de-mesure-des-concentrations-de-polluants-atmospheriques-reglementes-1/20260825-130000/fr-2026-d-07082026-1.xml");
-    const k = xml.search(/Marseille|MARSEILLE/); console.log(`Air XML : ${xml.length} caractères ; extrait :\n` + xml.slice(Math.max(0, k - 1500), k + 1500));
+    const st = xml.indexOf("<aqd:AQD_Station"); console.log(`Air XML station :\n` + xml.slice(st, st + 3500));
   }
 });
 const fiabilite = await bonus("Vérification", () => verifier(ok));
