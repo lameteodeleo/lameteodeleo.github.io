@@ -125,13 +125,18 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .facts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.92rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .facts b{color:var(--ink)}
 /* vigilance */
-.alert{background:var(--alert-soft);border:1.5px solid var(--alert);border-radius:18px;padding:14px 16px;display:flex;gap:12px}
-.alert svg{flex:0 0 auto;width:26px;height:26px;color:var(--alert)}
-.alert h3{margin:0 0 4px;color:var(--alert);font-size:.95rem;font-weight:800}
-.alert ul{margin:0;padding-left:18px;font-size:.92rem;display:flex;flex-direction:column;gap:2px}
-.alert a{color:var(--alert);font-weight:800;font-size:.85rem}
-.alert.orange{background:var(--orange-soft);border-color:var(--orange)}
-.alert.orange svg,.alert.orange h3,.alert.orange a{color:var(--orange)}
+.alert{--al:var(--alert);--al-fond:#B3261E;--al-doux:var(--alert-soft);background:var(--surface);border:1.5px solid var(--al);border-radius:20px;overflow:hidden;padding:0}
+.alert.orange{--al:var(--orange);--al-fond:#B4530A;--al-doux:var(--orange-soft)}
+.al-tete{display:flex;gap:12px;align-items:center;background:var(--al-fond);color:#fff;padding:13px 16px}
+.al-tete svg{flex:0 0 auto;width:30px;height:30px;color:#fff}
+.al-tete small{display:block;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.92}
+.al-tete h3{margin:0;color:#fff;font-size:1.12rem;font-weight:800;line-height:1.2}
+.alert ul{list-style:none;margin:0;padding:14px 16px 4px;display:flex;flex-direction:column;gap:9px;font-size:.92rem}
+.alert li{display:flex;gap:10px;align-items:flex-start;line-height:1.35}
+.alert li::before{content:"";flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--al);margin-top:6px}
+.alert li:first-child{font-weight:700}
+.alert .al-lien{display:block;margin:12px 16px 14px;padding:12px 14px;border-radius:12px;background:var(--al-doux);color:var(--al);font-weight:800;font-size:.88rem;text-align:center;text-decoration:none}
+.alert.simple{display:flex;gap:10px;padding:12px 14px;background:var(--alert-soft)}
 .vigj{display:flex;gap:10px;align-items:flex-start;background:var(--jaune-soft);border:1.5px solid var(--jaune-line);border-radius:14px;padding:10px 14px;font-size:.9rem;line-height:1.35}
 .vigj i{flex:0 0 auto;width:10px;height:10px;border-radius:50%;background:#F2D600;border:1.5px solid var(--jaune-line);margin-top:5px}
 .vigj a{color:var(--ink);font-weight:700}
@@ -454,12 +459,12 @@ details.plus[open] .tiles{margin-top:10px}
     </section>
 
     <div class="alert" id="alertBox" role="alert" hidden>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3L2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.01"/></svg>
-      <div>
-        <h3 id="alertTitle"></h3>
-        <ul id="alertList"></ul>
-        <a href="https://vigilance.meteofrance.fr/fr" target="_blank" rel="noopener">Consignes officielles sur vigilance.meteofrance.fr</a>
+      <div class="al-tete">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3L2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.01"/></svg>
+        <div><small id="alertNiv"></small><h3 id="alertTitle"></h3></div>
       </div>
+      <ul id="alertList"></ul>
+      <a class="al-lien" href="https://vigilance.meteofrance.fr/fr" target="_blank" rel="noopener">Consignes officielles sur vigilance.meteofrance.fr&nbsp;›</a>
     </div>
     <div class="vigj" id="vigJaune" hidden><i aria-hidden="true"></i><span id="vigJauneTxt"></span></div>
 
@@ -1680,7 +1685,7 @@ function render(){
    if(!vj&&soir&&!alAff){const d1=vigJaune(c,1);if(d1)vj="Demain, v"+d1.slice(1)}
    const bj=$("vigJaune");bj.hidden=!vj;if(vj)$("vigJauneTxt").innerHTML=vj+'<a href="https://vigilance.meteofrance.fr/fr" target="_blank" rel="noopener">En savoir plus</a>'}
   $("alertBox").classList.toggle("orange",!!(alAff&&alAff.niveau===3));
-  if(alAff){$("alertBox").hidden=false;$("motBox").hidden=true;$("alertTitle").textContent=alAff.titre;$("alertList").innerHTML=alAff.cons.map(x=>"<li>"+x+"</li>").join("")}
+  if(alAff){$("alertBox").hidden=false;$("motBox").hidden=true;{const mt=alAff.titre.match(/^(Demain, v|V)igilance (orange|rouge) (.+)$/);$("alertNiv").textContent=mt?(mt[1]==="V"?"":"Demain · ")+"Vigilance "+mt[2]:"";$("alertTitle").textContent=mt?mt[3].charAt(0).toUpperCase()+mt[3].slice(1):alAff.titre;$("alertBox").setAttribute("aria-label",alAff.titre)}$("alertList").innerHTML=alAff.cons.map(x=>"<li>"+x+"</li>").join("")}
   else{$("alertBox").hidden=true;$("motBox").hidden=false;
     $("motK").textContent=m2?"Le sourire de demain":"Le sourire du jour";
     $("mot").textContent=insec(m2?motDuJour(c,m2,1,true):motDuJour(c,m,st.jour))}
@@ -2084,6 +2089,8 @@ $("share").addEventListener("click",e=>copyText($("mot").textContent+" — "+NOM
 Object.entries(SCEN).forEach(([k,s])=>{const b=document.createElement("button");b.type="button";b.className="chip";b.dataset.k=k;b.textContent=s.label;b.addEventListener("click",()=>{st.scen=k;st.demo=true;$("demoPill").hidden=false;save();markScen();buildSlides()});$("scen").appendChild(b)});
 const markScen=()=>document.querySelectorAll("#scen .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k==="__reel"?String(enReel()):String(!enReel()&&b.dataset.k===st.scen)));
 const B={ink:"#1D1838",bg:"#F3F1FA",sun:"#FFC21A",sunInk:"#433100",brand:"#4B3BB8",white:"#FFFFFF",muted:"#655F86",alert:"#B3261E",cool:"#4A6FD1"};
+/* Couleur des visuels en vigilance : orange pour l'orange, rouge pour le rouge */
+const CA=al=>al&&al.niveau>=4?{fort:"#B3261E",fonce:"#6E1712",doux:"#FCEBE9",clair:"#FF8A80"}:{fort:"#B4530A",fonce:"#6B3005",doux:"#FDF0E3",clair:"#FFB27A"};
 const FD='"Chiffres", "Bricolage Grotesque", Arial, sans-serif', FB='"Nunito Sans", Arial, sans-serif';
 function wrapText(ctx,text,x,y,maxW,lh,maxLines){
   const words=text.split(" ");let line="",lines=[];
@@ -2148,17 +2155,17 @@ function toile(){const cv=document.createElement("canvas");cv.width=1080;cv.heig
 function ajuste(x,txt,maxW,taille,graisse,police){let fs=taille;x.font=graisse+" "+fs+"px "+police;while(x.measureText(txt).width>maxW&&fs>20){fs-=2;x.font=graisse+" "+fs+"px "+police}return fs}
 /* En-tête et pied communs aux images 2 à 6 */
 function entete(x,n,titre,j,al){
-  x.fillStyle=al?"#FCEBE9":B.bg;x.fillRect(0,0,1080,1350);
-  x.fillStyle=al?B.alert:B.muted;x.font="800 28px "+FB;x.fillText(n+" / 7",70,108);
+  x.fillStyle=al?CA(al).doux:B.bg;x.fillRect(0,0,1080,1350);
+  x.fillStyle=al?CA(al).fort:B.muted;x.font="800 28px "+FB;x.fillText(n+" / 7",70,108);
   drawMark(x,982,98,62,true);x.textAlign="right";x.fillText(NOM,936,108);x.textAlign="left";
-  x.fillStyle=al?B.alert:B.ink;ajuste(x,titre,940,72,"800",FD);x.fillText(titre,70,206);
+  x.fillStyle=al?CA(al).fort:B.ink;ajuste(x,titre,940,72,"800",FD);x.fillText(titre,70,206);
   x.font="700 30px "+FB;x.fillStyle=B.muted;x.fillText(fmt(dayDate(j))+" · Bouches-du-Rhône",70,256);
   x.font="700 25px "+FB;x.fillText("La météo de chaque commune, heure par heure : lien en bio",70,1296);
 }
 /* 1. L'accroche : le temps du jour en une phrase et trois chiffres */
 function slideCover(j){
   const [cv,x]=toile(), R=bilanDep(j), al=R.al;
-  x.fillStyle=al?B.alert:B.ink;x.fillRect(0,0,1080,1350);
+  x.fillStyle=al?CA(al).fort:B.ink;x.fillRect(0,0,1080,1350);
   drawMark(x,116,128,92,true);logoCanvas(x,186,150,60,B.white,al?B.white:B.sun);
   x.fillStyle=al?B.white:B.sun;x.font="800 34px "+FB;x.fillText(fmt(dayDate(j)).toUpperCase(),70,300);
   x.fillStyle=B.white;x.globalAlpha=.8;x.font="700 32px "+FB;x.fillText("Bouches-du-Rhône",70,348);x.globalAlpha=1;
@@ -2270,9 +2277,9 @@ function slideConseils(j){
   entete(x,5,R.al?"Les consignes":"Les conseils du jour",j,R.al);
   L.slice(0,3).forEach((o,i)=>{const y=300+i*310;
     x.fillStyle=B.white;rr(x,70,y,940,286,32);x.fill();
-    x.fillStyle=o.warn?B.alert:B.brand;rr(x,100,y+34,64,64,20);x.fill();
+    x.fillStyle=o.warn?CA(R.al).fort:B.brand;rr(x,100,y+34,64,64,20);x.fill();
     x.fillStyle=B.white;x.font="800 38px "+FD;x.textAlign="center";x.fillText(String(i+1),132,y+80);x.textAlign="left";
-    x.fillStyle=o.warn?B.alert:B.brand;x.font="800 26px "+FB;x.fillText((CAT[o.cat]||"").toUpperCase(),188,y+78);
+    x.fillStyle=o.warn?CA(R.al).fort:B.brand;x.font="800 26px "+FB;x.fillText((CAT[o.cat]||"").toUpperCase(),188,y+78);
     x.fillStyle=B.ink;x.font="700 32px "+FB;wrapText(x,o.txt,100,y+138,880,41,4)});
   return cv;
 }
@@ -2294,7 +2301,7 @@ function slideSuite(j){
 /* 7. Le sourire du jour, puis le lien vers l'app */
 function slideFin(j){
   const [cv,x]=toile(), R=bilanDep(j), al=R.al, c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,j);
-  x.fillStyle=al?B.alert:B.sun;x.fillRect(0,0,1080,1350);
+  x.fillStyle=al?CA(al).fort:B.sun;x.fillRect(0,0,1080,1350);
   x.fillStyle=al?B.white:B.sunInk;x.font="800 30px "+FB;x.fillText(al?"VIGILANCE":"LE SOURIRE DU JOUR",70,150);
   x.font="800 28px "+FB;x.textAlign="right";x.fillText("7 / 7",1010,150);x.textAlign="left";
   const txt=al?al.cons.slice(0,2).join(" "):motDuJour(c,m,j);
@@ -2314,7 +2321,7 @@ const TAG_TEMPS={mistral:"#mistral",vent:"#vent",pluie:"#pluie",orage:"#orage",n
 function slideStory(){
   const cv=document.createElement("canvas");cv.width=1080;cv.height=1920;const x=cv.getContext("2d");
   const J=postJour, RS=bilanDep(J), al=RS.al;
-  x.fillStyle=al?B.alert:B.ink;x.fillRect(0,0,1080,1920);
+  x.fillStyle=al?CA(al).fort:B.ink;x.fillRect(0,0,1080,1920);
   drawMark(x,135,190,130,true);
   logoCanvas(x,230,210,70,B.white,al?B.white:B.sun);
   x.fillStyle=B.white;x.globalAlpha=.85;x.font="700 34px "+FB;x.fillText(fmt(dayDate(J)),70,330);x.globalAlpha=1;
@@ -2330,7 +2337,7 @@ function slideStory(){
   const c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,J);
   const txt=al?al.cons.slice(0,2).join(" "):motDuJour(c,m,J);
   x.fillStyle=al?B.white:B.sun;rr(x,70,1230,940,290,40);x.fill();
-  x.fillStyle=al?B.alert:B.sunInk;x.font="800 28px "+FB;x.fillText(al?"CONSIGNES":"LE SOURIRE DU JOUR",112,1292);
+  x.fillStyle=al?CA(al).fort:B.sunInk;x.font="800 28px "+FB;x.fillText(al?"CONSIGNES":"LE SOURIRE DU JOUR",112,1292);
   x.font="600 44px "+FD;wrapText(x,txt,112,1354,856,54,3);
   // Sous cette phrase, la place est libre pour l'autocollant « Lien » d'Instagram
   x.fillStyle=B.white;x.font="800 40px "+FD;x.textAlign="center";x.fillText("Chaque commune, heure par heure ↓",540,1610);
@@ -2378,7 +2385,7 @@ async function creerReel(btn){
   const jourTxt=(J===0?"Aujourd'hui":"Demain")+", "+dj.toLocaleDateString("fr-FR",{weekday:"long"});
   // L'accroche : le chiffre le plus marquant du jour
   let hook;
-  if(al) hook={k:al.titre.replace(/^Vigilance /,"Vigilance\n"),n:null,lab:"sur les Bouches-du-Rhône",ico:R.ico||R.dom};
+  if(al) hook={k:al.titre.replace(/^(Vigilance \S+) /,"$1\n"),n:null,lab:"sur les Bouches-du-Rhône",ico:R.ico||R.dom};
   else if(R.pl.jour>=10) hook={n:Math.round(R.pl.jour),u:" mm",lab:"de pluie attendus dans le 13",ico:"pluieForte"};
   else if(R.vent.m.raf>=60||(R.dom==="mistral"&&R.vent.m.raf>=40)) hook={n:R.vent.m.raf,u:" km/h",lab:R.dom==="mistral"?"de mistral en rafales dans le 13":"de rafales dans le 13",ico:R.dom==="mistral"?"mistral":"vent"};
   else if(R.chaud.m.max>=32) hook={n:R.chaud.m.max,u:"°",lab:"au plus chaud dans le 13",ico:"chaleur"};
@@ -2407,7 +2414,7 @@ async function creerReel(btn){
   const SC=[{type:"hook",d:2.6},{type:"temp",d:2.4},{type:"pv",d:2.4},{type:"jour",d:2.6},{type:"cons",d:2.6},{type:"suite",d:2.6}].concat(sourire?[{type:"sourire",d:2.6}]:[]).concat([{type:"fin",d:2.6}]);
   const total=SC.reduce((a,b)=>a+b.d,0), TR=.32;
   const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,3), pop=t=>{t=Math.max(0,Math.min(1,t));return t<.6?ease(t/.6)*1.08:1.08-.08*ease((t-.6)/.4)};
-  const fond=c=>{if(c===B.sun){x.fillStyle=B.sun;x.fillRect(0,0,W,H);return}const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,c||B.ink);g.addColorStop(1,al?"#6E1712":"#2B2366");x.fillStyle=g;x.fillRect(0,0,W,H)};
+  const fond=c=>{if(c===B.sun){x.fillStyle=B.sun;x.fillRect(0,0,W,H);return}const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,c||B.ink);g.addColorStop(1,al?CA(al).fonce:"#2B2366");x.fillStyle=g;x.fillRect(0,0,W,H)};
   const centre=(txt,y,font,col,a)=>{x.globalAlpha=a==null?1:a;x.fillStyle=col;x.font=font;x.textAlign="center";x.fillText(txt,W/2,y);x.textAlign="left";x.globalAlpha=1};
   const progression=(k,f)=>{const n=SC.length,gap=10,w=(W-140-gap*(n-1))/n,clair=SC[k].type==="sourire";for(let i=0;i<n;i++){x.fillStyle=clair?"rgba(29,24,56,.2)":"rgba(255,255,255,.28)";rr(x,70+i*(w+gap),236,w,8,4);x.fill();
       const v=i<k?1:i===k?f:0;if(v>0){x.fillStyle=clair?B.ink:B.sun;rr(x,70+i*(w+gap),236,w*v,8,4);x.fill()}}};
@@ -2418,7 +2425,7 @@ async function creerReel(btn){
     x.fillStyle="rgba(255,255,255,.1)";rr(x,70,y,W-140,h,40);x.fill();dessin();x.restore()};
   const lignesC=(txt,y,font,col,maxW,lh,a)=>{x.font=font;const w=txt.split(" ");let l="",L=[];for(const k of w){const u=l?l+" "+k:k;if(x.measureText(u).width>maxW&&l){L.push(l);l=k}else l=u}if(l)L.push(l);L.forEach((li,i)=>centre(li,y+i*lh,font,col,a));return L.length};
   const scene=(sc,t)=>{ // t : secondes depuis le début de la scène
-    if(sc.type==="hook"){fond(al?B.alert:B.ink);
+    if(sc.type==="hook"){fond(al?CA(al).fort:B.ink);
       drawMark(x,W/2-200,330,70,true);logoCanvas(x,W/2-150,350,48,B.white,al?B.white:B.sun);
       // Tout est visible dès la toute première image (c'est aussi la miniature et l'image de la boucle) ; seul un léger rebond anime l'entrée
       const rb=1+.06*Math.sin(Math.min(1,t/.5)*Math.PI);
@@ -2426,7 +2433,9 @@ async function creerReel(btn){
       x.save();x.translate(W/2,760);x.scale(rb,rb);cIcon(x,hook.ico,-170,-170,340,true);x.restore();
       if(hook.n!=null){x.save();x.translate(W/2,1080);x.scale(rb,rb);x.fillStyle=B.white;x.textAlign="center";const txt=hook.n+hook.u;let fs=230;x.font="800 "+fs+"px "+FB;
           while(x.measureText(txt).width>W-120&&fs>120){fs-=10;x.font="800 "+fs+"px "+FB}x.fillText(txt,0,70);x.restore()}
-      else hook.k.split("\n").forEach((l,i)=>centre(l,1060+i*120,"800 110px "+FD,B.white));
+      else{const ls=hook.k.split("\n");let fs=110;x.font="800 "+fs+"px "+FD;while(ls.some(l=>x.measureText(l).width>W-140)&&fs>60){fs-=4;x.font="800 "+fs+"px "+FD}
+        if(ls.some(l=>x.measureText(l).width>W-140)){x.font="800 "+fs+"px "+FD;const t=ls.join(" ").split(" ");ls.length=0;let l="";for(const w of t){const u=l?l+" "+w:w;if(x.measureText(u).width>W-140&&l){ls.push(l);l=w}else l=u}ls.push(l)}
+        const lh=Math.round(fs*1.08), y0=1170-(ls.length-1)*lh;ls.forEach((l,i)=>centre(l,y0+i*lh,"800 "+fs+"px "+FD,B.white))}
       centre(hook.lab,1250,"800 54px "+FB,B.white);
       const b=ease((t-1.1)/.4);if(b>0){x.globalAlpha=b;x.fillStyle=B.sun;rr(x,150,1330,W-300,110,55);x.fill();x.globalAlpha=1;
         {x.font="800 44px "+FB;let fs=44;while(x.measureText(phrase).width>W-360&&fs>30){fs-=2;x.font="800 "+fs+"px "+FB}centre(phrase,1402,"800 "+fs+"px "+FB,B.sunInk,b)}}
@@ -2446,7 +2455,7 @@ async function creerReel(btn){
           cIcon(x,mom[i].type,560,640+i*330,170,true);
           x.fillStyle=B.white;x.font="800 120px "+FB;x.textAlign="right";x.fillText(mom[i].t+"°",W-120,790+i*330);x.textAlign="left"}));
     }else if(sc.type==="cons"){fond();titreSc(al?"La consigne":"Le conseil du jour",t);sousSc(jourTxt,t);
-      carte(620,760,t,.25,()=>{x.fillStyle=cons&&cons.warn?"#FF8A80":B.sun;x.font="800 50px "+FB;x.textAlign="center";x.fillText(((cons&&CAT[cons.cat])||"").toUpperCase(),W/2,740);x.textAlign="left";
+      carte(620,760,t,.25,()=>{x.fillStyle=cons&&cons.warn?CA(al).clair:B.sun;x.font="800 50px "+FB;x.textAlign="center";x.fillText(((cons&&CAT[cons.cat])||"").toUpperCase(),W/2,740);x.textAlign="left";
           let fs=64,n;do{x.font="800 "+fs+"px "+FB;const w=(cons?cons.txt:"").split(" ");let l="";n=1;for(const k of w){const u=l?l+" "+k:k;if(x.measureText(u).width>W-240&&l){n++;l=k}else l=u}fs-=4}while(n*fs*1.3>560&&fs>36);
           lignesC(cons?cons.txt:"",840,"800 "+(fs+4)+"px "+FB,B.white,W-240,(fs+4)*1.3,x.globalAlpha)});
     }else if(sc.type==="sourire"){fond(B.sun);
@@ -2497,7 +2506,7 @@ async function creerReel(btn){
   rec.stop();await fini;btn.disabled=false;try{if(verrou)verrou.release()}catch(e){}
   const ext=type.startsWith("video/mp4")?"mp4":"webm",blob=new Blob(morceaux,{type:type.split(";")[0]}),file="lameteodeleo-"+SLIDES_JOUR+"-reel-"+RESEAU+"."+ext,url=URL.createObjectURL(blob);
   out.innerHTML='<video src="'+url+'" controls playsinline muted style="width:100%;max-width:280px;border-radius:14px;display:block"></video>';
-  {const v=out.querySelector("video");v.addEventListener("loadedmetadata",()=>{if(isFinite(v.duration)&&v.duration<total-1.5){const n=document.createElement("p");n.className="alert";n.style.marginTop="8px";n.innerHTML="<span><b>Vidéo incomplète ("+Math.round(v.duration)+" s au lieu de "+Math.round(total)+" s).</b> Touche à nouveau «&nbsp;Créer la vidéo&nbsp;» en gardant l'écran allumé, sans changer d'appli.</span>";out.appendChild(n)}})}
+  {const v=out.querySelector("video");v.addEventListener("loadedmetadata",()=>{if(isFinite(v.duration)&&v.duration<total-1.5){const n=document.createElement("p");n.className="alert simple";n.style.marginTop="8px";n.innerHTML="<span><b>Vidéo incomplète ("+Math.round(v.duration)+" s au lieu de "+Math.round(total)+" s).</b> Touche à nouveau «&nbsp;Créer la vidéo&nbsp;» en gardant l'écran allumé, sans changer d'appli.</span>";out.appendChild(n)}})}
   const meta=document.createElement("div");meta.className="chips";meta.style.marginTop="8px";
   if(dl){const b=document.createElement("button");b.type="button";b.className="chip";b.textContent="Enregistrer la vidéo";b.addEventListener("click",async()=>{try{await dl.save({filename:file,data:blob});flash(b,"Enregistrée")}catch(e){if(e&&e.code!=="declined")flash(b,"Impossible ici")}});meta.appendChild(b)}
   else{const a=document.createElement("a");a.className="chip";a.textContent="Enregistrer la vidéo";a.download=file;a.href=url;a.style.textDecoration="none";meta.appendChild(a)}
