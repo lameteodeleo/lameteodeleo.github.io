@@ -481,7 +481,6 @@ details.plus[open] .tiles{margin-top:10px}
     <section>
       <div class="sec-h"><h2>7 jours</h2><span class="sub">Touchez un jour pour le détail</span></div>
       <div class="card days" id="days"></div>
-      <p class="days-note" id="daysNote" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg> Lune devant le pourcentage : la pluie tombe surtout la nuit, la journée reste plutôt sèche.</p>
       <p class="days-note" id="barNote">Barre : du plus frais au plus chaud de la journée, sur la même échelle pour les 7 jours. Bleu = froid, vert = doux, orange = chaud, rouge = très chaud.<span id="barNow"> Point blanc : la température actuelle.</span></p>
     </section>
 
@@ -1701,9 +1700,8 @@ function render(){
     if(t<=P[0][0])return P[0][1];for(let k=1;k<P.length;k++)if(t<=P[k][0]){const [a,ca]=P[k-1],[b,cb]=P[k],f=(t-a)/(b-a),h=c=>[1,3,5].map(o=>parseInt(c.substr(o,2),16));const A=h(ca),Bc=h(cb);return "rgb("+A.map((v,n)=>Math.round(v+(Bc[n]-v)*f)).join(",")+")"}return P[P.length-1][1]};
   const days=[0,1,2,3,4,5,6].map(i=>({i,m:meteo(c,st.scen,i)}));
   const gmin=Math.min(...days.map(d=>d.m.min)), gmax=Math.max(...days.map(d=>d.m.max)), span=Math.max(1,gmax-gmin);
-  $("days").innerHTML=days.map(d=>'<button type="button" class="day" data-i="'+d.i+'" aria-pressed="'+(d.i===st.jour)+'" aria-label="'+fmt(dayDate(d.i))+', '+LIB[d.m.ico||d.m.type]+', '+d.m.min+' à '+d.m.max+' degrés'+(d.m.prob>=30?', risque de pluie '+d.m.prob+' pour cent'+(d.m.plNuit?', surtout la nuit':''):'')+'"><span class="dn">'+dayName(d.i)+'</span><span class="ic">'+ICONS[d.m.ico||d.m.type]+(d.m.prob>=30&&d.m.type!=="neige"?'<small'+(d.m.plNuit?' class="nuit" title="Pluie surtout la nuit"':'')+'>'+(d.m.plNuit?'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>':'')+d.m.prob+' %</small>':'')+'</span><span class="lo">'+d.m.min+'°</span><span class="bar" aria-hidden="true"><span style="left:'+((d.m.min-gmin)/span*100)+'%;right:'+((gmax-d.m.max)/span*100)+'%;background:linear-gradient(90deg,'+coulT(d.m.min)+','+coulT((d.m.min+d.m.max)/2)+','+coulT(d.m.max)+')"></span>'+(d.i===0&&heroNow&&heroNow.t!=null?'<i style="left:'+Math.max(0,Math.min(100,(heroNow.t-gmin)/span*100))+'%"></i>':'')+'</span><span class="hi">'+d.m.max+'°</span></button>').join("");
+  $("days").innerHTML=days.map(d=>'<button type="button" class="day" data-i="'+d.i+'" aria-pressed="'+(d.i===st.jour)+'" aria-label="'+fmt(dayDate(d.i))+', '+LIB[d.m.ico||d.m.type]+', '+d.m.min+' à '+d.m.max+' degrés'+(d.m.prob>=30?', risque de pluie '+d.m.prob+' pour cent'+(d.m.plNuit?', surtout la nuit':''):'')+'"><span class="dn">'+dayName(d.i)+'</span><span class="ic">'+ICONS[d.m.ico||d.m.type]+(d.m.prob>=30&&d.m.type!=="neige"?'<small>'+d.m.prob+' %</small>':'')+'</span><span class="lo">'+d.m.min+'°</span><span class="bar" aria-hidden="true"><span style="left:'+((d.m.min-gmin)/span*100)+'%;right:'+((gmax-d.m.max)/span*100)+'%;background:linear-gradient(90deg,'+coulT(d.m.min)+','+coulT((d.m.min+d.m.max)/2)+','+coulT(d.m.max)+')"></span>'+(d.i===0&&heroNow&&heroNow.t!=null?'<i style="left:'+Math.max(0,Math.min(100,(heroNow.t-gmin)/span*100))+'%"></i>':'')+'</span><span class="hi">'+d.m.max+'°</span></button>').join("");
   $("barNow").hidden=!(heroNow&&heroNow.t!=null);
-  $("daysNote").hidden=!days.some(d=>d.m.plNuit&&d.m.prob>=30&&d.m.type!=="neige");
   // tuiles
   const sun=soleil(dayDate(st.jour));
   const windTxt=m.raf>=60?"Vent fort":m.raf>=40?"Vent soutenu":m.raf>=20?"Vent modéré":"Vent faible";
