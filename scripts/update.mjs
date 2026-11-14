@@ -5,6 +5,7 @@
 
 import { mkdir, writeFile, cp, readdir } from "node:fs/promises";
 import { gunzipSync } from "node:zlib";
+import { noterJour, cleUTC, lireHoraire } from "./verif.mjs";
 
 // Secteurs de l'app. Une commune du 13 absente de ces listes est rattachée au secteur le plus proche.
 const SECTEURS = {"mc": ["Marseille","Allauch","Plan-de-Cuques","Aubagne","La Penne-sur-Huveaune","Carnoux-en-Provence","Cassis","Ceyreste","La Ciotat","Roquefort-la-Bédoule","Gémenos","Cuges-les-Pins","Roquevaire","Auriol","La Destrousse","Peypin","Belcodène","La Bouilladisse","Cadolive","Saint-Savournin","Septèmes-les-Vallons","Le Rove","Ensuès-la-Redonne","Carry-le-Rouet","Sausset-les-Pins"],"aix": ["Aix-en-Provence","Éguilles","Venelles","Le Tholonet","Saint-Marc-Jaumegarde","Vauvenargues","Beaurecueil","Châteauneuf-le-Rouge","Rousset","Peynier","Trets","Puyloubier","Fuveau","Gréasque","Mimet","Gardanne","Meyreuil","Bouc-Bel-Air","Simiane-Collongue","Cabriès","Les Pennes-Mirabeau","Ventabren","Saint-Cannat","Rognes","Le Puy-Sainte-Réparade","Meyrargues","Peyrolles-en-Provence","Jouques","Saint-Paul-lès-Durance","Saint-Estève-Janson","Saint-Antonin-sur-Bayon","La Roque-d'Anthéron"],"berre": ["Martigues","Châteauneuf-les-Martigues","Gignac-la-Nerthe","Marignane","Saint-Victoret","Vitrolles","Rognac","Berre-l'Étang","Velaux","Coudoux","La Fare-les-Oliviers","Saint-Chamas","Istres","Fos-sur-Mer","Port-de-Bouc","Saint-Mitre-les-Remparts","Port-Saint-Louis-du-Rhône","Miramas","Cornillon-Confoux"],"salon": ["Salon-de-Provence","Pélissanne","Lançon-Provence","Grans","Lambesc","Alleins","Aurons","Vernègues","Lamanon","Eyguières","Sénas","Mallemort","Charleval","Orgon","Plan-d'Orgon","Cabannes","Saint-Andiol","Verquières","Mollégès","Noves","Eyragues","Châteaurenard","Rognonas","Barbentane","Graveson","Maillane","Saint-Rémy-de-Provence","Eygalières","Aureille","Mouriès","Maussane-les-Alpilles","Paradou","Les Baux-de-Provence","Mas-Blanc-des-Alpilles"],"arles": ["Arles","Saintes-Maries-de-la-Mer","Saint-Martin-de-Crau","Tarascon","Boulbon","Saint-Étienne-du-Grès","Saint-Pierre-de-Mézoargues","Fontvieille"]};
@@ -407,14 +408,27 @@ function lireCSV(txt, dates) {
 }
 const distKm = (a, b, c, d) => { const R = 6371, x = (d - b) * Math.PI / 180 * Math.cos((a + c) / 2 * Math.PI / 180), y = (c - a) * Math.PI / 180; return R * Math.hypot(x, y); };
 const dateParis = (dec = 0) => new Date(Date.now() + dec * 864e5).toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
+// Les mesures heure par heure (température, pluie de l'heure, rafales et leur direction) viennent d'un second jeu de données
+let CAT_H = null;
+async function urlHoraire(dep) {
+  if (!CAT_H) { const ds = await lireJSON("https://www.data.gouv.fr/api/1/datasets/donnees-climatologiques-de-base-horaires/", 2); CAT_H = ds.resources || []; }
+  const tous = CAT_H.filter(r => new RegExp(`H_${dep}_`).test(r.url || ""));
+  const res = tous.find(r => new RegExp(`H_${dep}_latest[^/]*\\.csv(\\.gz)?$`).test(r.url)) || tous.find(r => /latest/.test(r.url));
+  if (!res) throw new Error(`fichier horaire du ${dep} introuvable (${tous.map(r => r.url.split("/").pop()).slice(0, 6).join(", ") || "aucun fichier"})`);
+  return res.url;
+}
 async function verifier(ok) {
   let prec = null;
   try { prec = await lireJSON("https://lameteodeleo.github.io/data/verif.json?t=" + Date.now(), 3); } catch (e) { console.warn("Historique de vérification introuvable (" + e.message + ") : on repart de zéro."); }
   const V = { prev: (prec && prec.prev) || {}, jours: (prec && prec.jours) || [] };
   const auj = dateParis(0);
-  // Garde la prévision de demain (écrasée à chaque mise à jour jusqu'à minuit)
+  // Garde la prévision de demain (écrasée à chaque mise à jour jusqu'à minuit) : le jour et ses heures
   const dem = {}; let dDem = null;
-  for (const x of ok) { const J = x.d && x.d[1]; if (!J) continue; dDem = J[0]; dem[x.n] = [J[2], J[3], J[6], J[4], x.lat, x.lon, J[1], J[7]]; }
+  for (const x of ok) {
+    const J = x.d && x.d[1]; if (!J) continue; dDem = J[0];
+    const H = x.h && x.h[1] ? x.h[1].map(e => e && e.length > 1 ? [e[0], e[1], e[2], e[3], e[4], e[5] ?? null] : null) : null;
+    dem[x.n] = [J[2], J[3], J[6], J[4], x.lat, x.lon, J[1], J[7], H, x.s];
+  }
   if (dDem && dDem > auj) V.prev[dDem] = dem;
   // Juge les jours passés qui ont une prévision et pas encore de score
   const faits = new Set(V.jours.map(j => j.date));
@@ -426,40 +440,35 @@ async function verifier(ok) {
       try { const { tete, out } = lireCSV(await fichierObs(dep), dates); mesures.push(...out); if (dep === "13") console.log("Mesures : colonnes " + tete.slice(0, 14).join(";") + "… ; " + out.length + " lignes du 13 pour " + [...dates].join(", ")); }
       catch (e) { console.warn(`Mesures du ${dep} indisponibles : ${e.message}`); }
     }
+    // Mesures horaires : de 0 h à 24 h, heure de Paris, pour chaque jour à juger
+    const cles = new Set(); for (const d of aJuger) for (let k = 0; k <= 24; k++) cles.add(cleUTC(d, k));
+    const horaires = [];
+    for (const dep of ["13", "84"]) {
+      try {
+        const url = await urlHoraire(dep); const r = await lireHoraire(url, cles, UA); horaires.push(...r.postes);
+        console.log(`Mesures horaires du ${dep} : ${url.split("/").pop()} ; ${r.lignes} lignes lues, ${r.gardees} gardées, ${r.postes.length} stations ; colonnes ${r.tete.slice(0, 10).join(";")}…`);
+      } catch (e) { console.warn(`Mesures horaires du ${dep} indisponibles : ${e.message}`); }
+    }
     for (const d of aJuger) {
       const P = V.prev[d], M = mesures.filter(m => m.jour === d.replace(/-/g, "") && m.lat != null && m.tx != null && m.tn != null);
       if (M.length < 5) { console.log(`Vérification du ${d} : mesures pas encore publiées (${M.length} stations), on réessaiera.`); continue; }
-      const res = { date: d, stations: 0, tx: [0, 0, 0], tn: [0, 0, 0], pluie: [0, 0], icone: [0, 0, 0, 0], vent: [0, 0, 0], pires: [] };
-      for (const m of M) {
-        let best = null, bd = 6;
-        for (const [n, p] of Object.entries(P)) { const k = distKm(m.lat, m.lon, p[4], p[5]); if (k < bd) { bd = k; best = n; } }
-        if (!best) continue;
-        const p = P[best]; res.stations++;
-        const ex = p[0] - m.tx, en = p[1] - m.tn;
-        res.tx[0]++; res.tx[1] += Math.abs(ex) <= 2 ? 1 : 0; res.tx[2] += Math.abs(ex);
-        res.tn[0]++; res.tn[1] += Math.abs(en) <= 2 ? 1 : 0; res.tn[2] += Math.abs(en);
-        if (m.rr != null) { res.pluie[0]++; res.pluie[1] += ((p[2] >= 1) === (m.rr >= 1)) ? 1 : 0; }
-        // L'icône affichée (pluie, pluie faible ou temps sec) face à la pluie mesurée : il a plu dès 0,2 mm (plus petite mesure d'un pluviomètre)
-        if (m.rr != null && p[6] != null) {
-          const prevu = /pluie|averses|orages|neige/i.test(ciel(p[6], p[7], p[2] ?? 0)), mesure = m.rr >= 0.2;
-          res.icone[0]++; if (prevu === mesure) res.icone[1]++; else if (prevu) res.icone[2]++; else res.icone[3]++;
-        }
-        if (m.fxi != null) { const kmh = m.fxi * 3.6; res.vent[0]++; res.vent[1] += Math.abs(p[3] - kmh) <= 15 ? 1 : 0; res.vent[2] += Math.abs(p[3] - kmh); }
-        res.pires.push({ n: best, st: m.nom, ex: Math.round(ex * 10) / 10, en: Math.round(en * 10) / 10, rrP: p[2], rrM: m.rr, vP: p[3], vM: m.fxi == null ? null : Math.round(m.fxi * 3.6) });
-      }
+      const Hd = horaires.filter(p => Object.keys(p.h).some(k => k.startsWith(d.replace(/-/g, ""))));
+      // Les mesures horaires arrivent parfois plus tard : on les attend jusqu'à deux jours
+      if (Hd.length < 3 && d >= dateParis(-2)) { console.log(`Vérification du ${d} : mesures horaires pas encore publiées (${Hd.length} stations), on réessaiera.`); continue; }
+      const res = noterJour(d, P, M, Hd, ciel, HEURES);
       if (res.stations < 5) { console.log(`Vérification du ${d} : trop peu de stations proches d'une commune (${res.stations}).`); continue; }
-      res.pires = res.pires.sort((a, b) => Math.max(Math.abs(b.ex), Math.abs(b.en)) - Math.max(Math.abs(a.ex), Math.abs(a.en))).slice(0, 3);
-      for (const k of ["tx", "tn", "vent"]) if (res[k][0]) res[k][2] = Math.round(res[k][2] / res[k][0] * 10) / 10;
       V.jours.push(res);
-      console.log(`Vérification du ${d} : ${res.stations} stations ; max justes à 2° près ${res.tx[1]}/${res.tx[0]} (écart moyen ${res.tx[2]}°) ; min ${res.tn[1]}/${res.tn[0]} (${res.tn[2]}°) ; pluie oui/non ${res.pluie[1]}/${res.pluie[0]} ; icône de pluie ${res.icone[1]}/${res.icone[0]} (fausses alertes ${res.icone[2]}, oublis ${res.icone[3]}) ; rafales à 15 km/h près ${res.vent[1]}/${res.vent[0]}`);
+      console.log(`Vérification du ${d} : ${res.stations} stations (${res.src.q} quotidiennes, ${res.src.h} horaires) ; max ${res.tx[1]}/${res.tx[0]} (écart ${res.tx[2]}°, biais ${res.tx[3]}°) ; min ${res.tn[1]}/${res.tn[0]} (biais ${res.tn[3]}°) ; ` +
+        `heures ${res.hT[1]}/${res.hT[0]} (biais ${res.hT[3]}°) ; icône pluie jour ${res.icone[1]}/${res.icone[0]} heures ${res.hIcone[1]}/${res.hIcone[0]} (fausses alertes ${res.hIcone[2]}, oublis ${res.hIcone[3]}) ; ` +
+        `rafales ${res.vent[1]}/${res.vent[0]} heures ${res.hRaf[1]}/${res.hRaf[0]} ; mistral prévu ${res.mistral[1]} observé ${res.mistral[2]} commun ${res.mistral[3]} ; calibration ${JSON.stringify(res.cal)}`);
     }
   }
-  // On garde 10 jours de prévisions en attente et 60 jours de scores
+  // On garde 10 jours de prévisions en attente et 90 jours de scores
   for (const d of Object.keys(V.prev).sort().slice(0, -10)) delete V.prev[d];
   for (const d of Object.keys(V.prev)) if (d < dateParis(-9)) delete V.prev[d];
-  V.jours = V.jours.sort((a, b) => a.date < b.date ? -1 : 1).slice(-60);
+  V.jours = V.jours.sort((a, b) => a.date < b.date ? -1 : 1).slice(-90);
   await writeFile("site/data/verif.json", JSON.stringify({ maj: new Date().toISOString(), ...V }));
-  return V.jours.slice(-14).map(({ pires, ...r }) => ({ ...r, pires }));
+  return V.jours.slice(-30);
 }
 
 

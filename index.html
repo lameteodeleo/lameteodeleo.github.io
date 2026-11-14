@@ -125,6 +125,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .facts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.92rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .facts b{color:var(--ink)}
 /* vigilance */
+.fiab-t{overflow-x:auto;margin:10px -4px 6px}.fiab-t table{width:100%;border-collapse:collapse;font-size:.82rem}.fiab-t th{text-align:left;color:var(--muted);font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;padding:6px 4px;border-bottom:1px solid var(--line)}.fiab-t td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}.fiab-t td.bon{color:var(--ok);font-weight:800}.fiab-t td.moyen{color:var(--warm);font-weight:800}.fiab-t td.faible{color:var(--alert);font-weight:800}.fiab-t td.vide{color:var(--muted)}.fiab-t td.tend{color:var(--muted);font-size:.78rem}.fiab-h{margin:14px 0 2px;font-size:.92rem}.fiab-p{margin:6px 0 8px 18px;padding:0;line-height:1.5;font-size:.88rem}
 .alert{--al:var(--alert);--al-fond:#E0201B;--al-txt:#fff;--al-doux:var(--alert-soft);background:var(--surface);border:1.5px solid var(--al);border-radius:20px;overflow:hidden;padding:0}
 .alert.orange{--al:var(--orange);--al-fond:#FF8A00;--al-txt:#2A1600;--al-doux:var(--orange-soft)}
 .alert{border-color:var(--al-fond)}.al-tete{display:flex;gap:12px;align-items:center;background:var(--al-fond);color:var(--al-txt);padding:13px 16px}
@@ -2681,18 +2682,58 @@ function route(){
   window.scrollTo(0,0);
 }
 /* Fiabilité : la prévision faite la veille, comparée aux mesures des stations Météo-France */
+/* Fiabilité : chaque paramètre de l'app comparé aux mesures des stations Météo-France, avec les pistes de réglage */
 function renderFiab(){
   const F=DATA&&DATA.fiabilite, el=$("fiab");if(!el)return;
   if(!F||!F.length){el.innerHTML='<span class="sub">Le premier score arrive environ deux jours après la mise en route : la prévision de demain est gardée ce soir, puis comparée aux mesures des stations Météo-France, publiées le lendemain.</span>';return}
-  const pc=a=>a&&a[0]?Math.round(a[1]/a[0]*100):null, d=F[F.length-1];
+  const d=F[F.length-1], f1=v=>String(v).replace(".",","), sg=v=>(v>0?"+":"")+f1(v);
   const jour=x=>new Date(x+"T12:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
-  const moy=k=>{const t=F.slice(-7).filter(x=>x[k]&&x[k][0]);if(!t.length)return null;return Math.round(t.reduce((a,x)=>a+x[k][1]/x[k][0],0)/t.length*100)};
-  const ligne=(lib,a,ecart,unit,m7)=>a&&a[0]?'<li><b>'+lib+' : '+pc(a)+' %</b>'+(ecart!=null?' (écart moyen '+String(ecart).replace(".",",")+unit+')':'')+(m7!=null&&F.length>1?' · sur 7 jours : '+m7+' %':'')+'</li>':'';
-  el.innerHTML='<span class="sub">Prévision faite la veille pour <b>'+jour(d.date)+'</b>, comparée à '+d.stations+' stations Météo-France.</span><ul style="margin:8px 0 0 18px;padding:0;line-height:1.6">'+
-    ligne("Températures max justes à 2° près",d.tx,d.tx[2],"°",moy("tx"))+ligne("Températures min justes à 2° près",d.tn,d.tn[2],"°",moy("tn"))+
-    ligne("Pluie bien annoncée (oui ou non)",d.pluie,null,"",moy("pluie"))+(d.icone&&d.icone[0]?'<li><b>Icône de pluie juste : '+pc(d.icone)+' %</b> ('+d.icone[2]+' fausse'+(d.icone[2]>1?'s':'')+' alerte'+(d.icone[2]>1?'s':'')+', '+d.icone[3]+' pluie'+(d.icone[3]>1?'s':'')+' ratée'+(d.icone[3]>1?'s':'')+')'+(moy("icone")!=null&&F.filter(x=>x.icone&&x.icone[0]).length>1?' · sur 7 jours : '+moy("icone")+' %':'')+'</li>':'')+ligne("Rafales justes à 15 km/h près",d.vent,d.vent[2]," km/h",moy("vent"))+'</ul>'+
-    (d.pires&&d.pires.length?'<span class="sub" style="display:block;margin-top:8px">Plus gros écarts : '+d.pires.map(p=>p.n+' (max '+(p.ex>0?"+":"")+String(p.ex).replace(".",",")+'°, min '+(p.en>0?"+":"")+String(p.en).replace(".",",")+'°)').join(" ; ")+'.</span>':'')+
-    '<span class="sub" style="display:block;margin-top:8px">Au-dessus de 80 %, c\'est du travail de pro. En dessous de 60 % plusieurs jours de suite, dis-le-moi.</span>';
+  // Cumul sur les n derniers jours : compteurs additionnés, écarts et biais pondérés par le nombre de mesures
+  const cumul=(k,n)=>{const L=F.slice(-n).map(x=>x[k]).filter(a=>a&&a[0]);if(!L.length)return null;
+    const t=L.reduce((a,c)=>a+c[0],0), o=[t];for(let i=1;i<L[0].length;i++)o.push(i>=2&&L[0].length===4&&(k==="tx"||k==="tn"||k==="vent"||k==="hT"||k==="hRaf")?Math.round(L.reduce((a,c)=>a+(c[i]||0)*c[0],0)/t*10)/10:L.reduce((a,c)=>a+(c[i]||0),0));return o};
+  const pc=a=>a&&a[0]?Math.round(a[1]/a[0]*100):null;
+  const cel=a=>{const v=pc(a);return v==null?'<td class="vide">–</td>':'<td class="'+(v>=80?"bon":v>=60?"moyen":"faible")+'">'+v+' %</td>'};
+  const tend={
+    t:a=>a&&a[0]?(Math.abs(a[3])<0.5?"juste en moyenne":a[3]>0?"prévu "+f1(a[3])+"° trop chaud":"prévu "+f1(-a[3])+"° trop froid"):"",
+    v:a=>a&&a[0]?(Math.abs(a[3])<3?"juste en moyenne":a[3]>0?"prévu "+Math.round(a[3])+" km/h trop fort":"prévu "+Math.round(-a[3])+" km/h trop faible"):"",
+    i:a=>a&&a[0]?a[2]+" fausse"+(a[2]>1?"s":"")+" alerte"+(a[2]>1?"s":"")+", "+a[3]+" oubli"+(a[3]>1?"s":""):""};
+  const L=[["Températures max (à 2° près)","tx","t"],["Températures min (à 2° près)","tn","t"],["Température heure par heure (à 2° près)","hT","t"],
+    ["Pluie du jour (plus ou moins de 1 mm)","pluie",""],["Icône de pluie du jour","icone","i"],["Icône de pluie heure par heure","hIcone","i"],
+    ["Rafales du jour (à 15 km/h près)","vent","v"],["Rafales heure par heure (à 15 km/h près)","hRaf","v"]];
+  let h='<span class="sub">Dernier jour vérifié : <b>'+jour(d.date)+'</b>, '+d.stations+' stations Météo-France. '+F.length+' jour'+(F.length>1?"s":"")+' de mesures au total.</span>'+
+    '<div class="fiab-t"><table><thead><tr><th>Paramètre</th><th>Dernier jour</th><th>7 jours</th><th>30 jours</th><th>Tendance (30 j)</th></tr></thead><tbody>';
+  for(const [lib,k,t] of L){const a30=cumul(k,30);if(!a30)continue;h+='<tr><td>'+lib+'</td>'+cel(d[k])+cel(cumul(k,7))+cel(a30)+'<td class="tend">'+(t?tend[t](a30):"")+'</td></tr>'}
+  const mi=cumul("mistral",30);
+  if(mi&&mi[0])h+='<tr><td>Mistral heure par heure</td><td colspan="4" class="tend">'+(mi[1]||mi[2]?'Prévu '+mi[1]+' h, observé '+mi[2]+' h, bien vu '+mi[3]+' h (30 j)':'Pas de mistral prévu ni observé sur la période')+'</td></tr>';
+  h+='</tbody></table></div>';
+  // Calibration des pourcentages de pluie
+  const T=[0,10,30,50,70,90,100], C=T.slice(0,-1).map((_,i)=>F.slice(-30).reduce((a,x)=>{const c=x.cal&&x.cal[i];return c?[a[0]+c[0],a[1]+c[1]]:a},[0,0]));
+  if(C.some(c=>c[0])){h+='<h4 class="fiab-h">Les pourcentages de pluie sont-ils justes ? (30 jours)</h4><div class="fiab-t"><table><thead><tr><th>Annoncé</th><th>A vraiment plu</th><th>Heures</th></tr></thead><tbody>';
+    C.forEach((c,i)=>{if(!c[0])return;const v=Math.round(c[1]/c[0]*100), ok=v>=T[i]-10&&v<=T[i+1]+10;h+='<tr><td>'+T[i]+' à '+T[i+1]+' %</td><td class="'+(c[0]<20?"":ok?"bon":"faible")+'">'+v+' %</td><td>'+c[0]+'</td></tr>'});
+    h+='</tbody></table></div><span class="sub">Un pourcentage est juste quand « il a vraiment plu » tombe dans la tranche annoncée.</span>'}
+  // Biais par secteur
+  const NS={mc:"Marseille & alentours",aix:"Pays d'Aix",berre:"Étang de Berre",salon:"Salon & Alpilles",arles:"Arles & Camargue",voisins:"Voisins du 13"}, S={};
+  F.slice(-30).forEach(x=>Object.entries(x.sect||{}).forEach(([s,v])=>{const o=S[s]||(S[s]={tx:[0,0],tn:[0,0]});for(const k of ["tx","tn"]){o[k][0]+=v[k][0];o[k][1]+=v[k][1]*v[k][0]}}));
+  const Sk=Object.keys(S).filter(s=>NS[s]);
+  if(Sk.length){h+='<h4 class="fiab-h">Écart moyen par secteur (30 jours)</h4><div class="fiab-t"><table><thead><tr><th>Secteur</th><th>Max</th><th>Min</th><th>Mesures</th></tr></thead><tbody>';
+    Sk.forEach(s=>{const o=S[s],b=k=>o[k][0]?Math.round(o[k][1]/o[k][0]*10)/10:0;h+='<tr><td>'+NS[s]+'</td><td class="'+(Math.abs(b("tx"))>=1.5?"faible":"")+'">'+sg(b("tx"))+'°</td><td class="'+(Math.abs(b("tn"))>=1.5?"faible":"")+'">'+sg(b("tn"))+'°</td><td>'+o.tx[0]+'</td></tr>'});
+    h+='</tbody></table></div><span class="sub">+ = prévu trop chaud, − = prévu trop froid.</span>'}
+  // Pistes de réglage : seulement avec assez de données pour ne pas corriger au hasard
+  const P=[], jours=F.length;
+  if(jours<7)P.push("Les pistes de réglage apparaissent après 7 jours de mesures (encore "+(7-jours)+" jour"+(7-jours>1?"s":"")+").");
+  else{
+    const tx=cumul("tx",30),tn=cumul("tn",30),hT=cumul("hT",30),rv=cumul("vent",30),hi=cumul("hIcone",30);
+    [[tx,"Les max"],[tn,"Les min"],[hT,"Les températures heure par heure"]].forEach(([a,l])=>{if(a&&a[0]>=50&&Math.abs(a[3])>=1)P.push(l+" sont prévues "+f1(Math.abs(a[3]))+"° trop "+(a[3]>0?"chaudes":"froides")+" en moyenne : une correction est possible.")});
+    if(rv&&rv[0]>=50&&Math.abs(rv[3])>=8)P.push("Les rafales sont prévues "+Math.round(Math.abs(rv[3]))+" km/h trop "+(rv[3]>0?"fortes":"faibles")+" en moyenne : une correction est possible.");
+    if(hi&&hi[0]>=100){if(hi[2]>=10&&hi[2]>2*hi[3])P.push("Trop d'icônes de pluie pour rien ("+hi[2]+" fausses alertes contre "+hi[3]+" oublis) : on peut relever les seuils de pluie.");
+      else if(hi[3]>=10&&hi[3]>2*hi[2])P.push("Des pluies ratées ("+hi[3]+" oublis contre "+hi[2]+" fausses alertes) : on peut baisser les seuils de pluie.")}
+    C.forEach((c,i)=>{if(c[0]<30)return;const v=Math.round(c[1]/c[0]*100);if(v<T[i]-15||v>T[i+1]+15)P.push("Quand l'app annonce "+T[i]+" à "+T[i+1]+" %, il a plu "+v+" % du temps : les pourcentages de cette tranche sont à revoir.")});
+    Sk.forEach(s=>{const o=S[s];for(const k of ["tx","tn"]){if(o[k][0]<15)continue;const b=o[k][1]/o[k][0];if(Math.abs(b)>=1.5)P.push(NS[s]+" : les "+(k==="tx"?"max":"min")+" sont prévues "+f1(Math.round(Math.abs(b)*10)/10)+"° trop "+(b>0?"chaudes":"froides")+" : une correction locale est possible.")}});
+    if(!P.length)P.push("Rien à régler pour l'instant : les prévisions sont dans les clous.");
+  }
+  h+='<h4 class="fiab-h">Pistes de réglage</h4><ul class="fiab-p">'+P.map(t=>"<li>"+t+"</li>").join("")+'</ul>'+
+    '<span class="sub">Au-dessus de 80 %, c\'est du travail de pro. Envoie une capture de cette carte quand une piste apparaît : on ajustera ensemble.</span>';
+  el.innerHTML=h;
 }
 window.addEventListener("hashchange",()=>{studioOuvert=false;route()});
 /* Logo : retour à l'accueil */
