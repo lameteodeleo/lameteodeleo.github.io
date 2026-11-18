@@ -914,7 +914,8 @@ const BANQUE={
   "[H]{v} : ciel gris, {max}° au mieux. Plaid, soupe et série : le trio est validé.",
   "[H]{v} : couvert et frais. Le pull est promu employé du mois.",
   "[E]{v} : quelques nuages. En été, on appelle ça de l'ombre gratuite.",
-  "[E]{v} : ciel voilé. Les cigales chantent moins fort, par solidarité."
+  "[E]{v} : ciel voilé. Les cigales chantent moins fort, par solidarité.",
+  "{v} : ciel couvert. Le soleil fait une pause, comme tout le monde vers midi."
  ],
  mistral:[
   "{v} : {raf} km/h de mistral. Les brushings sont annulés.",
@@ -944,7 +945,9 @@ const BANQUE={
   "[H]{v} : mistral glacial, {raf} km/h. Le ressenti a démissionné.",
   "[H]{v} : {max}° et mistral. Le bonnet n'est plus une option, c'est une stratégie.",
   "[H]{v} : mistral d'hiver. Le soleil brille, mais pour la forme.",
-  "[E]{v} : mistral et temps sec. Aucun feu, aucun mégot : la garrigue ne plaisante pas."
+  "[E]{v} : mistral et temps sec. Aucun feu, aucun mégot : la garrigue ne plaisante pas.",
+  "{v} : mistral à {raf} km/h. La pétanque devient officiellement un sport extrême.",
+  "{v} : rafales à {raf} km/h. Les platanes font la ola, sans qu'on leur demande."
  ],
  vent:[
   "{v} : rafales à {raf} km/h. Les chapeaux prennent leur indépendance.",
@@ -988,7 +991,9 @@ const BANQUE={
   "[E]{v} : pluie d'été. La nature avait soif, elle a été entendue.",
   "[E]{v} : {pl} mm. Les cigales observent une minute de silence.",
   "[H]{v} : pluie froide. Le chocolat chaud est déclaré d'utilité publique.",
-  "[H]{v} : {pl} mm et {max}°. La soupe passe en tête des priorités."
+  "[H]{v} : {pl} mm et {max}°. La soupe passe en tête des priorités.",
+  "{v} : pluie. Ici, on sort le parapluie comme l'argenterie : rarement, et avec précaution.",
+  "[E]{v} : pluie. Les cigales ont posé un jour de congé."
  ],
  orage:[
   "{v} : orages. Le ciel prépare un son et lumière : les meilleures places sont à l'intérieur.",
@@ -1086,18 +1091,43 @@ const SPECIAL={
 
 /* Phrases de saison, par mois (1 = janvier) */
 const SAISON={
- 1:["{v}, janvier : les bonnes résolutions tiennent mieux que les températures."],
- 2:["{v}, février : les amandiers fleurissent. Le printemps prépare son entrée."],
- 3:["{v}, mars : on enlève le pull à midi, on le remet le soir."],
- 4:["{v}, avril : ne te découvre pas d'un fil. Le dicton est maintenu."],
- 5:["{v}, mai : fais ce qu'il te plaît, après avoir vérifié la météo."],
- 6:["{v}, juin : les cigales accordent leurs instruments."],
- 7:["{v}, juillet : la lavande est en fleur, l'ombre est en supplément."],
- 8:["{v}, août : avant une balade, vérifiez l'accès aux massifs. Ce n'est pas une blague."],
- 9:["{v}, septembre : c'est la rentrée. Le soleil n'a pas reçu la convocation."],
- 10:["{v}, octobre : les feuilles changent de couleur, la météo change d'avis."],
- 11:["{v}, novembre : les jours raccourcissent. Le soleil fait des heures condensées."],
- 12:["{v}, décembre : la météo et les treize desserts sont les deux sujets du mois."]
+ 1:["{v}, janvier : les bonnes résolutions tiennent mieux que les températures.",
+    "{v}, janvier : on tire les rois, le mistral tire les volets.",
+    "{v}, janvier : les jours rallongent d'une minute par jour. On compte, sans rien dire."],
+ 2:["{v}, février : les amandiers fleurissent. Le printemps prépare son entrée.",
+    "{v}, février : les amandiers sont en fleur, les Parisiens en doudoune. Chacun son style.",
+    "{v}, février : le mois le plus court. L'hiver aussi aimerait bien faire court."],
+ 3:["{v}, mars : on enlève le pull à midi, on le remet le soir.",
+    "{v}, mars : le printemps frappe à la porte. Le mistral répond qu'il n'y a personne.",
+    "{v}, mars : on sort le salon de jardin, on le rentre, on le ressort. Sport de saison."],
+ 4:["{v}, avril : ne te découvre pas d'un fil. Le dicton est maintenu.",
+    "{v}, avril : les terrasses rouvrent, les pulls hésitent encore.",
+    "{v}, avril : les boulistes sortent de l'hibernation. Les boules aussi."],
+ 5:["{v}, mai : fais ce qu'il te plaît, après avoir vérifié la météo.",
+    "{v}, mai : tellement de ponts qu'on pourrait traverser le Rhône à pied sec.",
+    "{v}, mai : les cerises arrivent, les excuses pour rester dedans s'en vont."],
+ 6:["{v}, juin : les cigales accordent leurs instruments.",
+    "{v}, juin : l'apéro commence en plein jour et finit… en plein jour.",
+    "{v}, juin : les premiers touristes arrivent, avec leur coup de soleil d'avance."],
+ 7:["{v}, juillet : la lavande est en fleur, l'ombre est en supplément.",
+    "{v}, juillet : les cigales font la musique, les platanes font l'ombre. Répartition parfaite.",
+    "{v}, juillet : la pétanque se joue à l'ombre des platanes, ou ne se joue pas."],
+ 8:["{v}, août : avant une balade, vérifiez l'accès aux massifs. Ce n'est pas une blague.",
+    "{v}, août : la moitié de la France est sur nos plages, l'autre cherche une place de parking.",
+    "{v}, août : même le carrelage cherche un coin au frais."],
+ 9:["{v}, septembre : c'est la rentrée. Le soleil n'a pas reçu la convocation.",
+    "{v}, septembre : les touristes repartent, la mer reste. On ne va pas s'en plaindre.",
+    "{v}, septembre : les vendanges commencent. Le raisin a fait le plein de soleil."],
+ 10:["{v}, octobre : les feuilles changent de couleur, la météo change d'avis.",
+     "{v}, octobre : on ressort la couette, mais les lunettes de soleil restent dans la poche.",
+     "{v}, octobre : on change d'heure. Le soleil, lui, n'a pas été consulté."],
+ 11:["{v}, novembre : le soleil se couche vers 17 h. Même lui ne fait plus d'heures sup.",
+     "{v}, novembre : les Parisiens sortent la doudoune. Nous, on hésite encore entre pull et veste.",
+     "{v}, novembre : la nuit tombe à l'heure du goûter. Le goûter, lui, reste à l'heure.",
+     "{v}, novembre : les santons sortent des cartons. La crèche se prépare, le mistral aussi."],
+ 12:["{v}, décembre : la météo et les treize desserts sont les deux sujets du mois.",
+     "{v}, décembre : les jours sont courts, les veillées sont longues. Le calcul est vite fait.",
+     "{v}, décembre : le ravi de la crèche sourit par tous les temps. Prenez exemple."]
 };
 
 /* ---------- Situations d'exemple ---------- */
@@ -1352,6 +1382,9 @@ function saviezDuJour(m,jour,nom){
 }
 /* Sourires sur mesure : ils s'appuient sur les chiffres du jour (écart de température, ressenti, jour de la semaine…) */
 const CONTEXTE=[
+ {si:(m,d)=>m.type==="soleil"&&[11,12,1,2,3].includes(d.getMonth()+1)&&m.max>=13&&m.max<=19, p:[
+  "{max}° au soleil à {v}. À Paris, on appellerait ça le printemps. Ici, on sort la doudoune.",
+  "{max}° et grand bleu à {v}. Le reste de la France grelotte, nous on hésite à prendre la veste."]},
  {si:(m,d)=>["soleil","nuageux"].includes(m.type)&&m.max-m.min>=13, p:[
   "{min}° au réveil, {max}° l'après-midi à {v}. On s'habille en oignon et on enlève une couche par heure.",
   "{amp}° d'écart entre le lever du jour et l'après-midi à {v}. La veste du départ finira sur l'épaule.",
