@@ -13,6 +13,13 @@ const SECTEURS = {"mc": ["Marseille","Allauch","Plan-de-Cuques","Aubagne","La Pe
 const VOISINS = [["Pertuis", "84"], ["Cadenet", "84"], ["Lauris", "84"], ["La Tour-d'Aigues", "84"], ["Saint-Maximin-la-Sainte-Baume", "83"], ["Avignon", "84"]];
 
 const UA = { "User-Agent": "lameteodeleo (GitHub Actions)" };
+// Les fichiers déjà publiés (prévisions précédentes, historique de fiabilité) : nouveau domaine d'abord, puis l'ancienne adresse
+const ADRESSES = ["https://lameteodeleo.fr", "https://lameteodeleo.github.io", "http://lameteodeleo.fr"];
+async function lireSite(chemin, essais) {
+  let err = null;
+  for (const base of ADRESSES) { try { return await lireJSON(base + chemin + "?t=" + Date.now(), essais); } catch (e) { err = e; } }
+  throw err;
+}
 const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/['’\-]/g, " ").replace(/\s+/g, " ").trim();
 const pause = ms => new Promise(r => setTimeout(r, ms));
 
@@ -38,7 +45,7 @@ async function communes() {
   try { return await communesOfficielles(); }
   catch (e) {
     console.warn("Liste officielle des communes indisponible (" + e.message + ") : reprise de la liste du site en ligne.");
-    const prec = await lireJSON("https://lameteodeleo.github.io/data/meteo.json?t=" + Date.now());
+    const prec = await lireSite("/data/meteo.json");
     return prec.communes.map(c => ({ n: c.n, s: c.s, lat: c.lat, lon: c.lon, dep: c.dep }));
   }
 }
@@ -419,7 +426,7 @@ async function urlHoraire(dep) {
 }
 async function verifier(ok, qa) {
   let prec = null;
-  try { prec = await lireJSON("https://lameteodeleo.github.io/data/verif.json?t=" + Date.now(), 3); } catch (e) { console.warn("Historique de vérification introuvable (" + e.message + ") : on repart de zéro."); }
+  try { prec = await lireSite("/data/verif.json", 3); } catch (e) { console.warn("Historique de vérification introuvable (" + e.message + ") : on repart de zéro."); }
   const V = { prev: (prec && prec.prev) || {}, jours: (prec && prec.jours) || [], prevAir: (prec && prec.prevAir) || {}, coordsAir: (prec && prec.coordsAir) || null };
   const auj = dateParis(0);
   // Garde la prévision de demain (écrasée à chaque mise à jour jusqu'à minuit) : le jour et ses heures
@@ -490,7 +497,7 @@ async function verifier(ok, qa) {
 
 // 7. Une page par commune, lisible par Google (« météo Trets », « météo Cassis »...), plus une page qui les liste toutes.
 // Les pages sont refaites à chaque mise à jour ; le bouton ouvre l'app directement sur la commune.
-const SITE = "https://lameteodeleo.github.io";
+const SITE = "https://lameteodeleo.fr";
 const NOMS_SECTEURS = { mc: "Marseille & alentours", aix: "Pays d'Aix", berre: "Étang de Berre", salon: "Salon & Alpilles", arles: "Arles & Camargue", voisins: "Voisins du 13" };
 const slug = n => norm(n).replace(/ /g, "-");
 const esc = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -535,7 +542,7 @@ function page({ titre, desc, url, corps }) {
 <meta property="og:type" content="website"><meta property="og:title" content="${esc(titre)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${SITE}/icons/partage.png"><meta property="og:locale" content="fr_FR">
 <meta name="theme-color" content="#4B3BB8"><link rel="icon" href="/icons/icon-192.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <style>${STYLE}</style>
-<script defer src="https://cloud.umami.is/script.js" data-website-id="a3212f59-b8e9-486f-9e0f-d7256926be65" data-domains="lameteodeleo.github.io"></script>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="a3212f59-b8e9-486f-9e0f-d7256926be65" data-domains="lameteodeleo.fr"></script>
 </head><body><main><a class="top" href="/"><img src="/icons/icon-192.png" alt="">La météo <em>de Léo</em></a>${corps}
 <footer>La météo de Léo : la météo des Bouches-du-Rhône, commune par commune. Prévisions des modèles AROME et ARPEGE de Météo-France, mises à jour toutes les 2 heures. Vigilances officielles : <a href="https://vigilance.meteofrance.fr/fr">vigilance.meteofrance.fr</a>. Données météo : Open-Meteo, licence CC BY 4.0. <a href="/#apropos">À propos et mentions légales</a>.</footer>
 </main></body></html>`;
@@ -581,7 +588,7 @@ await previsions(liste);
 let reprises = 0;
 if (liste.some(x => !x.d)) {
   try {
-    const prec = await lireJSON("https://lameteodeleo.github.io/data/meteo.json?t=" + Date.now(), 2);
+    const prec = await lireSite("/data/meteo.json", 2);
     if (Date.now() - new Date(prec.maj).getTime() < 5 * 3600e3) {
       for (const x of liste) if (!x.d) {
         const a = prec.communes.find(c => c.n === x.n);
@@ -621,7 +628,7 @@ await mkdir("site/data", { recursive: true });
 // Test à la demande : lit les mesures horaires d'hier et affiche ce qu'on en tire, sans rien enregistrer
 if (process.env.TEST_MESURES === "true") await bonus("Test des mesures", async () => {
   // Le plan du site tel que Google le reçoit
-  for (const u of ["https://lameteodeleo.github.io/sitemap.xml", "https://lameteodeleo.github.io/robots.txt"]) {
+  for (const u of ["https://lameteodeleo.fr/sitemap.xml", "https://lameteodeleo.fr/robots.txt"]) {
     const r = await fetch(u, { headers: { "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" } }); const t = await r.text();
     console.log(`Plan ${u} : HTTP ${r.status}, type ${r.headers.get("content-type")}, ${t.length} caractères, ${(t.match(/<loc>/g) || []).length} adresses ; début : ${t.slice(0, 160).replace(/\n/g, " ")} ; fin : ${t.slice(-60).replace(/\n/g, " ")}`);
   }
