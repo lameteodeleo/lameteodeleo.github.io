@@ -205,7 +205,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .tip .tx{display:flex;flex-direction:column;gap:1px;min-width:0}
 .tip .tx small{font-size:.68rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 .tip .tx span{line-height:1.35}
-.tip.warn span.i{background:var(--alert-soft);color:var(--alert)}
+.tip.warn span.i{background:var(--alert-soft);color:var(--alert)}.tip.warn.orange span.i{background:var(--orange-soft);color:var(--orange)}
 footer{font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:4px;padding:4px 2px}
 footer a{color:var(--brand);font-weight:800;display:inline-block;padding:9px 0}
 footer{line-height:1.35}
@@ -1487,7 +1487,7 @@ function conseils(m,c,profondeur){
   }
   // Vigilance : uniquement la sécurité et les consignes officielles
   if(m.alert){
-    add("alerte",m.alert.titre+" : suivez les consignes officielles sur vigilance.meteofrance.fr et limitez vos déplacements.",1);
+    add("alerte",m.alert.titre+" : suivez les consignes officielles sur vigilance.meteofrance.fr et limitez vos déplacements.",1);t[t.length-1].orange=!(m.alert.niveau>=4); // icône orange pour une vigilance orange
     if(m.type==="chaleur") add("sante","Buvez souvent, restez au frais entre 12 h et 17 h, et prenez des nouvelles des personnes fragiles.",1);
     if(m.type==="orage"||m.pl>=20) add("route","Ne vous engagez jamais sur une route inondée, même en voiture.",1);
     if(m.raf>=70) add("jardin","Rentrez ou attachez le mobilier de jardin, les pots et les trampolines.",1);
@@ -1742,7 +1742,7 @@ function render(){
   T.push('<div class="card tile"><span class="k">'+SMALL.rise+'Soleil</span><span class="v soleil">'+sun.lever+' <i>→</i> '+sun.coucher+'</span><span class="d">Lever et coucher · '+sun.duree+' de jour</span></div>');
   $("tiles").innerHTML=T.join("");
   const cs=conseils(m,c);$("tipsTitre").textContent=cs.titre;
-  $("tips").innerHTML=cs.liste.map(x=>'<div class="tip'+(x.warn?" warn":"")+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+insec(x.txt)+'</span></div></div>').join("");
+  $("tips").innerHTML=cs.liste.map(x=>'<div class="tip'+(x.warn?" warn":"")+(x.orange?" orange":"")+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+insec(x.txt)+'</span></div></div>').join("");
   let maj=enReel()?new Date(DATA.maj):new Date();if(!enReel())maj.setMinutes(0,0,0);if(st.stale)maj=new Date(maj.getTime()-5*36e5);
   const age=Math.floor((Date.now()-maj)/36e5), hMaj=maj.getHours()+" h "+String(maj.getMinutes()).padStart(2,"0");
   $("foot").textContent="Mis à jour à "+hMaj+" · "+COMMUNES.length+" communes couvertes";
@@ -2119,7 +2119,9 @@ function cIcon(ctx,t,x,y,s,dark,pal){
 function logoCanvas(x,px,py,size,color,accent){x.font="800 "+size+"px "+FD;x.fillStyle=color;x.fillText("La météo ",px,py);const w=x.measureText("La météo ").width;x.fillStyle=accent;x.fillText("de Léo",px+w,py)}
 /* ---------- Carrousel Instagram : 7 images, une idée par image ----------
    1 accroche · 2 carte · 3 secteurs · 4 la journée · 5 conseils · 6 jours suivants · 7 sourire et lien */
-let postJour=new Date().getHours()>=18?1:0;   // le soir, on prépare le carrousel du lendemain
+let postJour=new Date().getHours()>=18?1:0, postJourChoisi=0;   // le soir, on prépare le carrousel du lendemain
+// À chaque ouverture de l'espace éditeur : avant 18 h le jour même, après 18 h le lendemain (sauf choix fait à la main dans l'heure)
+const postJourAuto=()=>{if(Date.now()-postJourChoisi>36e5)postJour=new Date().getHours()>=18?1:0};
 const TITRE={soleil:"Grand soleil",nuageux:"Soleil et nuages",mistral:"Journée de mistral",vent:"Vent fort",pluie:"Journée de pluie",orage:"Risque d'orages",gel:"Gelées au réveil",brouillard:"Brouillard le matin",neige:"De la neige",chaleur:"Forte chaleur",couvert:"Ciel couvert",averses:"Averses",pluieForte:"Fortes pluies",bruine:"Pluie faible",verglas:"Pluie verglaçante"};
 const AUSSI={soleil:"du soleil",nuageux:"des éclaircies",mistral:"du mistral",vent:"du vent",pluie:"de la pluie",orage:"des orages",gel:"des gelées",brouillard:"du brouillard",neige:"de la neige",chaleur:"une forte chaleur"};
 const POIDS={orage:3,neige:3,pluie:1.5,mistral:1.3,chaleur:1.3};
@@ -2379,14 +2381,59 @@ function majHNav(){const h=$("hours");if(!h)return;$("hPrev").hidden=h.scrollLef
 $("hours").addEventListener("scroll",majHNav,{passive:true});addEventListener("resize",majHNav);
 $("hPrev").addEventListener("click",()=>$("hours").scrollBy({left:-240,behavior:"smooth"}));
 $("hNext").addEventListener("click",()=>$("hours").scrollBy({left:240,behavior:"smooth"}));
-document.querySelectorAll("#postJour .chip").forEach(b=>b.addEventListener("click",()=>{postJour=+b.dataset.j;buildSlides()}));
+document.querySelectorAll("#postJour .chip").forEach(b=>b.addEventListener("click",()=>{postJour=+b.dataset.j;postJourChoisi=Date.now();buildSlides()}));
 /* Reel : les images du carrousel enchaînées en vidéo verticale 1080 × 1920 (fondu et léger zoom), enregistrée dans le navigateur */
 let SLIDES=[],SLIDES_JOUR="",SLIDES_J=1,RESEAU="instagram";
+/* Vidéo au format des réseaux sociaux : H.264, 1080 × 1920, 30 images/s constantes, index au début (« Fast Start »).
+   Les images sont fabriquées une par une : le résultat ne dépend ni de la vitesse du téléphone ni des mises en veille. */
+async function encoderMP4(cv,W,H,fps,duree,dessine,avance){
+  let codec=null;for(const c of ["avc1.640028","avc1.4d4028","avc1.42E028"]){try{const r=await VideoEncoder.isConfigSupported({codec:c,width:W,height:H,bitrate:8e6,framerate:fps,avc:{format:"avc"}});if(r.supported){codec=c;break}}catch(e){}}
+  if(!codec)return null;
+  const images=[];let avcC=null,erreur=null;
+  const enc=new VideoEncoder({output:(ch,meta)=>{if(meta&&meta.decoderConfig&&meta.decoderConfig.description)avcC=new Uint8Array(meta.decoderConfig.description.buffer?meta.decoderConfig.description.buffer:meta.decoderConfig.description);const b=new Uint8Array(ch.byteLength);ch.copyTo(b);images.push({d:b,k:ch.type==="key"})},error:e=>{erreur=e}});
+  enc.configure({codec,width:W,height:H,bitrate:8e6,framerate:fps,avc:{format:"avc"},latencyMode:"quality"});
+  const n=Math.round(duree*fps);
+  for(let i=0;i<n;i++){
+    if(erreur)throw erreur;
+    dessine(i/fps);
+    const f=new VideoFrame(cv,{timestamp:Math.round(i*1e6/fps),duration:Math.round(1e6/fps)});enc.encode(f,{keyFrame:i%(fps*2)===0});f.close();
+    while(enc.encodeQueueSize>4)await new Promise(r=>setTimeout(r,5));
+    if(i%6===0){avance(Math.round(i/n*100));await new Promise(r=>setTimeout(r,0))}
+  }
+  await enc.flush();enc.close();if(erreur)throw erreur;
+  if(!avcC||!images.length)return null;
+  return new Blob([assemblerMP4(W,H,fps,images,avcC)],{type:"video/mp4"});
+}
+function assemblerMP4(W,H,fps,images,avcC){
+  const T=new TextEncoder(),u32=v=>[v>>>24&255,v>>>16&255,v>>>8&255,v&255],u16=v=>[v>>8&255,v&255],zero=k=>new Array(k).fill(0);
+  const cat=L=>{let n=0;for(const p of L)n+=p.length;const o=new Uint8Array(n);let k=0;for(const p of L){o.set(p,k);k+=p.length}return o};
+  const box=(t,...L)=>{const c=cat(L.map(p=>p instanceof Uint8Array?p:Uint8Array.from(p)));return cat([Uint8Array.from(u32(c.length+8)),T.encode(t),c])};
+  const plein=(t,v,f,...L)=>box(t,[v,f>>16&255,f>>8&255,f&255],...L);
+  const MAT=[...u32(0x10000),...zero(12),...u32(0x10000),...zero(12),...u32(0x40000000)];
+  const n=images.length,TS=fps*1000,dureeMs=Math.round(n*1000/fps);
+  const stbl=off=>box("stbl",
+    plein("stsd",0,0,u32(1),box("avc1",zero(6),u16(1),zero(16),u16(W),u16(H),u32(0x480000),u32(0x480000),zero(4),u16(1),zero(32),u16(24),[255,255],box("avcC",avcC))),
+    plein("stts",0,0,u32(1),u32(n),u32(1000)),
+    plein("stss",0,0,u32(images.filter(i=>i.k).length),...images.map((im,i)=>im.k?u32(i+1):[]).filter(a=>a.length)),
+    plein("stsc",0,0,u32(1),u32(1),u32(n),u32(1)),
+    plein("stsz",0,0,u32(0),u32(n),...images.map(im=>u32(im.d.length))),
+    plein("stco",0,0,u32(1),u32(off)));
+  const moov=off=>box("moov",
+    plein("mvhd",0,0,u32(0),u32(0),u32(1000),u32(dureeMs),u32(0x10000),u16(0x100),zero(10),MAT,zero(24),u32(2)),
+    box("trak",
+      plein("tkhd",0,3,u32(0),u32(0),u32(1),zero(4),u32(dureeMs),zero(8),u16(0),u16(0),u16(0),zero(2),MAT,u32(W*65536),u32(H*65536)),
+      box("mdia",
+        plein("mdhd",0,0,u32(0),u32(0),u32(TS),u32(n*1000),u16(0x55c4),u16(0)),
+        plein("hdlr",0,0,u32(0),T.encode("vide"),zero(12),T.encode("VideoHandler"),[0]),
+        box("minf",plein("vmhd",0,1,zero(8)),box("dinf",plein("dref",0,0,u32(1),plein("url ",0,1))),stbl(off)))));
+  const ftyp=box("ftyp",T.encode("isom"),u32(512),T.encode("isomiso2avc1mp41"));
+  const taille=moov(0).length,off=ftyp.length+taille+8;
+  let total=0;for(const im of images)total+=im.d.length;
+  const mdat=new Uint8Array(8+total);mdat.set(u32(8+total));mdat.set(T.encode("mdat"),4);let k=8;for(const im of images){mdat.set(im.d,k);k+=im.d.length}
+  return cat([ftyp,moov(off),mdat]);
+}
 async function creerReel(btn){
   const out=$("reelOut");if(!SLIDES.length){flash(btn,"Pas d'images");return}
-  if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){out.innerHTML='<span class="sub">Ce navigateur ne sait pas créer de vidéo. Essaie avec Chrome à jour.</span>';return}
-  const types=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4","video/webm;codecs=vp9","video/webm"],type=types.find(t=>MediaRecorder.isTypeSupported(t));
-  if(!type){out.innerHTML='<span class="sub">Ce navigateur ne sait pas créer de vidéo. Essaie avec Chrome à jour.</span>';return}
   const W=1080,H=1920,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
   // Reel pensé pour la rétention : accroche forte en 1 seconde, images courtes qui glissent, barre de progression, fin qui renvoie au lien
   const J=SLIDES_J, R=bilanDep(J), al=R.al, dj=dayDate(J);
@@ -2485,34 +2532,45 @@ async function creerReel(btn){
       centre("Abonnez-vous pour la météo de demain",1290,"700 42px "+FB,B.white,ease((t-.9)/.4));
       centre(PSEUDO,1370,"800 40px "+FB,B.sun,ease((t-.9)/.4));
     }
-    if(sc.type!=="hook"&&sc.type!=="fin")centre(PSEUDO,300,"800 32px "+FB,sc.type==="sourire"?B.sunInk:B.white,.7);
+    // Sur Facebook, le nom de la page s'affiche déjà en haut de la vidéo et cacherait le @ : on ne le met qu'à la fin
+    if(sc.type!=="hook"&&sc.type!=="fin"&&RESEAU!=="facebook")centre(PSEUDO,300,"800 32px "+FB,sc.type==="sourire"?B.sunInk:B.white,.7);
     if(!enReel()){x.save();x.translate(W/2,H/2);x.rotate(-Math.PI/7);x.fillStyle="rgba(179,38,30,.9)";x.fillRect(-W,-70,W*2,140);x.fillStyle="#fff";x.font="800 58px "+FD;x.textAlign="center";x.fillText("DÉMONSTRATION · NE PAS PUBLIER",0,20);x.restore()}
   };
-  const stream=cv.captureStream(30),rec=new MediaRecorder(stream,{mimeType:type,videoBitsPerSecond:8e6}),morceaux=[];
-  rec.ondataavailable=e=>{if(e.data&&e.data.size)morceaux.push(e.data)};
   btn.disabled=true;out.innerHTML='<span class="sub" id="reelEtat">Création en cours… 0 %</span>';
-  // Aperçu en direct : le dessin reste à l'écran, ce qui évite que le téléphone le mette en pause
+  // Aperçu en direct
   cv.style.cssText="width:140px;height:auto;border-radius:12px;display:block;margin-top:8px";out.appendChild(cv);
-  // Empêche la mise en veille de l'écran pendant la création (si le téléphone le permet)
   let verrou=null;try{if(navigator.wakeLock)verrou=await navigator.wakeLock.request("screen")}catch(e){}
   // Image de départ (gardée pour la boucle) et couverture (l'accroche complète, sans barre)
   const debut=document.createElement("canvas");debut.width=W;debut.height=H;scene(SC[0],0);progression(0,0);debut.getContext("2d").drawImage(cv,0,0);
   const couv=document.createElement("canvas");couv.width=W;couv.height=H;scene(SC[0],2.5);couv.getContext("2d").drawImage(cv,0,0);
-  scene(SC[0],0);progression(0,0);
-  const fini=new Promise(res=>rec.onstop=res);rec.start(500);
-  // Le temps de la vidéo n'avance que quand la page est visible : si l'écran s'éteint ou si on change d'appli, tout se met en pause
-  let t=0,prec=performance.now(),pause=false;
-  const vis=()=>{if(document.hidden){if(rec.state==="recording")rec.pause();pause=true}else{if(rec.state==="paused")rec.resume();pause=false;prec=performance.now()}};
-  document.addEventListener("visibilitychange",vis);
-  await new Promise(res=>{const tick=()=>{const now=performance.now();if(!pause)t+=Math.min(.1,(now-prec)/1000);prec=now;
-    if(t>=total+.2){res();return}
-    let k=0,acc=0;while(k<SC.length-1&&t>=acc+SC[k].d){acc+=SC[k].d;k++}
+  // Dessine l'image de l'instant t (en secondes)
+  const image=t=>{let k=0,acc=0;while(k<SC.length-1&&t>=acc+SC[k].d){acc+=SC[k].d;k++}
     const tl=t-acc;scene(SC[k],tl);progression(k,Math.min(1,tl/SC[k].d));
-    if(k===SC.length-1&&tl>SC[k].d-.4){x.globalAlpha=Math.min(1,(tl-(SC[k].d-.4))/.4);x.drawImage(debut,0,0);x.globalAlpha=1}
-    const e=$("reelEtat");if(e)e.textContent=(pause?"En pause : reviens sur cette page… ":"Création en cours… ")+Math.min(100,Math.round(t/total*100))+" %";requestAnimationFrame(tick)};tick()});
-  document.removeEventListener("visibilitychange",vis);
-  rec.stop();await fini;btn.disabled=false;try{if(verrou)verrou.release()}catch(e){}
-  const ext=type.startsWith("video/mp4")?"mp4":"webm",blob=new Blob(morceaux,{type:type.split(";")[0]}),file="lameteodeleo-"+SLIDES_JOUR+"-reel-"+RESEAU+"."+ext,url=URL.createObjectURL(blob);
+    if(k===SC.length-1&&tl>SC[k].d-.4){x.globalAlpha=Math.min(1,(tl-(SC[k].d-.4))/.4);x.drawImage(debut,0,0);x.globalAlpha=1}};
+  const etat=v=>{const e=$("reelEtat");if(e)e.textContent=v};
+  let blob=null,type="video/mp4";
+  // Méthode pro : chaque image est fabriquée une par une, 30 images par seconde exactement, en H.264 avec l'index au début du fichier.
+  // C'est le format demandé par Instagram et Facebook. Le téléphone peut s'éteindre ou changer d'appli : la création reprend où elle en était.
+  if(window.VideoEncoder&&window.VideoFrame)try{blob=await encoderMP4(cv,W,H,30,total,image,p=>etat("Création en cours… "+p+" %"))}catch(e){blob=null}
+  if(!blob){
+    // Ancienne méthode (enregistrement en direct) si le navigateur ne sait pas faire autrement
+    const types=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4","video/webm;codecs=vp9","video/webm"];type=window.MediaRecorder?types.find(t=>MediaRecorder.isTypeSupported(t)):null;
+    if(!type||!HTMLCanvasElement.prototype.captureStream){btn.disabled=false;out.innerHTML='<span class="sub">Ce navigateur ne sait pas créer de vidéo. Essaie avec Chrome à jour.</span>';return}
+    const stream=cv.captureStream(30),rec=new MediaRecorder(stream,{mimeType:type,videoBitsPerSecond:8e6}),morceaux=[];
+    rec.ondataavailable=e=>{if(e.data&&e.data.size)morceaux.push(e.data)};
+    scene(SC[0],0);progression(0,0);
+    const fini=new Promise(res=>rec.onstop=res);rec.start(500);
+    let t=0,prec=performance.now(),pause=false;
+    const vis=()=>{if(document.hidden){if(rec.state==="recording")rec.pause();pause=true}else{if(rec.state==="paused")rec.resume();pause=false;prec=performance.now()}};
+    document.addEventListener("visibilitychange",vis);
+    await new Promise(res=>{const tick=()=>{const now=performance.now();if(!pause)t+=Math.min(.1,(now-prec)/1000);prec=now;
+      if(t>=total+.2){res();return}
+      image(t);etat((pause?"En pause : reviens sur cette page… ":"Création en cours… ")+Math.min(100,Math.round(t/total*100))+" %");requestAnimationFrame(tick)};tick()});
+    document.removeEventListener("visibilitychange",vis);
+    rec.stop();await fini;blob=new Blob(morceaux,{type:type.split(";")[0]});
+  }
+  btn.disabled=false;try{if(verrou)verrou.release()}catch(e){}
+  const ext=type.startsWith("video/mp4")?"mp4":"webm",file="lameteodeleo-"+SLIDES_JOUR+"-reel-"+RESEAU+"."+ext,url=URL.createObjectURL(blob);
   out.innerHTML='<video src="'+url+'" controls playsinline muted style="width:100%;max-width:280px;border-radius:14px;display:block"></video>';
   {const v=out.querySelector("video");v.addEventListener("loadedmetadata",()=>{if(isFinite(v.duration)&&v.duration<total-1.5){const n=document.createElement("p");n.className="alert simple";n.style.marginTop="8px";n.innerHTML="<span><b>Vidéo incomplète ("+Math.round(v.duration)+" s au lieu de "+Math.round(total)+" s).</b> Touche à nouveau «&nbsp;Créer la vidéo&nbsp;» en gardant l'écran allumé, sans changer d'appli.</span>";out.appendChild(n)}})}
   const meta=document.createElement("div");meta.className="chips";meta.style.marginTop="8px";
@@ -2674,7 +2732,7 @@ function route(){
   $("t-meteo").toggleAttribute("aria-current",v==="meteo");$("t-secteurs").toggleAttribute("aria-current",v==="secteurs");
   if(v==="meteo"){$("t-meteo").setAttribute("aria-current","page");render()}
   if(v==="secteurs"){$("t-secteurs").setAttribute("aria-current","page");renderSecteurs()}
-  if(v==="studio"){markScen();buildKit();buildSlides();
+  if(v==="studio"){postJourAuto();markScen();buildKit();buildSlides();
     const q=DATA&&DATA.qualite, ql=$("qualiteLigne");
     if(q){ql.hidden=false;ql.textContent="Contrôle qualité de la dernière mise à jour ("+DATA.maj.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}).replace(":"," h ")+") : "+q.validees+" communes validées sur "+q.total+(q.ajustees?", "+q.ajustees+" valeur"+(q.ajustees>1?"s":"")+" ajustée"+(q.ajustees>1?"s":""):"")+(q.ecartees&&q.ecartees.length?". Écartées : "+q.ecartees.join(", ")+".":".")+(DATA.vigilance?" Vigilance Météo-France lue (bulletin de "+heureV(new Date(DATA.vigilance.maj||DATA.maj))+").":" Vigilance Météo-France : non lue.")}
     else ql.hidden=true;
@@ -2777,7 +2835,8 @@ async function rafraichir(){
     await Promise.all([rafraichir(),new Promise(r=>setTimeout(r,600))]);
     ptr.classList.remove("charge");ptr.style.opacity=0;ptr.style.transform="";occupe=false});
   // Retour sur l'app après un moment : on recharge les prévisions
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&dernierChargement&&Date.now()-dernierChargement>20*6e4&&!document.body.classList.contains("boot"))rafraichir()});
+  // L'app restée ouverte depuis la veille repart sur la bonne journée (dates, « aujourd'hui », story du jour)
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&new Date().toDateString()!==today.toDateString()){location.reload();return}if(!document.hidden&&dernierChargement&&Date.now()-dernierChargement>20*6e4&&!document.body.classList.contains("boot"))rafraichir()});
 })();
 async function demarrer(){
   try{
