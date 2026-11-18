@@ -1395,6 +1395,8 @@ const CONTEXTE=[
   "Week-end sous les nuages à {v}. Bonne nouvelle : pas de coup de soleil à déclarer lundi."]}
 ];
 function motDuJour(c,m,jour,demain){
+  // Quelques gouttes seulement (icône « pluie faible ») : pas de blague de pluie, on reste sur un ciel nuageux
+  if(m&&m.type==="pluie"&&m.ico==="bruine")m={...m,type:"nuageux"};
   return motBrut(c,m,jour,demain);
 }
 function motBrut(c,m,jour,demain){
