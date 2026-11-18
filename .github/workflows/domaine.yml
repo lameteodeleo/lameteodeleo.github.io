@@ -1,0 +1,20 @@
+# Réglage ponctuel : relier le nom de domaine lameteodeleo.fr au site (lancé à la main)
+name: Nom de domaine
+on:
+  workflow_dispatch:
+permissions:
+  pages: write
+  contents: read
+jobs:
+  domaine:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Relier lameteodeleo.fr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Avant :"; gh api repos/${{ github.repository }}/pages --jq '{cname, https_enforced, status}' || true
+          gh api -X PUT repos/${{ github.repository }}/pages -f cname=lameteodeleo.fr && echo "Domaine enregistré" || echo "Échec de l'enregistrement"
+          sleep 20
+          echo "Après :"; gh api repos/${{ github.repository }}/pages --jq '{cname, https_enforced, status}' || true
+          gh api repos/${{ github.repository }}/pages/health --jq '.domain | {is_valid, dns_resolves, is_https_eligible, responds_to_https, enforces_https, is_pointed_to_github_pages_server, is_cloudflare_ip}' || true
