@@ -2699,7 +2699,7 @@ noms.forEach(n=>{const o=document.createElement("option");o.value=o.textContent=
 const lien=n=>"https://lameteodeleo.fr/meteo/"+norm(n).replace(/ /g,"-")+"/";
 const a=n=>/^Le /.test(n)?n.replace(/^Le /,"au "):/^Les /.test(n)?n.replace(/^Les /,"aux "):"à "+n;
 const de=n=>/^Le /.test(n)?n.replace(/^Le /,"du "):/^Les /.test(n)?n.replace(/^Les /,"des "):/^[AEIOUYÉÈÊaeiouy]/.test(n)?"d'"+n:"de "+n;
-const texte=n=>{const an=SAVIEZ_COMMUNE[n];return `Une météo complète, faite pour ${n} 🌤️
+const texte=n=>{const an=SAVIEZ_COMMUNE[n];return `Une météo complète et locale pour ${n} 🌤️
 
 Bonjour à tous ! Je m'appelle Léo, j'habite dans les Bouches-du-Rhône, et j'ai créé une appli météo gratuite pour toutes les communes du 13. Retrouvez la météo ${de(n)} ici :
 👉 ${lien(n)}
