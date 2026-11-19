@@ -2500,8 +2500,12 @@ async function creerReel(btn){
     }else if(sc.type==="temp"){fond();titreSc("Les températures",t);sousSc(jourTxt,t);
       [[R.chaud.m.max,"Le plus chaud",R.chaud.nom,"chaleur","#F2994A"],[parMin.m.min,"Le plus frais, au réveil",parMin.nom,"gel","#6EA8F0"]].forEach(([v,k,o,ic,col],i)=>
         carte(620+i*480,420,t,.25+i*.35,()=>{x.fillStyle=col;x.font="800 50px "+FB;x.fillText(k,130,720+i*480);
-          x.fillStyle=B.white;x.font="800 190px "+FB;x.fillText(Math.round(v)+"°",130,920+i*480);
-          x.font="800 54px "+FB;x.textAlign="right";x.fillText(o,W-130,900+i*480);x.textAlign="left"}));
+          x.fillStyle=B.white;x.font="800 190px "+FB;const nv=Math.round(v)+"°";x.fillText(nv,130,920+i*480);
+          const dispo=W-130-(130+x.measureText(nv).width+50);let fs=54;x.font="800 "+fs+"px "+FB;
+          while(x.measureText(o).width>dispo&&fs>42){fs-=2;x.font="800 "+fs+"px "+FB}
+          let ls=[o];if(x.measureText(o).width>dispo){const m=o.match(/^(.*[- ])([^- ]+[- ][^- ]+)$/)||o.match(/^(.*[- ])([^- ]+)$/);if(m)ls=[m[1].replace(/ $/,""),m[2]];
+            while(ls.some(l=>x.measureText(l).width>dispo)&&fs>32){fs-=2;x.font="800 "+fs+"px "+FB}}
+          x.textAlign="right";const lh=Math.round(fs*1.15);ls.forEach((l,j)=>x.fillText(l,W-130,900+i*480-(ls.length-1-j)*lh));x.textAlign="left"}));
     }else if(sc.type==="pv"){fond();titreSc(pluieVent.length>1?"Pluie et vent":"Le vent",t);sousSc(jourTxt,t);
       pluieVent.forEach((o,i)=>carte(620+i*480,420,t,.25+i*.35,()=>{cIcon(x,o.ico,120,660+i*480,170,true);
           x.fillStyle=B.sun;x.font="800 50px "+FB;x.fillText(o.k,330,720+i*480);
