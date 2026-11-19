@@ -1,6 +1,6 @@
 // La météo de Léo : service worker minimal.
 // Il rend l'app installable comme une vraie app et garde la dernière version pour l'afficher hors connexion.
-const CACHE = "lameteodeleo-v2";
+const CACHE = "lameteodeleo-v3";
 const BASE = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -19,9 +19,18 @@ self.addEventListener("fetch", e => {
   const cle = url.pathname.endsWith("/data/meteo.json") ? url.origin + url.pathname : e.request;
   // La page et les prévisions : on redemande toujours la dernière version (sans la copie gardée par le navigateur)
   const frais = e.request.mode === "navigate" || url.pathname.endsWith("/") || url.pathname.endsWith(".html") || url.pathname.endsWith("/data/meteo.json");
+  // Ouverture d'une page : on laisse le navigateur suivre lui-même les redirections (sinon Safari affiche une erreur)
+  if (e.request.mode === "navigate") {
+    e.respondWith(
+      fetch(e.request)
+        .then(r => { if (r.ok && !r.redirected && r.type === "basic") { const copie = r.clone(); caches.open(CACHE).then(c => c.put(url.pathname.endsWith("/") ? url.pathname : e.request, copie)); } return r; })
+        .catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || caches.match("./")))
+    );
+    return;
+  }
   e.respondWith(
     (frais ? fetch(url.href, { cache: "no-cache", credentials: "same-origin" }) : fetch(e.request))
-      .then(r => { if (r.ok) { const copie = r.clone(); caches.open(CACHE).then(c => c.put(cle, copie)); } return r; })
+      .then(r => { if (r.redirected) return Response.redirect(r.url, 302); if (r.ok) { const copie = r.clone(); caches.open(CACHE).then(c => c.put(cle, copie)); } return r; })
       .catch(() => caches.match(cle, { ignoreSearch: true }))
   );
 });
