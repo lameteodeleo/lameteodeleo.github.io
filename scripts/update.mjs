@@ -539,7 +539,7 @@ footer{color:var(--muted);font-size:.78rem;margin-top:30px;line-height:1.5}`;
 function page({ titre, desc, url, corps }) {
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(titre)}</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="${url}">
-<meta property="og:type" content="website"><meta property="og:title" content="${esc(titre)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${SITE}/icons/partage.png"><meta property="og:locale" content="fr_FR">
+<meta property="og:type" content="website"><meta property="og:title" content="${esc(titre)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${SITE}/icons/partage.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="La météo de Léo"><meta property="og:locale" content="fr_FR">
 <meta name="theme-color" content="#4B3BB8"><link rel="icon" href="/icons/icon-192.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <style>${STYLE}</style>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a3212f59-b8e9-486f-9e0f-d7256926be65" data-domains="lameteodeleo.fr"></script>
