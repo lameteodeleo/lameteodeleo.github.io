@@ -2588,7 +2588,8 @@ async function creerReel(btn){
   if(ext==="webm"){const n=document.createElement("p");n.className="sub";n.textContent="Vidéo au format WebM : si Instagram ne la propose pas, mets Chrome à jour puis recommence (les versions récentes créent un MP4).";out.appendChild(n)}
 }
 $("reelGo").addEventListener("click",e=>creerReel(e.currentTarget));
-document.querySelectorAll("#reelReseau .chip").forEach(b=>b.addEventListener("click",()=>{RESEAU=b.dataset.r;document.querySelectorAll("#reelReseau .chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b)));majLegende()}));
+document.querySelectorAll("#reelReseau .chip").forEach(b=>b.addEventListener("click",()=>{if(RESEAU!==b.dataset.r){const o=$("reelOut");if(o&&o.innerHTML.trim())o.innerHTML='<p class="sub">Réseau changé : touche «&nbsp;Créer la vidéo&nbsp;» pour la version '+(b.dataset.r==="facebook"?"Facebook":"Instagram")+'.</p>'}
+  RESEAU=b.dataset.r;document.querySelectorAll("#reelReseau .chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b)));majLegende()}));
 async function buildSlides(){
   try{await Promise.all(['800 60px "Bricolage Grotesque"','600 40px "Bricolage Grotesque"','800 30px "Nunito Sans"','700 30px "Nunito Sans"'].map(f=>document.fonts.load(f)))}catch(e){}
   const J=postJour, dj=dayDate(J), day=dj.getFullYear()+"-"+String(dj.getMonth()+1).padStart(2,"0")+"-"+String(dj.getDate()).padStart(2,"0");
