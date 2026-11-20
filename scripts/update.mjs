@@ -583,7 +583,7 @@ h2{font-size:1.15rem;margin:28px 0 10px}
 .hs{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 8px;margin:0 -2px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 .h{flex:none;scroll-snap-align:start;width:64px;background:var(--card);border-radius:16px;padding:10px 4px 9px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
 .h .hh{font-size:.78rem;color:var(--muted);font-weight:600}.h .ico{width:34px;height:34px}.h b{font-size:1rem}.h .p{font-size:.72rem;color:#2F86E8;font-weight:700;min-height:1em}
-.h.now{background:var(--brand);color:#fff}.h.now .hh{color:rgba(255,255,255,.85)}.h.now .p{color:#BFE0FF}
+.h.now{background:#4B3BB8;color:#fff}.h.now .hh{color:rgba(255,255,255,.85)}.h.now .p{color:#BFE0FF}
 .app{display:flex;gap:14px;align-items:center;background:var(--card);border-radius:20px;padding:16px;margin-top:14px;border:1px solid var(--line)}
 .app img{width:56px;height:56px;border-radius:14px;flex:none}.app p{margin:0;font-size:.9rem;color:var(--muted)}.app b{display:block;color:var(--ink);font-size:1rem;margin-bottom:2px}
 .app a{display:inline-block;margin-top:8px;font-weight:800;text-decoration:none;color:var(--brand)}
