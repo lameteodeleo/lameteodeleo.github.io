@@ -563,12 +563,17 @@ h1{font-size:1.65rem;line-height:1.2;margin:22px 0 4px;letter-spacing:-.01em}.su
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.chips span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:5px 12px;font-size:.88rem;font-weight:600}
 .btn{display:inline-block;margin-top:16px;background:var(--sun);color:#1B1640;font-weight:800;text-decoration:none;padding:13px 20px;border-radius:999px;box-shadow:0 6px 16px rgba(0,0,0,.18)}
 .jours{background:var(--card);border-radius:20px;padding:4px 14px;box-shadow:0 2px 10px rgba(27,22,64,.05)}
-.j{display:grid;grid-template-columns:88px 36px 1fr auto;align-items:center;column-gap:10px;row-gap:2px;padding:12px 0;border-bottom:1px solid var(--line)}.j .ico{width:36px;height:36px}.j .x{grid-column:3/5;color:var(--muted);font-size:.8rem;line-height:1.3}.j:last-child{border-bottom:0}
-.j .d{font-weight:700;line-height:1.2;grid-row:span 2}.j .j-i{grid-row:span 2}.j .d span{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
-.j .c{font-weight:700;font-size:.95rem;line-height:1.25}
-.tp{display:flex;align-items:center;gap:7px;font-variant-numeric:tabular-nums;font-size:.95rem}.tp .mn{color:var(--muted);width:2.1em;text-align:right}.tp .mx{font-weight:800;width:2.1em}
-.bar{position:relative;width:44px;height:6px;border-radius:9px;background:var(--line)}.bar i{position:absolute;top:0;bottom:0;border-radius:9px;background:linear-gradient(90deg,var(--froid),var(--chaud))}
-@media (max-width:370px){.j{grid-template-columns:82px 30px 1fr auto;column-gap:7px}.j .d{font-size:.9rem}.jours{padding:4px 12px}.bar{width:32px}.j .ico{width:32px;height:32px}}
+.j{display:grid;grid-template-columns:78px 52px 50px 1fr;align-items:center;column-gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.j:last-child{border-bottom:0}
+.j.tete{padding:10px 0 8px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}.j.tete span{text-align:center}.j.tete span:last-child{text-align:center}
+.j .d{font-weight:700;line-height:1.2}.j .d span{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
+.ci,.ve{display:flex;flex-direction:column;align-items:center;line-height:1.1}.ci .ico{width:34px;height:34px}.ci em,.ve em{font-style:normal;font-size:.72rem;font-weight:700;min-height:1em}.ci em{color:#2F86E8;margin-top:1px}
+.ve span{display:flex;align-items:center;gap:3px;font-weight:700;font-variant-numeric:tabular-nums}.ve em{color:var(--muted);font-weight:500}.ve .fl{width:12px;height:12px;color:var(--muted)}
+.ve.mis span,.ve.mis em,.ve.mis .fl{color:#0E9AA7}.ve.mis em{font-weight:700}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.tp{display:flex;align-items:center;gap:7px;font-variant-numeric:tabular-nums;font-size:.95rem}.tp .mn{color:var(--muted);width:2.1em;text-align:right;flex:none}.tp .mx{font-weight:800;width:2.1em;flex:none}
+.bar{position:relative;flex:1;min-width:30px;height:6px;border-radius:9px;background:var(--line)}.bar i{position:absolute;top:0;bottom:0;border-radius:9px;background:linear-gradient(90deg,var(--froid),var(--chaud))}
+.bar .cur{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#fff;border:3px solid var(--brand);box-shadow:0 1px 4px rgba(0,0,0,.25)}
+@media (max-width:370px){.j{grid-template-columns:70px 46px 44px 1fr;column-gap:7px}.j .d{font-size:.9rem}.jours{padding:4px 12px}.tp{gap:5px;font-size:.9rem}}
 h2{font-size:1.15rem;margin:28px 0 10px}
 .fil{font-size:.8rem;color:var(--muted);margin:18px 0 0}.fil a{color:var(--muted);text-decoration:none}.fil a:hover{text-decoration:underline}
 .vig{display:flex;gap:12px;align-items:flex-start;border-radius:18px;padding:14px 16px;margin:16px 0 0;text-decoration:none;font-weight:600;line-height:1.35}
@@ -594,7 +599,7 @@ function page({ titre, desc, url, corps }) {
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a3212f59-b8e9-486f-9e0f-d7256926be65" data-domains="lameteodeleo.fr"></script>
 </head><body><main><a class="top" href="/"><img src="/icons/icon-192.png" alt=""><span>La météo <em>de Léo</em></span></a>${corps}
 <footer>La météo de Léo : la météo des Bouches-du-Rhône, commune par commune. Prévisions des modèles AROME et ARPEGE de Météo-France, mises à jour toutes les 2 heures. Vigilances officielles : <a href="https://vigilance.meteofrance.fr/fr">vigilance.meteofrance.fr</a>. Données météo : Open-Meteo, licence CC BY 4.0. <a href="/#apropos">À propos et mentions légales</a>.</footer>
-</main><script>try{const n=new Date().toLocaleString("sv-SE",{timeZone:"Europe/Paris"}).replace(" ","T").slice(0,13);const L=[...document.querySelectorAll(".h[data-t]")];const v=L.filter(e=>e.dataset.t>=n);if(v.length&&v.length<L.length){L.forEach(e=>{if(e.dataset.t<n)e.remove()});L.forEach(e=>e.classList.remove("now"));v[0].classList.add("now");v[0].querySelector(".hh").textContent="Maint."}}catch(e){}</script></body></html>`;
+</main><script>try{const n=new Date().toLocaleString("sv-SE",{timeZone:"Europe/Paris"}).replace(" ","T").slice(0,13);const L=[...document.querySelectorAll(".h[data-t]")];const v=L.filter(e=>e.dataset.t>=n);if(v.length&&v.length<L.length){L.forEach(e=>{if(e.dataset.t<n)e.remove()});L.forEach(e=>e.classList.remove("now"));v[0].classList.add("now");v[0].querySelector(".hh").textContent="Maint."}const c=document.querySelector(".bar .cur"),t=v[0]&&v[0].querySelector("b");if(c&&t){const T=parseFloat(t.textContent);c.style.left=Math.max(0,Math.min(100,(T-c.dataset.bas)/c.dataset.et*100))+"%";c.title="Maintenant "+T+"°"}}catch(e){}</script></body></html>`;
 }
 async function pagesCommunes(ok, vig) {
   let ANEC = {};
@@ -607,8 +612,14 @@ async function pagesCommunes(ok, vig) {
     const dep = x.dep === "13" ? "Bouches-du-Rhône" : x.dep === "84" ? "Vaucluse" : x.dep === "83" ? "Var" : "";
     const lib0 = ciel(J[1], J[7], J[6]);
     const S7 = x.d.slice(0, 7), bas = Math.min(...S7.map(D => D[3])), haut = Math.max(...S7.map(D => D[2])), et = Math.max(1, haut - bas);
-    const lignes = S7.map((D, k) => { const lb = ciel(D[1], D[7], D[6]); const det = [D[6] >= 0.5 ? `pluie ${String(D[6]).replace(".", ",")} mm${D[7] != null ? " (" + D[7] + " %)" : ""}` : "", `rafales ${Math.round(D[4])} km/h${mistral(D[4], D[5]) ? ", mistral" : D[5] != null ? " " + dirTxt(D[5]) : ""}`].filter(Boolean).join(" · ");
-      return `<div class="j"><div class="d">${k === 0 ? "Aujourd'hui" : k === 1 ? "Demain" : cap(jourTxt(D[0]).split(" ")[0])}<span>${new Date(D[0] + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span></div><span class="j-i">${icone(lb, 36)}</span><div class="c">${lb}</div><div class="tp"><span class="mn">${Math.round(D[3])}°</span><span class="bar"><i style="left:${Math.round((D[3] - bas) / et * 100)}%;right:${Math.round((haut - D[2]) / et * 100)}%"></i></span><span class="mx">${Math.round(D[2])}°</span></div><div class="x">${det}</div></div>`; }).join("");
+    const t0 = (x.n24 || []).find(e => e && e[1] != null), pos = v => Math.max(0, Math.min(100, Math.round((v - bas) / et * 100)));
+    const lignes = S7.map((D, k) => { const lb = ciel(D[1], D[7], D[6]), mis = mistral(D[4], D[5]);
+      const fl = D[5] != null ? `<svg class="fl" viewBox="0 0 12 12" style="transform:rotate(${Math.round(D[5] + 180)}deg)" aria-hidden="true"><path d="M6 1l3.5 9L6 8 2.5 10z" fill="currentColor"/></svg>` : "";
+      const cur = k === 0 && t0 ? `<b class="cur" data-bas="${bas}" data-et="${et}" style="left:${pos(t0[1])}%" title="Maintenant ${Math.round(t0[1])}°"></b>` : "";
+      return `<div class="j"><div class="d">${k === 0 ? "Aujourd'hui" : k === 1 ? "Demain" : cap(jourTxt(D[0]).split(" ")[0])}<span>${new Date(D[0] + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span></div>` +
+        `<div class="ci" title="${lb}">${icone(lb, 34)}<span class="sr">${lb}</span><em>${D[6] >= 0.5 ? String(D[6]).replace(".", ",") + " mm" : ""}</em></div>` +
+        `<div class="ve${mis ? " mis" : ""}"><span>${fl}${Math.round(D[4])}</span><em>${mis ? "mistral" : "km/h"}</em></div>` +
+        `<div class="tp"><span class="mn">${Math.round(D[3])}°</span><span class="bar"><i style="left:${pos(D[3])}%;right:${100 - pos(D[2])}%"></i>${cur}</span><span class="mx">${Math.round(D[2])}°</span></div></div>`; }).join("");
     const voisines = ok.filter(o => o.s === x.s && o.n !== x.n).sort((a, b) => Math.hypot(a.lat - x.lat, a.lon - x.lon) - Math.hypot(b.lat - x.lat, b.lon - x.lon)).slice(0, 8);
     // Vigilance Météo-France du département (et du littoral pour les communes au bord de la mer)
     let vigB = "";
@@ -635,7 +646,7 @@ async function pagesCommunes(ok, vig) {
 <a class="btn" href="/?commune=${encodeURIComponent(x.n)}">Voir la météo heure par heure</a></div>
 <p class="bref">${bref}</p>
 ${heures ? `<h2>Les prochaines heures</h2><div class="hs">${heures}</div>` : ""}
-<h2>Prévisions sur 7 jours</h2><div class="jours">${lignes}</div>
+<h2>Prévisions sur 7 jours</h2><div class="jours"><div class="j tete"><span></span><span>Ciel</span><span>Rafales</span><span>Min · max</span></div>${lignes}</div>
 <div class="app"><img src="/icons/icon-192.png" alt=""><div><b>La météo ${deC(x.n)} dans votre poche</b><p>Température en direct, pluie dans les 2 prochaines heures, vigilances et sourire du jour. Gratuit, sans pub, sans inscription.</p><a href="/?commune=${encodeURIComponent(x.n)}">Ouvrir l'app →</a></div></div>
 ${ANEC[x.n] && ANEC[x.n].length ? `<h2>Le saviez-vous ?</h2>${ANEC[x.n].slice(0, 3).map(a => `<p class="anec">${esc(a.t)}</p>`).join("")}` : ""}
 <h2>Communes voisines</h2><div class="liens">${voisines.map(o => `<a href="/meteo/${slug(o.n)}/">${esc(o.n)}</a>`).join("")}<a href="/meteo/">Toutes les communes</a></div>`;
