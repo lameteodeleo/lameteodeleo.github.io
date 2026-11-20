@@ -702,7 +702,7 @@ function cielDesHeures(H) {
   const m = v.reduce((a, c) => a + nuage(c), 0) / v.length;
   return { code: m <= 0.25 ? 1 : m <= 0.65 ? 2 : 3, brume: v.filter(c => c === 45 || c === 48).length };
 }
-let cielsAjustes = 0;
+let cielsAjustes = 0; const passages = {}, exemple = [];
 for (const x of liste) if (x.d && x.h) x.d.forEach((D, k) => {
   const H = x.h[k]; if (!H) return;
   const lib = ciel(D[1], D[7], D[6]);
@@ -712,9 +712,9 @@ for (const x of liste) if (x.d && x.h) x.d.forEach((D, k) => {
   // Une pluie écartée (peu probable) laisse au moins des nuages : jamais « Ensoleillé » ce jour-là
   if (((D[1] >= 51 && D[1] <= 67) || (D[1] >= 71 && D[1] <= 86) || D[1] >= 95) && r.code < 2) r.code = 2;
   // Seul le ciel change : si le nouveau code donnait une autre conclusion sur la pluie, on garde l'ancien
-  if (r.code !== D[1] && ["Ensoleillé", "Éclaircies", "Nuageux"].includes(ciel(r.code, D[7], D[6]))) { D[1] = r.code; cielsAjustes++; }
+  if (r.code !== D[1] && ["Ensoleillé", "Éclaircies", "Nuageux"].includes(ciel(r.code, D[7], D[6]))) { const t = lib + " → " + ciel(r.code, D[7], D[6]); passages[t] = (passages[t] || 0) + 1; if (norm(x.n) === norm("Le Puy-Sainte-Réparade")) exemple.push(`${D[0]} ${t} (heures ${H.slice(1, 6).map(e => e && e[1]).join(",")})`); D[1] = r.code; cielsAjustes++; }
 });
-console.log(`Ciel du jour recalculé sur les heures de jour : ${cielsAjustes} journée(s) ajustée(s)`);
+console.log(`Ciel du jour recalculé sur les heures de jour : ${cielsAjustes} journée(s) ajustée(s) · ${JSON.stringify(passages)} · Le Puy : ${exemple.join(" ; ") || "aucun changement"}`);
 const aujourdhui = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
 const bilan = controler(recues, aujourdhui), ok = bilan.valides;
 console.log(`Contrôle qualité : ${ok.length}/${liste.length} communes validées, ${bilan.corrections} valeur(s) ajustée(s), ${bilan.rejets.length} commune(s) écartée(s)`);
