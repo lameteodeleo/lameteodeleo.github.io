@@ -562,7 +562,7 @@ async function pagesCommunes(ok) {
     const titre = `Météo ${x.n} : prévisions heure par heure et à 7 jours`;
     const desc = `Météo ${article(x.n)} aujourd'hui : ${lib0.toLowerCase()}, ${Math.round(J[3])}° à ${Math.round(J[2])}°, rafales ${Math.round(J[4])} km/h. Prévisions Météo-France sur 7 jours, mises à jour toutes les 2 heures.`;
     const corps = `<h1>Météo ${article(x.n)}</h1><p class="sub">${esc(dep)}${dep ? " · " : ""}${NOMS_SECTEURS[x.s] || ""} · mis à jour ${maj}</p>
-<div class="hero"><div class="sub" style="color:rgba(255,255,255,.8)">Aujourd'hui</div><div class="t">${Math.round(J[2])}°</div><p><b>${lib0}${mistral(J[4], J[5]) ? ", mistral" : ""}</b> · minimale ${Math.round(J[3])}° · rafales jusqu'à ${Math.round(J[4])} km/h${J[6] >= 0.5 ? " · pluie " + String(J[6]).replace(".", ",") + " mm" : ""}</p>
+<div class="hero"><div class="sub" style="color:rgba(255,255,255,.8)">Aujourd'hui · maximale</div><div class="t">${Math.round(J[2])}°</div><p><b>${lib0}${mistral(J[4], J[5]) ? ", mistral" : ""}</b> · minimale ${Math.round(J[3])}° · rafales jusqu'à ${Math.round(J[4])} km/h${J[6] >= 0.5 ? " · pluie " + String(J[6]).replace(".", ",") + " mm" : ""}</p>
 <a class="btn" href="/?commune=${encodeURIComponent(x.n)}">Voir la météo heure par heure</a></div>
 <h2>Prévisions sur 7 jours</h2><table><thead><tr><th>Jour</th><th>Ciel</th><th style="text-align:right">Min / max</th><th style="text-align:right">Rafales</th></tr></thead><tbody>${lignes}</tbody></table>
 <p class="sub" style="margin-top:10px">Dans l'app : la température en direct, la pluie dans les 2 prochaines heures, les vigilances Météo-France et les conseils du jour.</p>
