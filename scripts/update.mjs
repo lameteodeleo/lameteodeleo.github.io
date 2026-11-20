@@ -589,6 +589,7 @@ h2{font-size:1.15rem;margin:28px 0 10px}
 .app a{display:inline-block;margin-top:8px;font-weight:800;text-decoration:none;color:var(--brand)}
 .anec{background:var(--card);border-radius:18px;padding:14px 16px;margin:0 0 10px;border-left:4px solid var(--sun)}
 .liens{display:flex;flex-wrap:wrap;gap:8px}.liens a{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;text-decoration:none;font-size:.88rem}
+.suivez{text-align:center;background:var(--card);border-radius:20px;padding:18px 16px;margin-top:26px;border:1px solid var(--line)}.suivez b{font-size:1.05rem}.suivez p{margin:4px 0 12px;color:var(--muted);font-size:.9rem}.suivez div{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.suivez a{color:#fff;font-weight:800;text-decoration:none;padding:10px 20px;border-radius:999px}.suivez .ig{background:linear-gradient(45deg,#F58529,#DD2A7B 55%,#8134AF)}.suivez .fb{background:#1877F2}
 footer{color:var(--muted);font-size:.78rem;margin-top:30px;line-height:1.5}`;
 function page({ titre, desc, url, corps }) {
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -649,7 +650,8 @@ ${heures ? `<h2>Les prochaines heures</h2><div class="hs">${heures}</div>` : ""}
 <h2>Prévisions sur 7 jours</h2><div class="jours"><div class="j tete"><span></span><span>Ciel</span><span>Rafales</span><span>Min · max</span></div>${lignes}</div>
 <div class="app"><img src="/icons/icon-192.png" alt=""><div><b>La météo ${deC(x.n)} dans votre poche</b><p>Température en direct, pluie dans les 2 prochaines heures, vigilances et sourire du jour. Gratuit, sans pub, sans inscription.</p><a href="/?commune=${encodeURIComponent(x.n)}">Ouvrir l'app →</a></div></div>
 ${ANEC[x.n] && ANEC[x.n].length ? `<h2>Le saviez-vous ?</h2>${ANEC[x.n].slice(0, 3).map(a => `<p class="anec">${esc(a.t)}</p>`).join("")}` : ""}
-<h2>Communes voisines</h2><div class="liens">${voisines.map(o => `<a href="/meteo/${slug(o.n)}/">${esc(o.n)}</a>`).join("")}<a href="/meteo/">Toutes les communes</a></div>`;
+<h2>Communes voisines</h2><div class="liens">${voisines.map(o => `<a href="/meteo/${slug(o.n)}/">${esc(o.n)}</a>`).join("")}<a href="/meteo/">Toutes les communes</a></div>
+<div class="suivez"><b>Suivez La météo de Léo</b><p>La météo de demain chaque soir en story, et les alertes quand ça souffle ou que ça tombe.</p><div><a class="ig" href="https://www.instagram.com/lameteodeleo/" rel="noopener">Instagram</a><a class="fb" href="https://www.facebook.com/share/1HXwwwERuf/" rel="noopener">Facebook</a></div></div>`;
     await mkdir(`site/meteo/${sl}`, { recursive: true });
     await writeFile(`site/meteo/${sl}/index.html`, page({ titre, desc, url, corps }));
     urls.push(url);

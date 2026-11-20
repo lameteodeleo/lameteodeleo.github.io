@@ -361,6 +361,9 @@ details.plus[open] .tiles{margin-top:10px}
 #installAide{display:flex;flex-direction:column;gap:10px}#installAide[hidden]{display:none}
 .install-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:.92rem}
 .install .close{border:0;background:none;color:var(--muted);font-size:1rem;font-weight:800;min-width:36px;min-height:40px;cursor:pointer}
+.suivez{padding:16px;display:flex;flex-direction:column;gap:6px;text-align:center;align-items:center}.suivez b{font-size:1.02rem}
+.suivez-b{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:6px}.suivez-b a{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;font-weight:800;text-decoration:none;color:#fff;min-height:44px}
+.suivez-b svg{width:20px;height:20px}.sb-ig{background:linear-gradient(45deg,#F58529,#DD2A7B 55%,#8134AF)}.sb-fb{background:#1877F2}
 .share-card{padding:4px 2px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
 .share-card > div{min-width:0;flex:1 1 200px}
 .btn-brand{border:0;border-radius:999px;padding:10px 18px;background:var(--brand);color:var(--surface);font-weight:800;cursor:pointer;white-space:nowrap}
@@ -515,6 +518,14 @@ details.plus[open] .tiles{margin-top:10px}
       <div class="tiles" id="tiles"></div>
     </details>
 
+    <div class="card suivez">
+      <b>Suivez La météo de Léo</b>
+      <span class="sub">La météo de demain chaque soir en story, et les alertes quand ça souffle ou que ça tombe.</span>
+      <div class="suivez-b">
+        <a class="sb-ig" href="https://www.instagram.com/lameteodeleo/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>Instagram</a>
+        <a class="sb-fb" href="https://www.facebook.com/share/1HXwwwERuf/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 8h3V4h-3c-2.8 0-4.5 1.8-4.5 4.6V11H7v4h2.5v6h4v-6h3l.5-4h-3.5V9c0-.6.4-1 1-1z"/></svg>Facebook</a>
+      </div>
+    </div>
     <div class="share-card">
       <span class="sub">Vous aimez La météo de Léo ?</span>
       <button class="btn-brand" type="button" id="shareApp">Partager l'app</button>
