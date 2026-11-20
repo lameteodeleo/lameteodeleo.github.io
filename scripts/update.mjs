@@ -700,7 +700,8 @@ function cielDesHeures(H) {
   if (v.length < 4) return null;
   const nuage = c => c <= 1 ? 0 : c === 2 ? 0.5 : 1;
   const m = v.reduce((a, c) => a + nuage(c), 0) / v.length;
-  return { code: m <= 0.25 ? 1 : m <= 0.65 ? 2 : 3, brume: v.filter(c => c === 45 || c === 48).length };
+  // « Ensoleillé » seulement sans aucune heure couverte ; le brouillard du matin (7 h à 11 h) reste annoncé
+  return { code: m <= 0.25 && !v.some(c => c >= 3) ? 1 : m <= 0.65 ? 2 : 3, brume: H.slice(0, 3).filter(e => e && (e[1] === 45 || e[1] === 48)).length };
 }
 let cielsAjustes = 0; const passages = {}, exemple = [];
 for (const x of liste) if (x.d && x.h) x.d.forEach((D, k) => {
@@ -708,7 +709,7 @@ for (const x of liste) if (x.d && x.h) x.d.forEach((D, k) => {
   const lib = ciel(D[1], D[7], D[6]);
   if (!["Ensoleillé", "Éclaircies", "Nuageux", "Brouillard"].includes(lib)) return;
   const r = cielDesHeures(H); if (!r) return;
-  if (lib === "Brouillard" && r.brume >= 2) return;
+  if (lib === "Brouillard" && r.brume >= 1) return;
   // Une pluie écartée (peu probable) laisse au moins des nuages : jamais « Ensoleillé » ce jour-là
   if (((D[1] >= 51 && D[1] <= 67) || (D[1] >= 71 && D[1] <= 86) || D[1] >= 95) && r.code < 2) r.code = 2;
   // Seul le ciel change : si le nouveau code donnait une autre conclusion sur la pluie, on garde l'ancien
