@@ -522,10 +522,20 @@ function ciel(code, prob, pl) {
 const SOLEIL = `<circle cx="24" cy="24" r="9" fill="#FFC21A"/><g stroke="#FFC21A" stroke-width="3.2" stroke-linecap="round"><path d="M24 5v5M24 38v5M5 24h5M38 24h5M10.6 10.6l3.5 3.5M33.9 33.9l3.5 3.5M10.6 37.4l3.5-3.5M33.9 14.1l3.5-3.5"/></g>`;
 const NUAGE = (c = "#E6E2FA") => `<path d="M15 40h20a8.5 8.5 0 0 0 1.2-16.9A11 11 0 0 0 15.4 26 7 7 0 0 0 15 40z" fill="${c}" stroke="#B9B0EA" stroke-width="1.5"/>`;
 const GOUTTES = (n = 3) => `<g stroke="#4DA3FF" stroke-width="3" stroke-linecap="round">${[[18, 0], [26, 1], [34, 0]].slice(0, n).map(([x, d]) => `<path d="M${x} ${43 + d * 2}l-2 5"/>`).join("")}</g>`;
-function icone(lib, t = 40) {
+const LUNE = `<path d="M30 8a15 15 0 1 0 12 22A12 12 0 0 1 30 8z" fill="#FFE08A"/>`;
+// Lever et coucher du soleil (heure locale, à quelques minutes près), pour afficher la lune la nuit
+function soleilJour(lat, lon, date) {
+  const d = new Date(date + "T12:00:00Z"), doy = Math.round((d - Date.UTC(d.getUTCFullYear(), 0, 0)) / 864e5), r = Math.PI / 180;
+  const decl = 23.44 * Math.sin(2 * Math.PI * (284 + doy) / 365) * r, B = 2 * Math.PI * (doy - 81) / 364;
+  const eot = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+  const tz = +new Date(date + "T12:00:00Z").toLocaleString("en-GB", { timeZone: "Europe/Paris", hour: "2-digit", hour12: false }) - 12;
+  const midi = 12 - lon / 15 - eot / 60 + tz, H = Math.acos(Math.max(-1, Math.min(1, (Math.sin(-0.833 * r) - Math.sin(lat * r) * Math.sin(decl)) / (Math.cos(lat * r) * Math.cos(decl))))) / r / 15;
+  return [midi - H, midi + H];
+}
+function icone(lib, t = 40, nuit = false) {
   const l = lib.toLowerCase(); let g;
-  if (l.startsWith("ensoleill")) g = SOLEIL;
-  else if (l.startsWith("éclaircies")) g = `<g transform="translate(6 -4) scale(.75)">${SOLEIL}</g>` + NUAGE();
+  if (l.startsWith("ensoleill")) g = nuit ? LUNE : SOLEIL;
+  else if (l.startsWith("éclaircies")) g = (nuit ? `<g transform="translate(4 -4) scale(.8)">${LUNE}</g>` : `<g transform="translate(6 -4) scale(.75)">${SOLEIL}</g>`) + NUAGE();
   else if (l.startsWith("brouillard")) g = `<g stroke="#B9B0EA" stroke-width="3.2" stroke-linecap="round"><path d="M9 18h30M6 25h36M9 32h30M13 39h22"/></g>`;
   else if (l.startsWith("orage")) g = `<g transform="translate(0 -8)">${NUAGE("#CFC8F2")}</g><path d="M25 32l-6 9h6l-3 8 9-11h-6l3-6z" fill="#FFC21A"/>`;
   else if (l.startsWith("neige")) g = `<g transform="translate(0 -8)">${NUAGE()}</g><g fill="#9FD0FF"><circle cx="18" cy="42" r="2.4"/><circle cx="26" cy="45" r="2.4"/><circle cx="34" cy="42" r="2.4"/></g>`;
@@ -536,6 +546,7 @@ function icone(lib, t = 40) {
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 const mistral = (raf, dir) => raf >= 40 && dir != null && (dir >= 290 || dir <= 20);
 const dirTxt = d => d == null ? "" : ["nord", "nord-est", "est", "sud-est", "sud", "sud-ouest", "ouest", "nord-ouest"][Math.round(((d % 360) + 360) % 360 / 45) % 8];
+const deC = n => /^Le /.test(n) ? n.replace(/^Le /, "du ") : /^Les /.test(n) ? n.replace(/^Les /, "des ") : /^La /.test(n) ? "de " + n.replace(/^La /, "la ") : /^[AEIOUYÉÈÊÂÎÔHaeiouyéèh]/.test(n) ? "d'" + n : "de " + n;
 const article = n => /^(Le|La|Les) /.test(n) ? n.replace(/^Le /, "au ").replace(/^Les /, "aux ").replace(/^La /, "à la ") : "à " + n;
 const STYLE = `:root{--bg:#F4F2FB;--card:#fff;--ink:#1B1640;--muted:#655F86;--brand:#4B3BB8;--sun:#FFC21A;--line:#ECE9F8;--froid:#4DA3FF;--chaud:#FF9A3D}
 @media (prefers-color-scheme:dark){:root{--bg:#100E24;--card:#1C1838;--ink:#F2F0FF;--muted:#A7A1CC;--brand:#A99FF5;--line:#2C2750}}
@@ -559,6 +570,18 @@ h1{font-size:1.65rem;line-height:1.2;margin:22px 0 4px;letter-spacing:-.01em}.su
 .bar{position:relative;width:44px;height:6px;border-radius:9px;background:var(--line)}.bar i{position:absolute;top:0;bottom:0;border-radius:9px;background:linear-gradient(90deg,var(--froid),var(--chaud))}
 @media (max-width:370px){.j{grid-template-columns:82px 30px 1fr auto;column-gap:7px}.j .d{font-size:.9rem}.jours{padding:4px 12px}.bar{width:32px}.j .ico{width:32px;height:32px}}
 h2{font-size:1.15rem;margin:28px 0 10px}
+.fil{font-size:.8rem;color:var(--muted);margin:18px 0 0}.fil a{color:var(--muted);text-decoration:none}.fil a:hover{text-decoration:underline}
+.vig{display:flex;gap:12px;align-items:flex-start;border-radius:18px;padding:14px 16px;margin:16px 0 0;text-decoration:none;font-weight:600;line-height:1.35}
+.vig b{display:block;font-size:1.02rem}.vig span{font-weight:500;font-size:.88rem}.vig i{font-style:normal;font-size:1.4rem;line-height:1}
+.vig.c2{background:#FFF3B0;color:#3D3300}.vig.c3{background:#FF8A00;color:#2A1600}.vig.c4{background:#E0201B;color:#fff}
+.bref{background:var(--card);border-radius:18px;padding:14px 16px;margin:0;line-height:1.5}.bref b{color:var(--brand)}
+.hs{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 8px;margin:0 -2px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.h{flex:none;scroll-snap-align:start;width:64px;background:var(--card);border-radius:16px;padding:10px 4px 9px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
+.h .hh{font-size:.78rem;color:var(--muted);font-weight:600}.h .ico{width:34px;height:34px}.h b{font-size:1rem}.h .p{font-size:.72rem;color:#2F86E8;font-weight:700;min-height:1em}
+.h.now{background:var(--brand);color:#fff}.h.now .hh{color:rgba(255,255,255,.85)}.h.now .p{color:#BFE0FF}
+.app{display:flex;gap:14px;align-items:center;background:var(--card);border-radius:20px;padding:16px;margin-top:14px;border:1px solid var(--line)}
+.app img{width:56px;height:56px;border-radius:14px;flex:none}.app p{margin:0;font-size:.9rem;color:var(--muted)}.app b{display:block;color:var(--ink);font-size:1rem;margin-bottom:2px}
+.app a{display:inline-block;margin-top:8px;font-weight:800;text-decoration:none;color:var(--brand)}
 .anec{background:var(--card);border-radius:18px;padding:14px 16px;margin:0 0 10px;border-left:4px solid var(--sun)}
 .liens{display:flex;flex-wrap:wrap;gap:8px}.liens a{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;text-decoration:none;font-size:.88rem}
 footer{color:var(--muted);font-size:.78rem;margin-top:30px;line-height:1.5}`;
@@ -571,9 +594,9 @@ function page({ titre, desc, url, corps }) {
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a3212f59-b8e9-486f-9e0f-d7256926be65" data-domains="lameteodeleo.fr"></script>
 </head><body><main><a class="top" href="/"><img src="/icons/icon-192.png" alt="">La météo <em>de Léo</em></a>${corps}
 <footer>La météo de Léo : la météo des Bouches-du-Rhône, commune par commune. Prévisions des modèles AROME et ARPEGE de Météo-France, mises à jour toutes les 2 heures. Vigilances officielles : <a href="https://vigilance.meteofrance.fr/fr">vigilance.meteofrance.fr</a>. Données météo : Open-Meteo, licence CC BY 4.0. <a href="/#apropos">À propos et mentions légales</a>.</footer>
-</main></body></html>`;
+</main><script>try{const n=new Date().toLocaleString("sv-SE",{timeZone:"Europe/Paris"}).replace(" ","T").slice(0,13);const L=[...document.querySelectorAll(".h[data-t]")];const v=L.filter(e=>e.dataset.t>=n);if(v.length&&v.length<L.length){L.forEach(e=>{if(e.dataset.t<n)e.remove()});L.forEach(e=>e.classList.remove("now"));v[0].classList.add("now");v[0].querySelector(".hh").textContent="Maint."}}catch(e){}</script></body></html>`;
 }
-async function pagesCommunes(ok) {
+async function pagesCommunes(ok, vig) {
   let ANEC = {};
   try { ANEC = JSON.parse(await (await import("node:fs/promises")).readFile("scripts/anecdotes-communes.json", "utf8")); } catch (e) { console.warn("Anecdotes des communes illisibles : " + e.message); }
   const maj = new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).replace(":", " h ");
@@ -587,14 +610,33 @@ async function pagesCommunes(ok) {
     const lignes = S7.map((D, k) => { const lb = ciel(D[1], D[7], D[6]); const det = [D[6] >= 0.5 ? `pluie ${String(D[6]).replace(".", ",")} mm${D[7] != null ? " (" + D[7] + " %)" : ""}` : "", `rafales ${Math.round(D[4])} km/h${mistral(D[4], D[5]) ? ", mistral" : D[5] != null ? " " + dirTxt(D[5]) : ""}`].filter(Boolean).join(" · ");
       return `<div class="j"><div class="d">${k === 0 ? "Aujourd'hui" : k === 1 ? "Demain" : cap(jourTxt(D[0]).split(" ")[0])}<span>${new Date(D[0] + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span></div><span class="j-i">${icone(lb, 36)}</span><div class="c">${lb}</div><div class="tp"><span class="mn">${Math.round(D[3])}°</span><span class="bar"><i style="left:${Math.round((D[3] - bas) / et * 100)}%;right:${Math.round((haut - D[2]) / et * 100)}%"></i></span><span class="mx">${Math.round(D[2])}°</span></div><div class="x">${det}</div></div>`; }).join("");
     const voisines = ok.filter(o => o.s === x.s && o.n !== x.n).sort((a, b) => Math.hypot(a.lat - x.lat, a.lon - x.lon) - Math.hypot(b.lat - x.lat, b.lon - x.lon)).slice(0, 8);
+    // Vigilance Météo-France du département (et du littoral pour les communes au bord de la mer)
+    let vigB = "";
+    { const V = vig && vig.J && vig.J.deps ? vig.J.deps[x.dep] : null;
+      if (V) { const zones = [V, x.cote && V.cote ? V.cote : null].filter(Boolean), c = Math.max(...zones.map(z => z.c || 1));
+        const phen = [...new Set(zones.flatMap(z => z.phen.filter(p => p.c === c).map(p => p.nom)))];
+        if (c >= 2) vigB = `<a class="vig c${c}" href="/?commune=${encodeURIComponent(x.n)}"><i>⚠️</i><div><b>Vigilance ${["", "", "jaune", "orange", "rouge"][c]}${phen.length ? " · " + phen.join(", ") : ""}</b><span>${c >= 3 ? "Suivez les consignes de sécurité. Détails et horaires dans l'app." : "Soyez attentif. Détails et horaires dans l'app."}</span></div></a>`; } }
+    // Les prochaines heures (masquées automatiquement une fois passées)
+    const n24 = (x.n24 || []).filter(e => e && e[1] != null);
+    const sj = {}, nuitA = t => { const dj = t.slice(0, 10); sj[dj] = sj[dj] || soleilJour(x.lat, x.lon, dj); const hh = +t.slice(11, 13) + .5; return hh < sj[dj][0] || hh > sj[dj][1]; };
+    const heures = n24.map((e, k) => { const lb = ciel(e[2], e[3], e[6]);
+      return `<div class="h${k === 0 ? " now" : ""}" data-t="${e[0].slice(0, 13)}"><span class="hh">${k === 0 ? "Maint." : +e[0].slice(11, 13) + " h"}</span>${icone(lb, 34, nuitA(e[0]))}<b>${Math.round(e[1])}°</b><span class="p">${e[6] >= 0.1 ? String(e[6]).replace(".", ",") + " mm" : ""}</span></div>`; }).join("");
+    // En bref : aujourd'hui et demain en une phrase
+    const D1 = x.d[1], lib1 = D1 ? ciel(D1[1], D1[7], D1[6]) : null;
+    const pluieTxt = D => D[6] >= 0.5 ? `, ${String(D[6]).replace(".", ",")} mm de pluie` : "";
+    const bref = `<b>Aujourd'hui</b> : ${lib0.toLowerCase()}, de ${Math.round(J[3])}° à ${Math.round(J[2])}°${pluieTxt(J)}, rafales ${Math.round(J[4])} km/h${mistral(J[4], J[5]) ? " (mistral)" : ""}.` + (D1 ? ` <b>Demain</b> : ${lib1.toLowerCase()}, de ${Math.round(D1[3])}° à ${Math.round(D1[2])}°${pluieTxt(D1)}, rafales ${Math.round(D1[4])} km/h${mistral(D1[4], D1[5]) ? " (mistral)" : ""}.` : "");
+    const fil = `<nav class="fil" aria-label="Fil d'Ariane"><a href="/">Accueil</a> › <a href="/meteo/">Météo du 13</a> › ${esc(NOMS_SECTEURS[x.s] || "")} › ${esc(x.n)}</nav>`;
+    const ld = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [["Accueil", SITE + "/"], ["Météo du 13", SITE + "/meteo/"], [x.n, url]].map(([name, item], k) => ({ "@type": "ListItem", position: k + 1, name, item })) });
     const titre = `Météo ${x.n} : prévisions heure par heure et à 7 jours`;
     const desc = `Météo ${article(x.n)} aujourd'hui : ${lib0.toLowerCase()}, ${Math.round(J[3])}° à ${Math.round(J[2])}°, rafales ${Math.round(J[4])} km/h. Prévisions Météo-France sur 7 jours, mises à jour toutes les 2 heures.`;
-    const corps = `<h1>Météo ${article(x.n)}</h1><p class="sub">${esc(dep)}${dep ? " · " : ""}${NOMS_SECTEURS[x.s] || ""} · mis à jour ${maj}</p>
+    const corps = `${fil}<script type="application/ld+json">${ld}</script><h1>Météo ${article(x.n)}</h1><p class="sub">${esc(dep)}${dep ? " · " : ""}${NOMS_SECTEURS[x.s] || ""} · mis à jour ${maj}</p>${vigB}
 <div class="hero"><div class="q">Aujourd'hui · ${cap(jourTxt(J[0]))}</div><div class="l1"><div class="t">${Math.round(J[2])}°<small>max</small></div>${icone(lib0, 84)}</div>
 <p class="lib">${lib0}${mistral(J[4], J[5]) ? ", mistral" : ""}</p><div class="chips"><span>Min ${Math.round(J[3])}°</span><span>Rafales ${Math.round(J[4])} km/h${J[5] != null && !mistral(J[4], J[5]) ? " " + dirTxt(J[5]) : ""}</span>${J[6] >= 0.5 ? `<span>Pluie ${String(J[6]).replace(".", ",")} mm</span>` : ""}</div>
 <a class="btn" href="/?commune=${encodeURIComponent(x.n)}">Voir la météo heure par heure</a></div>
+<p class="bref">${bref}</p>
+${heures ? `<h2>Les prochaines heures</h2><div class="hs">${heures}</div>` : ""}
 <h2>Prévisions sur 7 jours</h2><div class="jours">${lignes}</div>
-<p class="sub" style="margin-top:10px">Dans l'app : la température en direct, la pluie dans les 2 prochaines heures, les vigilances Météo-France et les conseils du jour.</p>
+<div class="app"><img src="/icons/icon-192.png" alt=""><div><b>La météo ${deC(x.n)} dans votre poche</b><p>Température en direct, pluie dans les 2 prochaines heures, vigilances et sourire du jour. Gratuit, sans pub, sans inscription.</p><a href="/?commune=${encodeURIComponent(x.n)}">Ouvrir l'app →</a></div></div>
 ${ANEC[x.n] && ANEC[x.n].length ? `<h2>Le saviez-vous ?</h2>${ANEC[x.n].slice(0, 3).map(a => `<p class="anec">${esc(a.t)}</p>`).join("")}` : ""}
 <h2>Communes voisines</h2><div class="liens">${voisines.map(o => `<a href="/meteo/${slug(o.n)}/">${esc(o.n)}</a>`).join("")}<a href="/meteo/">Toutes les communes</a></div>`;
     await mkdir(`site/meteo/${sl}`, { recursive: true });
@@ -694,6 +736,6 @@ function r1x(v) { return Math.round(v * 1000) / 1000; }
 // Copie tous les fichiers de l'app (tout sauf les outils et le dossier « site » lui-même)
 const EXCLUS = new Set([".git", ".github", "scripts", "site", "node_modules", "README.md"]);
 for (const f of await readdir(".")) if (!EXCLUS.has(f)) await cp(f, "site/" + f, { recursive: true });
-const nbPages = await bonus("Pages des communes", () => pagesCommunes(ok));
+const nbPages = await bonus("Pages des communes", () => pagesCommunes(ok, vig));
 if (nbPages) console.log(`Pages pour Google : ${nbPages} adresses dans le plan du site`);
 console.log(`Site prêt : ${ok.length} communes, mis à jour le ${new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })}`);
