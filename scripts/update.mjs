@@ -692,6 +692,29 @@ for (const n of ["Marseille", "Aix-en-Provence", "Arles"]) {
   for (const k of [0, 1]) console.log(`Témoin ${n} ${x.d[k][0]} : code ${x.d[k][1]}, ${x.d[k][3]}° à ${x.d[k][2]}°, rafales ${x.d[k][4]} km/h, pluie ${x.d[k][6]} mm · heures 7→21 h : ` +
     (x.h[k] || []).map(e => e && e[0] != null ? `${e[0]}°/${e[1]}/${e[3]}` : "-").join(" "));
 }
+// Ciel de la journée calculé sur les heures de jour (9 h à 17 h), comme les applis pro.
+// Le code du jour fourni par les modèles retient le moment le plus couvert : un seul passage nuageux suffisait à afficher « Nuageux »
+// sur une journée surtout ensoleillée. La pluie, l'orage et la neige gardent leurs règles (probabilité et quantité), inchangées.
+function cielDesHeures(H) {
+  const v = H.slice(1, 6).filter(e => e && e[1] != null).map(e => e[1]);
+  if (v.length < 4) return null;
+  const nuage = c => c <= 1 ? 0 : c === 2 ? 0.5 : 1;
+  const m = v.reduce((a, c) => a + nuage(c), 0) / v.length;
+  return { code: m <= 0.25 ? 1 : m <= 0.65 ? 2 : 3, brume: v.filter(c => c === 45 || c === 48).length };
+}
+let cielsAjustes = 0;
+for (const x of liste) if (x.d && x.h) x.d.forEach((D, k) => {
+  const H = x.h[k]; if (!H) return;
+  const lib = ciel(D[1], D[7], D[6]);
+  if (!["Ensoleillé", "Éclaircies", "Nuageux", "Brouillard"].includes(lib)) return;
+  const r = cielDesHeures(H); if (!r) return;
+  if (lib === "Brouillard" && r.brume >= 2) return;
+  // Une pluie écartée (peu probable) laisse au moins des nuages : jamais « Ensoleillé » ce jour-là
+  if (((D[1] >= 51 && D[1] <= 67) || (D[1] >= 71 && D[1] <= 86) || D[1] >= 95) && r.code < 2) r.code = 2;
+  // Seul le ciel change : si le nouveau code donnait une autre conclusion sur la pluie, on garde l'ancien
+  if (r.code !== D[1] && ["Ensoleillé", "Éclaircies", "Nuageux"].includes(ciel(r.code, D[7], D[6]))) { D[1] = r.code; cielsAjustes++; }
+});
+console.log(`Ciel du jour recalculé sur les heures de jour : ${cielsAjustes} journée(s) ajustée(s)`);
 const aujourdhui = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
 const bilan = controler(recues, aujourdhui), ok = bilan.valides;
 console.log(`Contrôle qualité : ${ok.length}/${liste.length} communes validées, ${bilan.corrections} valeur(s) ajustée(s), ${bilan.rejets.length} commune(s) écartée(s)`);
