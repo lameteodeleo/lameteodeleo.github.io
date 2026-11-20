@@ -518,22 +518,48 @@ function ciel(code, prob, pl) {
   if (pl >= 15 || [65, 82].includes(code)) return "Forte pluie";
   if (code >= 80) return "Averses"; if (code <= 55) return "Pluie faible"; return "Pluie";
 }
+// Icônes météo des pages communes (même code couleur que l'app)
+const SOLEIL = `<circle cx="24" cy="24" r="9" fill="#FFC21A"/><g stroke="#FFC21A" stroke-width="3.2" stroke-linecap="round"><path d="M24 5v5M24 38v5M5 24h5M38 24h5M10.6 10.6l3.5 3.5M33.9 33.9l3.5 3.5M10.6 37.4l3.5-3.5M33.9 14.1l3.5-3.5"/></g>`;
+const NUAGE = (c = "#E6E2FA") => `<path d="M15 40h20a8.5 8.5 0 0 0 1.2-16.9A11 11 0 0 0 15.4 26 7 7 0 0 0 15 40z" fill="${c}" stroke="#B9B0EA" stroke-width="1.5"/>`;
+const GOUTTES = (n = 3) => `<g stroke="#4DA3FF" stroke-width="3" stroke-linecap="round">${[[18, 0], [26, 1], [34, 0]].slice(0, n).map(([x, d]) => `<path d="M${x} ${43 + d * 2}l-2 5"/>`).join("")}</g>`;
+function icone(lib, t = 40) {
+  const l = lib.toLowerCase(); let g;
+  if (l.startsWith("ensoleill")) g = SOLEIL;
+  else if (l.startsWith("éclaircies")) g = `<g transform="translate(6 -4) scale(.75)">${SOLEIL}</g>` + NUAGE();
+  else if (l.startsWith("brouillard")) g = `<g stroke="#B9B0EA" stroke-width="3.2" stroke-linecap="round"><path d="M9 18h30M6 25h36M9 32h30M13 39h22"/></g>`;
+  else if (l.startsWith("orage")) g = `<g transform="translate(0 -8)">${NUAGE("#CFC8F2")}</g><path d="M25 32l-6 9h6l-3 8 9-11h-6l3-6z" fill="#FFC21A"/>`;
+  else if (l.startsWith("neige")) g = `<g transform="translate(0 -8)">${NUAGE()}</g><g fill="#9FD0FF"><circle cx="18" cy="42" r="2.4"/><circle cx="26" cy="45" r="2.4"/><circle cx="34" cy="42" r="2.4"/></g>`;
+  else if (l.includes("pluie") || l.startsWith("averses")) g = `<g transform="translate(0 -8)">${NUAGE(l.startsWith("forte") ? "#CFC8F2" : "#E6E2FA")}</g>` + GOUTTES(l.endsWith("faible") ? 2 : 3);
+  else g = NUAGE();
+  return `<svg class="ico" width="${t}" height="${t}" viewBox="0 0 48 52" aria-hidden="true">${g}</svg>`;
+}
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 const mistral = (raf, dir) => raf >= 40 && dir != null && (dir >= 290 || dir <= 20);
 const dirTxt = d => d == null ? "" : ["nord", "nord-est", "est", "sud-est", "sud", "sud-ouest", "ouest", "nord-ouest"][Math.round(((d % 360) + 360) % 360 / 45) % 8];
 const article = n => /^(Le|La|Les) /.test(n) ? n.replace(/^Le /, "au ").replace(/^Les /, "aux ").replace(/^La /, "à la ") : "à " + n;
-const STYLE = `:root{--bg:#F4F2FB;--card:#fff;--ink:#1B1640;--muted:#655F86;--brand:#4B3BB8;--sun:#FFC21A;--line:#E3DFF5}
+const STYLE = `:root{--bg:#F4F2FB;--card:#fff;--ink:#1B1640;--muted:#655F86;--brand:#4B3BB8;--sun:#FFC21A;--line:#ECE9F8;--froid:#4DA3FF;--chaud:#FF9A3D}
 @media (prefers-color-scheme:dark){:root{--bg:#100E24;--card:#1C1838;--ink:#F2F0FF;--muted:#A7A1CC;--brand:#A99FF5;--line:#2C2750}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 main{max-width:720px;margin:0 auto;padding:20px 16px 40px}a{color:var(--brand)}
 .top{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:800;font-size:1.1rem}.top img{width:36px;height:36px;border-radius:9px}.top em{font-style:normal;color:#E0A400}
-h1{font-size:1.7rem;line-height:1.2;margin:22px 0 4px}.sub{color:var(--muted);font-size:.9rem;margin:0}
-.hero{background:linear-gradient(135deg,#5B4BD0,#3E2FA3);color:#fff;border-radius:22px;padding:20px;margin:18px 0}
-.hero .t{font-size:3rem;font-weight:800;line-height:1}.hero p{margin:6px 0 0}
-.btn{display:inline-block;margin-top:14px;background:var(--sun);color:#1B1640;font-weight:800;text-decoration:none;padding:12px 18px;border-radius:999px}
-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:18px;overflow:hidden}
-th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--line);font-size:.92rem}th{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
-td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}h2{font-size:1.15rem;margin:26px 0 10px}
+h1{font-size:1.65rem;line-height:1.2;margin:22px 0 4px;letter-spacing:-.01em}.sub{color:var(--muted);font-size:.88rem;margin:0}
+.hero{position:relative;overflow:hidden;background:radial-gradient(circle at 85% 0%,rgba(255,194,26,.28),transparent 45%),linear-gradient(140deg,#5B4BD0,#3A2C9E);color:#fff;border-radius:24px;padding:20px 20px 22px;margin:18px 0;box-shadow:0 12px 30px rgba(59,44,158,.25)}
+.hero .q{font-size:.85rem;font-weight:600;opacity:.85;text-transform:uppercase;letter-spacing:.05em}
+.hero .l1{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px}
+.hero .t{font-size:4rem;font-weight:800;line-height:1;letter-spacing:-.03em}.hero .t small{font-size:1rem;font-weight:600;opacity:.8;letter-spacing:0;margin-left:6px}
+.hero .ico{width:84px;height:84px;flex:none;filter:drop-shadow(0 4px 10px rgba(0,0,0,.18))}
+.hero .lib{font-size:1.25rem;font-weight:800;margin:6px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.chips span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:5px 12px;font-size:.88rem;font-weight:600}
+.btn{display:inline-block;margin-top:16px;background:var(--sun);color:#1B1640;font-weight:800;text-decoration:none;padding:13px 20px;border-radius:999px;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+.jours{background:var(--card);border-radius:20px;padding:4px 14px;box-shadow:0 2px 10px rgba(27,22,64,.05)}
+.j{display:grid;grid-template-columns:88px 36px 1fr auto;align-items:center;column-gap:10px;row-gap:2px;padding:12px 0;border-bottom:1px solid var(--line)}.j .ico{width:36px;height:36px}.j .x{grid-column:3/5;color:var(--muted);font-size:.8rem;line-height:1.3}.j:last-child{border-bottom:0}
+.j .d{font-weight:700;line-height:1.2;grid-row:span 2}.j .j-i{grid-row:span 2}.j .d span{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
+.j .c{font-weight:700;font-size:.95rem;line-height:1.25}
+.tp{display:flex;align-items:center;gap:7px;font-variant-numeric:tabular-nums;font-size:.95rem}.tp .mn{color:var(--muted);width:2.1em;text-align:right}.tp .mx{font-weight:800;width:2.1em}
+.bar{position:relative;width:44px;height:6px;border-radius:9px;background:var(--line)}.bar i{position:absolute;top:0;bottom:0;border-radius:9px;background:linear-gradient(90deg,var(--froid),var(--chaud))}
+@media (max-width:370px){.j{grid-template-columns:82px 30px 1fr auto;column-gap:7px}.j .d{font-size:.9rem}.jours{padding:4px 12px}.bar{width:32px}.j .ico{width:32px;height:32px}}
+h2{font-size:1.15rem;margin:28px 0 10px}
+.anec{background:var(--card);border-radius:18px;padding:14px 16px;margin:0 0 10px;border-left:4px solid var(--sun)}
 .liens{display:flex;flex-wrap:wrap;gap:8px}.liens a{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;text-decoration:none;font-size:.88rem}
 footer{color:var(--muted);font-size:.78rem;margin-top:30px;line-height:1.5}`;
 function page({ titre, desc, url, corps }) {
@@ -557,16 +583,19 @@ async function pagesCommunes(ok) {
     const sl = slug(x.n), url = `${SITE}/meteo/${sl}/`, J = x.d[0];
     const dep = x.dep === "13" ? "Bouches-du-Rhône" : x.dep === "84" ? "Vaucluse" : x.dep === "83" ? "Var" : "";
     const lib0 = ciel(J[1], J[7], J[6]);
-    const lignes = x.d.slice(0, 7).map((D, k) => `<tr><td>${k === 0 ? "Aujourd'hui" : k === 1 ? "Demain" : cap(jourTxt(D[0]).split(" ")[0])}<br><span class="sub">${new Date(D[0] + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span></td><td>${ciel(D[1], D[7], D[6])}${D[6] >= 0.5 ? `<br><span class="sub">${String(D[6]).replace(".", ",")} mm${D[7] != null ? ", risque " + D[7] + " %" : ""}</span>` : ""}</td><td class="n">${Math.round(D[3])}° / <b>${Math.round(D[2])}°</b></td><td class="n">${Math.round(D[4])} km/h<br><span class="sub">${mistral(D[4], D[5]) ? "mistral" : dirTxt(D[5])}</span></td></tr>`).join("");
+    const S7 = x.d.slice(0, 7), bas = Math.min(...S7.map(D => D[3])), haut = Math.max(...S7.map(D => D[2])), et = Math.max(1, haut - bas);
+    const lignes = S7.map((D, k) => { const lb = ciel(D[1], D[7], D[6]); const det = [D[6] >= 0.5 ? `pluie ${String(D[6]).replace(".", ",")} mm${D[7] != null ? " (" + D[7] + " %)" : ""}` : "", `rafales ${Math.round(D[4])} km/h${mistral(D[4], D[5]) ? ", mistral" : D[5] != null ? " " + dirTxt(D[5]) : ""}`].filter(Boolean).join(" · ");
+      return `<div class="j"><div class="d">${k === 0 ? "Aujourd'hui" : k === 1 ? "Demain" : cap(jourTxt(D[0]).split(" ")[0])}<span>${new Date(D[0] + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span></div><span class="j-i">${icone(lb, 36)}</span><div class="c">${lb}</div><div class="tp"><span class="mn">${Math.round(D[3])}°</span><span class="bar"><i style="left:${Math.round((D[3] - bas) / et * 100)}%;right:${Math.round((haut - D[2]) / et * 100)}%"></i></span><span class="mx">${Math.round(D[2])}°</span></div><div class="x">${det}</div></div>`; }).join("");
     const voisines = ok.filter(o => o.s === x.s && o.n !== x.n).sort((a, b) => Math.hypot(a.lat - x.lat, a.lon - x.lon) - Math.hypot(b.lat - x.lat, b.lon - x.lon)).slice(0, 8);
     const titre = `Météo ${x.n} : prévisions heure par heure et à 7 jours`;
     const desc = `Météo ${article(x.n)} aujourd'hui : ${lib0.toLowerCase()}, ${Math.round(J[3])}° à ${Math.round(J[2])}°, rafales ${Math.round(J[4])} km/h. Prévisions Météo-France sur 7 jours, mises à jour toutes les 2 heures.`;
     const corps = `<h1>Météo ${article(x.n)}</h1><p class="sub">${esc(dep)}${dep ? " · " : ""}${NOMS_SECTEURS[x.s] || ""} · mis à jour ${maj}</p>
-<div class="hero"><div class="sub" style="color:rgba(255,255,255,.8)">Aujourd'hui · maximale</div><div class="t">${Math.round(J[2])}°</div><p><b>${lib0}${mistral(J[4], J[5]) ? ", mistral" : ""}</b> · minimale ${Math.round(J[3])}° · rafales jusqu'à ${Math.round(J[4])} km/h${J[6] >= 0.5 ? " · pluie " + String(J[6]).replace(".", ",") + " mm" : ""}</p>
+<div class="hero"><div class="q">Aujourd'hui · ${cap(jourTxt(J[0]))}</div><div class="l1"><div class="t">${Math.round(J[2])}°<small>max</small></div>${icone(lib0, 84)}</div>
+<p class="lib">${lib0}${mistral(J[4], J[5]) ? ", mistral" : ""}</p><div class="chips"><span>Min ${Math.round(J[3])}°</span><span>Rafales ${Math.round(J[4])} km/h${J[5] != null && !mistral(J[4], J[5]) ? " " + dirTxt(J[5]) : ""}</span>${J[6] >= 0.5 ? `<span>Pluie ${String(J[6]).replace(".", ",")} mm</span>` : ""}</div>
 <a class="btn" href="/?commune=${encodeURIComponent(x.n)}">Voir la météo heure par heure</a></div>
-<h2>Prévisions sur 7 jours</h2><table><thead><tr><th>Jour</th><th>Ciel</th><th style="text-align:right">Min / max</th><th style="text-align:right">Rafales</th></tr></thead><tbody>${lignes}</tbody></table>
+<h2>Prévisions sur 7 jours</h2><div class="jours">${lignes}</div>
 <p class="sub" style="margin-top:10px">Dans l'app : la température en direct, la pluie dans les 2 prochaines heures, les vigilances Météo-France et les conseils du jour.</p>
-${ANEC[x.n] && ANEC[x.n].length ? `<h2>Le saviez-vous ?</h2>${ANEC[x.n].slice(0, 3).map(a => `<p style="background:var(--card);border-radius:16px;padding:14px 16px;margin:0 0 10px">${esc(a.t)}</p>`).join("")}` : ""}
+${ANEC[x.n] && ANEC[x.n].length ? `<h2>Le saviez-vous ?</h2>${ANEC[x.n].slice(0, 3).map(a => `<p class="anec">${esc(a.t)}</p>`).join("")}` : ""}
 <h2>Communes voisines</h2><div class="liens">${voisines.map(o => `<a href="/meteo/${slug(o.n)}/">${esc(o.n)}</a>`).join("")}<a href="/meteo/">Toutes les communes</a></div>`;
     await mkdir(`site/meteo/${sl}`, { recursive: true });
     await writeFile(`site/meteo/${sl}/index.html`, page({ titre, desc, url, corps }));
