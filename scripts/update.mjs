@@ -535,7 +535,7 @@ function soleilJour(lat, lon, date) {
 function icone(lib, t = 40, nuit = false) {
   const l = lib.toLowerCase(); let g;
   if (l.startsWith("ensoleill")) g = nuit ? LUNE : SOLEIL;
-  else if (l.startsWith("éclaircies")) g = (nuit ? `<g transform="translate(4 -4) scale(.8)">${LUNE}</g>` : `<g transform="translate(6 -4) scale(.75)">${SOLEIL}</g>`) + NUAGE();
+  else if (l.startsWith("éclaircies")) g = (nuit ? `<g transform="translate(4 -4) scale(.8)">${LUNE}</g>` : `<g transform="translate(1 1) scale(.72)">${SOLEIL}</g>`) + NUAGE();
   else if (l.startsWith("brouillard")) g = `<g stroke="#B9B0EA" stroke-width="3.2" stroke-linecap="round"><path d="M9 18h30M6 25h36M9 32h30M13 39h22"/></g>`;
   else if (l.startsWith("orage")) g = `<g transform="translate(0 -8)">${NUAGE("#CFC8F2")}</g><path d="M25 32l-6 9h6l-3 8 9-11h-6l3-6z" fill="#FFC21A"/>`;
   else if (l.startsWith("neige")) g = `<g transform="translate(0 -8)">${NUAGE()}</g><g fill="#9FD0FF"><circle cx="18" cy="42" r="2.4"/><circle cx="26" cy="45" r="2.4"/><circle cx="34" cy="42" r="2.4"/></g>`;
