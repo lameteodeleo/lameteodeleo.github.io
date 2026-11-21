@@ -2482,7 +2482,11 @@ async function creerReel(btn){
   const SC=[{type:"hook",d:2.6},{type:"temp",d:2.4},{type:"pv",d:2.4},{type:"jour",d:2.6},{type:"cons",d:2.6},{type:"suite",d:2.6}].concat(sourire?[{type:"sourire",d:2.6}]:[]).concat([{type:"fin",d:2.6}]);
   const total=SC.reduce((a,b)=>a+b.d,0), TR=.32;
   const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,3), pop=t=>{t=Math.max(0,Math.min(1,t));return t<.6?ease(t/.6)*1.08:1.08-.08*ease((t-.6)/.4)};
-  const fond=c=>{if(c===B.sun){x.fillStyle=B.sun;x.fillRect(0,0,W,H);return}const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,c||B.ink);g.addColorStop(1,al?CA(al).fonce:"#2B2366");x.fillStyle=g;x.fillRect(0,0,W,H)};
+  // Fond jamais uni d'un bord à l'autre : des halos décalés évitent que Facebook croie à une vidéo « avec bordures » (bandes unies en haut et en bas)
+  const halo=(cx,cy,r,col)=>{const h=x.createRadialGradient(cx,cy,0,cx,cy,r);h.addColorStop(0,col);h.addColorStop(1,"rgba(0,0,0,0)");x.fillStyle=h;x.fillRect(0,0,W,H)};
+  const fond=c=>{if(c===B.sun){x.fillStyle=B.sun;x.fillRect(0,0,W,H);halo(W*.85,H*.08,900,"rgba(255,255,255,.45)");halo(W*.1,H*.95,900,"rgba(230,150,0,.35)");return}
+    const g=x.createLinearGradient(0,0,W*.35,H);g.addColorStop(0,c||B.ink);g.addColorStop(1,al?CA(al).fonce:"#2B2366");x.fillStyle=g;x.fillRect(0,0,W,H);
+    halo(W*.9,H*.05,820,al?"rgba(255,255,255,.10)":"rgba(255,194,26,.16)");halo(W*.05,H*.9,1000,al?"rgba(0,0,0,.18)":"rgba(91,75,208,.45)");halo(W*.75,H*.7,700,"rgba(255,255,255,.05)")};
   const centre=(txt,y,font,col,a)=>{x.globalAlpha=a==null?1:a;x.fillStyle=col;x.font=font;x.textAlign="center";x.fillText(txt,W/2,y);x.textAlign="left";x.globalAlpha=1};
   const progression=(k,f)=>{const n=SC.length,gap=10,w=(W-140-gap*(n-1))/n,clair=SC[k].type==="sourire";for(let i=0;i<n;i++){x.fillStyle=clair?"rgba(29,24,56,.2)":"rgba(255,255,255,.28)";rr(x,70+i*(w+gap),236,w,8,4);x.fill();
       const v=i<k?1:i===k?f:0;if(v>0){x.fillStyle=clair?B.ink:B.sun;rr(x,70+i*(w+gap),236,w*v,8,4);x.fill()}}};
