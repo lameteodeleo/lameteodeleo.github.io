@@ -2490,9 +2490,25 @@ async function creerReel(btn){
   // Fond pré-dessiné une seule fois par couleur : les halos coûtent cher à recalculer 30 fois par seconde
   const fondCache={};
   const fond=c=>{const k=(c||"")+"|"+(al?al.niveau:0);let im=fondCache[k];if(!im){im=fondCache[k]=document.createElement("canvas");im.width=W;im.height=H;fondBrut(im.getContext("2d"),c)}x.drawImage(im,0,0)};
-  const fondBrut=(g,c)=>{if(c===B.sun){g.fillStyle=B.sun;g.fillRect(0,0,W,H);halo(g,W*.85,H*.08,900,"rgba(255,255,255,.45)");halo(g,W*.1,H*.95,900,"rgba(230,150,0,.35)");return}
+  const fondBrut=(g,c)=>{if(c===B.sun){g.fillStyle=B.sun;g.fillRect(0,0,W,H);halo(g,W*.85,H*.08,900,"rgba(255,255,255,.45)");halo(g,W*.1,H*.95,900,"rgba(230,150,0,.35)");decor(g,"sun");return}
     const lg=g.createLinearGradient(0,0,W*.35,H);lg.addColorStop(0,c||B.ink);lg.addColorStop(1,al?CA(al).fonce:"#2B2366");g.fillStyle=lg;g.fillRect(0,0,W,H);
-    halo(g,W*.9,H*.05,820,al?"rgba(255,255,255,.10)":"rgba(255,194,26,.16)");halo(g,W*.05,H*.9,1000,al?"rgba(0,0,0,.18)":"rgba(91,75,208,.45)");halo(g,W*.75,H*.7,700,"rgba(255,255,255,.05)")};
+    halo(g,W*.9,H*.05,820,al?"rgba(255,255,255,.10)":"rgba(255,194,26,.16)");halo(g,W*.05,H*.9,1000,al?"rgba(0,0,0,.18)":"rgba(91,75,208,.45)");halo(g,W*.75,H*.7,700,"rgba(255,255,255,.05)");decor(g,al?"alerte":"")};
+  // Décor sur toute la hauteur (rayons en haut, bulles de lumière, Sainte-Victoire en bas) : aucune bande unie que Facebook prendrait pour une bordure
+  const decor=(g,mode)=>{const alerte=mode==="alerte",sun=mode==="sun";let r=7;const rnd=()=>(r=(r*16807)%2147483647)/2147483647;
+    g.save();g.globalCompositeOperation="lighter";
+    for(let i=0;i<9;i++){const a0=-Math.PI*.5+(i-4)*.21,l=g.createLinearGradient(W*.5,-120,W*.5+Math.cos(a0)*1100,-120+Math.sin(-a0)*1100);
+      g.beginPath();g.moveTo(W*.5,-120);g.lineTo(W*.5+Math.cos(a0-.045)*1600,-120-Math.sin(a0-.045)*1600);g.lineTo(W*.5+Math.cos(a0+.045)*1600,-120-Math.sin(a0+.045)*1600);g.closePath();
+      g.fillStyle=sun?"rgba(255,255,255,.07)":alerte?"rgba(255,255,255,.035)":"rgba(255,194,26,.05)";g.fill()}
+    for(let i=0;i<34;i++){const cx=rnd()*W,cy=(i<10?rnd()*H*.14:i<20?H*.86+rnd()*H*.14:rnd()*H),rr=30+rnd()*110,h=g.createRadialGradient(cx,cy,0,cx,cy,rr);
+      h.addColorStop(0,sun?"rgba(255,255,255,.16)":alerte?"rgba(255,255,255,.07)":"rgba(170,155,255,.10)");h.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=h;g.fillRect(cx-rr,cy-rr,rr*2,rr*2)}
+    g.restore();
+    const pts=[[0,.958],[.12,.952],[.22,.946],[.3,.94],[.36,.93],[.41,.915],[.445,.9],[.47,.893],[.49,.889],[.51,.892],[.54,.894],[.58,.898],[.63,.902],[.69,.908],[.76,.916],[.84,.926],[.92,.936],[1,.944]];
+    g.beginPath();g.moveTo(0,H);pts.forEach(([px,py])=>g.lineTo(px*W,py*H));g.lineTo(W,H);g.closePath();g.fillStyle=sun?"rgba(200,120,0,.22)":alerte?"rgba(0,0,0,.22)":"rgba(18,12,60,.55)";g.fill();
+    g.beginPath();pts.forEach(([px,py],k)=>k?g.lineTo(px*W,py*H):g.moveTo(px*W,py*H));g.strokeStyle=sun?"rgba(255,255,255,.45)":alerte?"rgba(255,255,255,.18)":"rgba(255,194,26,.30)";g.lineWidth=3;g.stroke();
+    g.beginPath();g.moveTo(0,H);[[0,.975],[.2,.968],[.4,.974],[.6,.966],[.8,.972],[1,.965]].forEach(([px,py])=>g.lineTo(px*W,py*H));g.lineTo(W,H);g.closePath();g.fillStyle=sun?"rgba(190,110,0,.25)":alerte?"rgba(0,0,0,.28)":"rgba(12,8,40,.6)";g.fill();
+    // Petites lumières de village au pied de la montagne, jusqu'au bord bas
+    g.save();g.globalCompositeOperation="lighter";for(let i=0;i<26;i++){const cx=rnd()*W,cy=H*(.95+rnd()*.05),rr=6+rnd()*22,h=g.createRadialGradient(cx,cy,0,cx,cy,rr);
+      h.addColorStop(0,sun?"rgba(255,255,255,.35)":"rgba(255,200,90,.30)");h.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=h;g.fillRect(cx-rr,cy-rr,rr*2,rr*2)}g.restore()};
   const centre=(txt,y,font,col,a)=>{x.globalAlpha=a==null?1:a;x.fillStyle=col;x.font=font;x.textAlign="center";x.fillText(txt,W/2,y);x.textAlign="left";x.globalAlpha=1};
   const progression=(k,f)=>{const n=SC.length,gap=10,w=(W-140-gap*(n-1))/n,clair=SC[k].type==="sourire";for(let i=0;i<n;i++){x.fillStyle=clair?"rgba(29,24,56,.2)":"rgba(255,255,255,.28)";rr(x,70+i*(w+gap),236,w,8,4);x.fill();
       const v=i<k?1:i===k?f:0;if(v>0){x.fillStyle=clair?B.ink:B.sun;rr(x,70+i*(w+gap),236,w*v,8,4);x.fill()}}};
