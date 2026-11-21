@@ -518,6 +518,58 @@ function ciel(code, prob, pl) {
   if (pl >= 15 || [65, 82].includes(code)) return "Forte pluie";
   if (code >= 80) return "Averses"; if (code <= 55) return "Pluie faible"; return "Pluie";
 }
+// ===== Ciel du jour et des heures : copie exacte des règles de l'app (index.html), pour que les pages communes
+// affichent toujours le même mot et la même icône que l'app. Toute modification de ces règles dans l'app doit être reportée ici.
+const PRECIPC = k => (k >= 51 && k <= 67) || (k >= 71 && k <= 77) || (k >= 80 && k <= 86) || k >= 95;
+const NEIGEC = k => (k >= 71 && k <= 77) || k === 85 || k === 86;
+function codeFiable(code, prob, pl) {
+  const q = pl == null ? null : pl, p = prob == null ? null : prob;
+  if (PRECIPC(code) && ([63, 65, 67, 73, 75, 81, 82, 95, 96, 99].includes(code) || (q != null && q >= 5))) return code;
+  if (PRECIPC(code) && (p == null || p >= 50) && (q == null || q >= 0.5)) return code;
+  if (!PRECIPC(code) && code !== 45 && code !== 48 && p != null && p >= 50 && q != null && q >= 0.5) return 61;
+  if (p != null && p >= 60 && (q != null ? q >= 0.1 : PRECIPC(code))) return NEIGEC(code) ? 71 : [56, 57, 66, 67].includes(code) ? 56 : 51;
+  return PRECIPC(code) ? 3 : code;
+}
+function classer(code, raf, dirDeg, tmax, tmin) {
+  let t = code <= 1 ? "soleil" : code <= 3 ? "nuageux" : (code === 45 || code === 48) ? "brouillard" : (code >= 71 && code <= 77) || code === 85 || code === 86 ? "neige" : code >= 95 ? "orage" : (code >= 51 && code <= 67) || (code >= 80 && code <= 82) ? "pluie" : "nuageux";
+  if (t === "soleil" || t === "nuageux") {
+    const nord = dirDeg != null && (dirDeg >= 290 || dirDeg <= 20);
+    if (raf >= 40 && nord) t = "mistral"; else if (raf >= 55) t = "vent";
+    else if (tmax >= 33) t = "chaleur"; else if (tmin <= 0) t = "gel";
+  }
+  return t;
+}
+function variante(code, type, nuit) {
+  if ((type === "nuageux" || type === "nuitNuageux") && code === 3) return "couvert";
+  if (type !== "pluie") return type;
+  if ([56, 57, 66, 67].includes(code)) return "verglas";
+  if ([63, 65, 82].includes(code)) return "pluieForte";
+  if (code >= 80 && code <= 81) return nuit ? "pluie" : "averses";
+  if (code >= 51 && code <= 55) return "bruine";
+  return "pluie";
+}
+const versNuit = t => t === "soleil" ? "lune" : t === "nuageux" ? "nuitNuageux" : t;
+const LIB_APP = { lune: "Nuit claire", nuitNuageux: "Nuit nuageuse", soleil: "Ensoleillé", nuageux: "Éclaircies", mistral: "Mistral", vent: "Vent fort", pluie: "Pluie", gel: "Gelée matinale", brouillard: "Brouillard", neige: "Neige", chaleur: "Très chaud", orage: "Orages", couvert: "Couvert", averses: "Averses", pluieForte: "Forte pluie", bruine: "Pluie faible", verglas: "Pluie verglaçante" };
+// Le jour, comme reel() dans l'app : D = [date, code, max, min, raf, dir, pl, prob, …], H = heures de 7 h à 21 h
+function jourApp(D, H) {
+  const [, code, max, min, raf, dir, pl, prob] = D;
+  let codeOK = codeFiable(code, prob, pl == null ? 0 : pl);
+  const PRECIP = k => (k >= 51 && k <= 67) || (k >= 71 && k <= 86) || k >= 95; let plNuit = false;
+  if (PRECIP(codeOK) && H) { const jj = H.slice(0, 7).filter(e => e && e[1] != null);
+    if (jj.length >= 5 && !jj.some(e => PRECIP(codeFiable(e[1], e[2], e[5]))) && Math.max(...jj.map(e => e[2] || 0)) < 50) {
+      const v = H.slice(1, 6).filter(e => e && e[1] != null).map(e => e[1]), nb = c => c <= 1 ? 0 : c === 2 ? .5 : 1, mo = v.length ? v.reduce((a, c) => a + nb(c), 0) / v.length : 1;
+      codeOK = mo <= .65 ? 2 : 3; plNuit = true; } }
+  const type = classer(codeOK, raf, dir, max, min); let ico = type;
+  if (type === "nuageux") { const jj = H ? H.slice(0, 7).filter(e => e && e[1] != null) : [];
+    if (jj.length >= 5 && jj.filter(e => e[1] === 3).length >= Math.ceil(jj.length * .7)) ico = "couvert"; }
+  else if (type === "pluie") ico = pl >= 15 ? "pluieForte" : variante(codeOK === 63 || codeOK === 65 ? 61 : codeOK, type, false);
+  return { type, ico, lib: LIB_APP[ico], plNuit };
+}
+// Une heure, comme prochainesHeures() dans l'app
+function heureApp(code, prob, mm, raf, dir, temp, nuit) {
+  const cf = codeFiable(code, prob, mm); let type = classer(cf, raf, dir, temp, temp); if (nuit) type = versNuit(type);
+  return variante(cf, type, nuit);
+}
 // Icônes météo des pages communes (même code couleur que l'app)
 const SOLEIL = `<circle cx="24" cy="24" r="9" fill="#FFC21A"/><g stroke="#FFC21A" stroke-width="3.2" stroke-linecap="round"><path d="M24 5v5M24 38v5M5 24h5M38 24h5M10.6 10.6l3.5 3.5M33.9 33.9l3.5 3.5M10.6 37.4l3.5-3.5M33.9 14.1l3.5-3.5"/></g>`;
 const NUAGE = (c = "#E6E2FA") => `<path d="M15 40h20a8.5 8.5 0 0 0 1.2-16.9A11 11 0 0 0 15.4 26 7 7 0 0 0 15 40z" fill="${c}" stroke="#B9B0EA" stroke-width="1.5"/>`;
@@ -543,10 +595,27 @@ function icone(lib, t = 40, nuit = false) {
   else g = NUAGE();
   return `<svg class="ico" width="${t}" height="${t}" viewBox="0 0 48 52" aria-hidden="true">${g}</svg>`;
 }
+// Icône à partir du type de l'app (mêmes catégories que l'app : ensoleillé, éclaircies, couvert, mistral, averses…)
+const VENT = `<g stroke="#B9B0EA" stroke-width="3.6" stroke-linecap="round" fill="none"><path d="M6 19h22a6 6 0 1 0-6-6M6 29h30a6 6 0 1 1-6 6M6 39h14"/></g>`;
+const FLOCON = `<g stroke="#9FD0FF" stroke-width="3.2" stroke-linecap="round"><path d="M24 8v36M8.4 17l31.2 18M8.4 35l31.2-18"/></g>`;
+function iconeK(k, t = 40) {
+  const sol = `<g transform="translate(1 1) scale(.72)">${SOLEIL}</g>`, lun = `<g transform="translate(4 -4) scale(.8)">${LUNE}</g>`;
+  const G = {
+    soleil: SOLEIL, lune: LUNE, chaleur: SOLEIL, nuageux: sol + NUAGE(), nuitNuageux: lun + NUAGE(), couvert: NUAGE("#CFC8F2"),
+    mistral: VENT, vent: VENT, gel: FLOCON,
+    brouillard: `<g stroke="#B9B0EA" stroke-width="3.2" stroke-linecap="round"><path d="M9 18h30M6 25h36M9 32h30M13 39h22"/></g>`,
+    orage: `<g transform="translate(0 -8)">${NUAGE("#CFC8F2")}</g><path d="M25 32l-6 9h6l-3 8 9-11h-6l3-6z" fill="#FFC21A"/>`,
+    neige: `<g transform="translate(0 -8)">${NUAGE()}</g><g fill="#9FD0FF"><circle cx="18" cy="42" r="2.4"/><circle cx="26" cy="45" r="2.4"/><circle cx="34" cy="42" r="2.4"/></g>`,
+    pluie: `<g transform="translate(0 -8)">${NUAGE()}</g>` + GOUTTES(3), bruine: `<g transform="translate(0 -8)">${NUAGE()}</g>` + GOUTTES(2),
+    pluieForte: `<g transform="translate(0 -8)">${NUAGE("#CFC8F2")}</g>` + GOUTTES(3), verglas: `<g transform="translate(0 -8)">${NUAGE()}</g>` + GOUTTES(2),
+    averses: `<g transform="translate(1 -6) scale(.6)">${SOLEIL}</g><g transform="translate(0 -8)">${NUAGE()}</g>` + GOUTTES(2)
+  };
+  return `<svg class="ico" width="${t}" height="${t}" viewBox="0 0 48 52" aria-hidden="true">${G[k] || NUAGE()}</svg>`;
+}
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 const mistral = (raf, dir) => raf >= 40 && dir != null && (dir >= 290 || dir <= 20);
 const dirTxt = d => d == null ? "" : ["nord", "nord-est", "est", "sud-est", "sud", "sud-ouest", "ouest", "nord-ouest"][Math.round(((d % 360) + 360) % 360 / 45) % 8];
-const libJ = (x, k) => { const D = x.d[k]; return x.nuit && x.nuit[k] ? x.nuit[k] : ciel(D[1], D[7], D[6]); };
+const jourJ = (x, k) => jourApp(x.d[k], x.h && x.h[k]);
 const deC = n => /^Le /.test(n) ? n.replace(/^Le /, "du ") : /^Les /.test(n) ? n.replace(/^Les /, "des ") : /^La /.test(n) ? "de " + n.replace(/^La /, "la ") : /^[AEIOUYÉÈÊÂÎÔHaeiouyéèh]/.test(n) ? "d'" + n : "de " + n;
 const article = n => /^(Le|La|Les) /.test(n) ? n.replace(/^Le /, "au ").replace(/^Les /, "aux ").replace(/^La /, "à la ") : "à " + n;
 const STYLE = `:root{--bg:#F4F2FB;--card:#fff;--ink:#1B1640;--muted:#655F86;--brand:#4B3BB8;--sun:#FFC21A;--line:#ECE9F8;--froid:#4DA3FF;--chaud:#FF9A3D}
@@ -612,14 +681,14 @@ async function pagesCommunes(ok, vig) {
   for (const x of ok) {
     const sl = slug(x.n), url = `${SITE}/meteo/${sl}/`, J = x.d[0];
     const dep = x.dep === "13" ? "Bouches-du-Rhône" : x.dep === "84" ? "Vaucluse" : x.dep === "83" ? "Var" : "";
-    const lib0 = libJ(x, 0);
+    const j0 = jourJ(x, 0), lib0 = j0.lib;
     const S7 = x.d.slice(0, 7), bas = Math.min(...S7.map(D => D[3])), haut = Math.max(...S7.map(D => D[2])), et = Math.max(1, haut - bas);
     const t0 = (x.n24 || []).find(e => e && e[1] != null), pos = v => Math.max(0, Math.min(100, Math.round((v - bas) / et * 100)));
-    const lignes = S7.map((D, k) => { const lb = libJ(x, k), mis = mistral(D[4], D[5]);
+    const lignes = S7.map((D, k) => { const jj = jourJ(x, k), lb = jj.lib, mis = mistral(D[4], D[5]);
       const fl = D[5] != null ? `<svg class="fl" viewBox="0 0 12 12" style="transform:rotate(${Math.round(D[5] + 180)}deg)" aria-hidden="true"><path d="M6 1l3.5 9L6 8 2.5 10z" fill="currentColor"/></svg>` : "";
       const cur = k === 0 && t0 ? `<b class="cur" data-bas="${bas}" data-et="${et}" style="left:${pos(t0[1])}%" title="Maintenant ${Math.round(t0[1])}°"></b>` : "";
       return `<div class="j"><div class="d">${k === 0 ? "Aujourd'hui" : k === 1 ? "Demain" : cap(jourTxt(D[0]).split(" ")[0])}<span>${new Date(D[0] + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span></div>` +
-        `<div class="ci" title="${lb}">${icone(lb, 34)}<span class="sr">${lb}</span><em>${x.nuit && x.nuit[k] ? "nuit" : D[6] >= 0.5 ? String(D[6]).replace(".", ",") + " mm" : ""}</em></div>` +
+        `<div class="ci" title="${lb}">${iconeK(jj.ico, 34)}<span class="sr">${lb}</span><em>${jj.plNuit ? "nuit" : D[6] >= 0.5 ? String(D[6]).replace(".", ",") + " mm" : ""}</em></div>` +
         `<div class="ve${mis ? " mis" : ""}"><span>${fl}${Math.round(D[4])}</span><em>${mis ? "mistral" : "km/h"}</em></div>` +
         `<div class="tp"><span class="mn">${Math.round(D[3])}°</span><span class="bar"><i style="left:${pos(D[3])}%;right:${100 - pos(D[2])}%"></i>${cur}</span><span class="mx">${Math.round(D[2])}°</span></div></div>`; }).join("");
     const voisines = ok.filter(o => o.s === x.s && o.n !== x.n).sort((a, b) => Math.hypot(a.lat - x.lat, a.lon - x.lon) - Math.hypot(b.lat - x.lat, b.lon - x.lon)).slice(0, 8);
@@ -632,19 +701,19 @@ async function pagesCommunes(ok, vig) {
     // Les prochaines heures (masquées automatiquement une fois passées)
     const n24 = (x.n24 || []).filter(e => e && e[1] != null);
     const sj = {}, nuitA = t => { const dj = t.slice(0, 10); sj[dj] = sj[dj] || soleilJour(x.lat, x.lon, dj); const hh = +t.slice(11, 13) + .5; return hh < sj[dj][0] || hh > sj[dj][1]; };
-    const heures = n24.map((e, k) => { const lb = ciel(e[2], e[3], e[6]);
-      return `<div class="h${k === 0 ? " now" : ""}" data-t="${e[0].slice(0, 13)}"><span class="hh">${k === 0 ? "Maint." : +e[0].slice(11, 13) + " h"}</span>${icone(lb, 34, nuitA(e[0]))}<b>${Math.round(e[1])}°</b><span class="p">${e[6] >= 0.1 ? String(e[6]).replace(".", ",") + " mm" : ""}</span></div>`; }).join("");
+    const heures = n24.map((e, k) => { const ik = heureApp(e[2], e[3], e[6], e[4], e[5], e[1], nuitA(e[0]));
+      return `<div class="h${k === 0 ? " now" : ""}" data-t="${e[0].slice(0, 13)}"><span class="hh">${k === 0 ? "Maint." : +e[0].slice(11, 13) + " h"}</span>${iconeK(ik, 34)}<b>${Math.round(e[1])}°</b><span class="p">${e[6] >= 0.1 ? String(e[6]).replace(".", ",") + " mm" : ""}</span></div>`; }).join("");
     // En bref : aujourd'hui et demain en une phrase
-    const D1 = x.d[1], lib1 = D1 ? libJ(x, 1) : null;
-    const pluieTxt = (D, k) => x.nuit && x.nuit[k] && D[6] >= 0.1 ? `, un peu de pluie la nuit` : D[6] >= 0.5 ? `, ${String(D[6]).replace(".", ",")} mm de pluie` : "";
-    const bref = `<b>Aujourd'hui</b> : ${lib0.toLowerCase()}, de ${Math.round(J[3])}° à ${Math.round(J[2])}°${pluieTxt(J, 0)}, rafales ${Math.round(J[4])} km/h${mistral(J[4], J[5]) ? " (mistral)" : ""}.` + (D1 ? ` <b>Demain</b> : ${lib1.toLowerCase()}, de ${Math.round(D1[3])}° à ${Math.round(D1[2])}°${pluieTxt(D1, 1)}, rafales ${Math.round(D1[4])} km/h${mistral(D1[4], D1[5]) ? " (mistral)" : ""}.` : "");
+    const D1 = x.d[1], j1 = D1 ? jourJ(x, 1) : null, lib1 = j1 ? j1.lib : null;
+    const pluieTxt = (D, k) => (k === 0 ? j0 : j1).plNuit && D[6] >= 0.1 ? `, un peu de pluie la nuit` : D[6] >= 0.5 ? `, ${String(D[6]).replace(".", ",")} mm de pluie` : "";
+    const bref = `<b>Aujourd'hui</b> : ${lib0.toLowerCase()}, de ${Math.round(J[3])}° à ${Math.round(J[2])}°${pluieTxt(J, 0)}, rafales ${Math.round(J[4])} km/h${mistral(J[4], J[5]) && j0.type !== "mistral" ? " (mistral)" : ""}.` + (D1 ? ` <b>Demain</b> : ${lib1.toLowerCase()}, de ${Math.round(D1[3])}° à ${Math.round(D1[2])}°${pluieTxt(D1, 1)}, rafales ${Math.round(D1[4])} km/h${mistral(D1[4], D1[5]) && j1.type !== "mistral" ? " (mistral)" : ""}.` : "");
     const fil = `<nav class="fil" aria-label="Fil d'Ariane"><a href="/">Accueil</a> › <a href="/meteo/">Météo du 13</a> › ${esc(NOMS_SECTEURS[x.s] || "")} › ${esc(x.n)}</nav>`;
     const ld = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [["Accueil", SITE + "/"], ["Météo du 13", SITE + "/meteo/"], [x.n, url]].map(([name, item], k) => ({ "@type": "ListItem", position: k + 1, name, item })) });
     const titre = `Météo ${x.n} : prévisions heure par heure et à 7 jours`;
     const desc = `Météo ${article(x.n)} aujourd'hui : ${lib0.toLowerCase()}, ${Math.round(J[3])}° à ${Math.round(J[2])}°, rafales ${Math.round(J[4])} km/h. Prévisions Météo-France sur 7 jours, mises à jour toutes les 2 heures.`;
     const corps = `${fil}<script type="application/ld+json">${ld}</script><h1>Météo ${article(x.n)}</h1><p class="sub">${esc(dep)}${dep ? " · " : ""}${NOMS_SECTEURS[x.s] || ""} · mis à jour ${maj}</p>${vigB}
-<div class="hero"><div class="q">Aujourd'hui · ${cap(jourTxt(J[0]))}</div><div class="l1"><div class="t">${Math.round(J[2])}°<small>max</small></div>${icone(lib0, 84)}</div>
-<p class="lib">${lib0}${mistral(J[4], J[5]) ? ", mistral" : ""}</p><div class="chips"><span>Min ${Math.round(J[3])}°</span><span>Rafales ${Math.round(J[4])} km/h${J[5] != null && !mistral(J[4], J[5]) ? " " + dirTxt(J[5]) : ""}</span>${x.nuit && x.nuit[0] ? `<span>Pluie la nuit</span>` : J[6] >= 0.5 ? `<span>Pluie ${String(J[6]).replace(".", ",")} mm</span>` : ""}</div>
+<div class="hero"><div class="q">Aujourd'hui · ${cap(jourTxt(J[0]))}</div><div class="l1"><div class="t">${Math.round(J[2])}°<small>max</small></div>${iconeK(j0.ico, 84)}</div>
+<p class="lib">${lib0}${mistral(J[4], J[5]) && j0.type !== "mistral" ? ", mistral" : ""}</p><div class="chips"><span>Min ${Math.round(J[3])}°</span><span>Rafales ${Math.round(J[4])} km/h${J[5] != null && !mistral(J[4], J[5]) ? " " + dirTxt(J[5]) : ""}</span>${j0.plNuit ? `<span>Pluie la nuit</span>` : J[6] >= 0.5 ? `<span>Pluie ${String(J[6]).replace(".", ",")} mm</span>` : ""}</div>
 <a class="btn" href="/?commune=${encodeURIComponent(x.n)}">Voir la météo heure par heure</a></div>
 <p class="bref">${bref}</p>
 ${heures ? `<h2>Les prochaines heures</h2><div class="hs">${heures}</div>` : ""}
@@ -710,15 +779,6 @@ let cielsAjustes = 0; const passages = {}, exemple = [];
 for (const x of liste) if (x.d && x.h) x.d.forEach((D, k) => {
   const H = x.h[k]; if (!H) return;
   const lib = ciel(D[1], D[7], D[6]), SEC = ["Ensoleillé", "Éclaircies", "Nuageux", "Brouillard"];
-  // Pluie prévue seulement la nuit (rien de 7 h à 19 h, comme dans l'app) : la journée prend le ciel de ses heures,
-  // et la page précise « pluie la nuit » au lieu d'annoncer une journée pluvieuse
-  if (!SEC.includes(lib) && !/^(Forte|Orage)/.test(lib)) {
-    const jj = H.slice(0, 7).filter(e => e && e[1] != null), r0 = cielDesHeures(H);
-    if (r0 && jj.length >= 5 && jj.every(e => SEC.includes(ciel(e[1], e[2], e[5]))) && Math.max(...jj.map(e => e[2] || 0)) < 50) {
-      (x.nuit = x.nuit || {})[k] = ["Éclaircies", "Éclaircies", "Éclaircies", "Nuageux"][Math.max(2, r0.code)]; const t = lib + " → " + x.nuit[k] + " (pluie la nuit)"; passages[t] = (passages[t] || 0) + 1; cielsAjustes++;
-    }
-    return;
-  }
   if (!SEC.includes(lib)) return;
   const r = cielDesHeures(H); if (!r) return;
   if (lib === "Brouillard" && r.brume >= 1) return;
