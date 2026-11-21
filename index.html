@@ -1201,8 +1201,9 @@ function reel(c,jour){
   const PRECIP=k=>(k>=51&&k<=67)||(k>=71&&k<=86)||k>=95, hj=r.h&&r.h[jour];let plNuit=false;
   if(PRECIP(codeOK)&&hj){const jj=hj.slice(0,7).filter(e=>e&&e[1]!=null);
     if(jj.length>=5&&!jj.some(e=>PRECIP(codeFiable(e[1],e[2],e[5])))&&Math.max(...jj.map(e=>e[2]||0))<50){
-      const n={};jj.forEach(e=>n[e[1]]=(n[e[1]]||0)+1);
-      codeOK=+Object.entries(n).sort((a,b)=>b[1]-a[1]||b[0]-a[0])[0][0];plNuit=true}}
+      // Ciel des heures de jour (9 h à 17 h), même règle que le serveur ; une nuit pluvieuse laisse au moins des éclaircies
+      const v=hj.slice(1,6).filter(e=>e&&e[1]!=null).map(e=>e[1]),nb=c=>c<=1?0:c===2?.5:1,mo=v.length?v.reduce((a,c)=>a+nb(c),0)/v.length:1;
+      codeOK=mo<=.65?2:3;plNuit=true}}
   const type=classer(codeOK,raf,dir,max,min);let ico=type;
   if(type==="nuageux"){const jj=hj?hj.slice(0,7).filter(e=>e&&e[1]!=null):[];
     // Journée « couverte » seulement si le ciel est couvert la plupart du temps entre 7 h et 19 h
