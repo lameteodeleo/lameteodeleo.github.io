@@ -604,6 +604,7 @@ details.plus[open] .tiles{margin-top:10px}
       <h2 style="font-size:1.3rem">Espace créateur</h2>
       <div class="sub" id="qualiteLigne" style="margin-top:6px" hidden></div>
     </div>
+    <div id="momentFort" hidden></div>
     <section>
       <div class="sec-h"><h2>Fiabilité des prévisions</h2></div>
       <div class="card kit" id="fiab"></div>
@@ -2760,8 +2761,25 @@ function route(){
     const q=DATA&&DATA.qualite, ql=$("qualiteLigne");
     if(q){ql.hidden=false;ql.textContent="Contrôle qualité de la dernière mise à jour ("+DATA.maj.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}).replace(":"," h ")+") : "+q.validees+" communes validées sur "+q.total+(q.ajustees?", "+q.ajustees+" valeur"+(q.ajustees>1?"s":"")+" ajustée"+(q.ajustees>1?"s":""):"")+(q.ecartees&&q.ecartees.length?". Écartées : "+q.ecartees.join(", ")+".":".")+(DATA.vigilance?" Vigilance Météo-France lue (bulletin de "+heureV(new Date(DATA.vigilance.maj||DATA.maj))+").":" Vigilance Météo-France : non lue.")}
     else ql.hidden=true;
-    renderFiab()}
+    renderFiab();momentFort()}
   window.scrollTo(0,0);
+}
+/* Rappel « moment fort » : les groupes gardés pour un événement météo marquant (pas une 2e présentation de l'app) */
+const GROUPES_FORTS=[["Le Puy-Sainte-Réparade","le 2e groupe du Puy (« Tu es du Puy Sainte Reparade si… »)"]];
+function momentFort(){
+  const box=$("momentFort");if(!box)return;const out=[];
+  for(const [n,groupe] of GROUPES_FORTS){const i=idx(n);if(i<0)continue;const c=COMMUNES[i];
+    for(const j of [0,1]){const r=reel(c,j);if(!r)continue;const quand=j===0?"aujourd'hui":"demain";let quoi=null,det="";
+      if(r.alert&&r.alert.niveau>=3){quoi=r.alert.titre;det="suivez les consignes officielles"}
+      else if(r.raf>=70){quoi=r.type==="mistral"?"Mistral fort":"Vent fort";det="rafales jusqu'à "+r.raf+" km/h"}
+      else if(r.pl>=20&&r.prob>=60){quoi="Fortes pluies";det="jusqu'à "+String(r.pl).replace(".",",")+" mm"}
+      else if(r.type==="neige"){quoi="Neige";det="prudence sur les routes"}
+      else if(r.max>=35){quoi="Fortes chaleurs";det="jusqu'à "+r.max+"°"}
+      if(!quoi)continue;
+      const txt="⚠️ "+quoi+" "+quand+" au "+n.replace(/^Le /,"")+" : "+det+".\n\nVoici la météo du Puy heure par heure, avec les horaires :\n👉 https://lameteodeleo.fr/meteo/"+norm(n).replace(/ /g,"-")+"/\n\nGratuit, sans pub, sans inscription. Prenez soin de vous !";
+      out.push('<div class="card kit" style="border:2px solid var(--sun)"><div class="row"><h3>C\'est le moment de publier</h3></div><p class="sub" style="margin:6px 0 10px">'+quoi+" "+quand+" : publie dans "+groupe+'. Texte prêt :</p><textarea class="caption" style="min-height:170px" readonly>'+txt.replace(/</g,"&lt;")+'</textarea><div style="margin-top:8px"><button class="sbtn" type="button" data-mf>Copier le texte</button></div></div>');break}}
+  box.hidden=!out.length;box.innerHTML=out.join("");
+  box.querySelectorAll("[data-mf]").forEach(bt=>bt.onclick=()=>{const t=bt.closest(".card").querySelector("textarea").value;try{navigator.clipboard.writeText(t);bt.textContent="Copié !";setTimeout(()=>bt.textContent="Copier le texte",1500)}catch(e){}});
 }
 /* Fiabilité : la prévision faite la veille, comparée aux mesures des stations Météo-France */
 /* Fiabilité : chaque paramètre de l'app comparé aux mesures des stations Météo-France, avec les pistes de réglage */
