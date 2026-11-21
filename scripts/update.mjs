@@ -670,7 +670,7 @@ function page({ titre, desc, url, corps }) {
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a3212f59-b8e9-486f-9e0f-d7256926be65" data-domains="lameteodeleo.fr"></script>
 </head><body><main><a class="top" href="/"><img src="/icons/icon-192.png" alt=""><span>La météo <em>de Léo</em></span></a>${corps}
 <footer>La météo de Léo : la météo des Bouches-du-Rhône, commune par commune. Prévisions des modèles AROME et ARPEGE de Météo-France, mises à jour toutes les 2 heures. Vigilances officielles : <a href="https://vigilance.meteofrance.fr/fr">vigilance.meteofrance.fr</a>. Données météo : Open-Meteo, licence CC BY 4.0. <a href="/#apropos">À propos et mentions légales</a>.</footer>
-</main><script>try{const n=new Date().toLocaleString("sv-SE",{timeZone:"Europe/Paris"}).replace(" ","T").slice(0,13);const L=[...document.querySelectorAll(".h[data-t]")];const v=L.filter(e=>e.dataset.t>=n);if(v.length&&v.length<L.length){L.forEach(e=>{if(e.dataset.t<n)e.remove()});L.forEach(e=>e.classList.remove("now"));v[0].classList.add("now");v[0].querySelector(".hh").textContent="Maint."}const c=document.querySelector(".bar .cur"),t=v[0]&&v[0].querySelector("b");if(c&&t){const T=parseFloat(t.textContent);c.style.left=Math.max(0,Math.min(100,(T-c.dataset.bas)/c.dataset.et*100))+"%";c.title="Maintenant "+T+"°"}}catch(e){}</script></body></html>`;
+</main><script>try{const n=new Date().toLocaleString("sv-SE",{timeZone:"Europe/Paris"}).replace(" ","T").slice(0,13);const L=[...document.querySelectorAll(".h[data-t]")];const v=L.filter(e=>e.dataset.t>=n);if(v.length&&v.length<L.length){L.forEach(e=>{if(e.dataset.t<n)e.remove()});L.forEach(e=>e.classList.remove("now"));v[0].classList.add("now");v[0].querySelector(".hh").textContent="Maint."}if(v.length){const h=v[0],mt=document.getElementById("mt"),mi=document.getElementById("mi"),ml=document.getElementById("ml");if(mt&&h.querySelector("b"))mt.textContent=h.querySelector("b").textContent;if(mi){const g=h.querySelector("svg").cloneNode(true);g.setAttribute("width","84");g.setAttribute("height","84");mi.replaceChildren(g)}if(ml&&h.dataset.l)ml.textContent=h.dataset.l}const c=document.querySelector(".bar .cur"),t=v[0]&&v[0].querySelector("b");if(c&&t){const T=parseFloat(t.textContent);c.style.left=Math.max(0,Math.min(100,(T-c.dataset.bas)/c.dataset.et*100))+"%";c.title="Maintenant "+T+"°"}}catch(e){}</script></body></html>`;
 }
 async function pagesCommunes(ok, vig) {
   let ANEC = {};
@@ -702,7 +702,7 @@ async function pagesCommunes(ok, vig) {
     const n24 = (x.n24 || []).filter(e => e && e[1] != null);
     const sj = {}, nuitA = t => { const dj = t.slice(0, 10); sj[dj] = sj[dj] || soleilJour(x.lat, x.lon, dj); const hh = +t.slice(11, 13) + .5; return hh < sj[dj][0] || hh > sj[dj][1]; };
     const heures = n24.map((e, k) => { const ik = heureApp(e[2], e[3], e[6], e[4], e[5], e[1], nuitA(e[0]));
-      return `<div class="h${k === 0 ? " now" : ""}" data-t="${e[0].slice(0, 13)}"><span class="hh">${k === 0 ? "Maint." : +e[0].slice(11, 13) + " h"}</span>${iconeK(ik, 34)}<b>${Math.round(e[1])}°</b><span class="p">${e[6] >= 0.1 ? String(e[6]).replace(".", ",") + " mm" : ""}</span></div>`; }).join("");
+      return `<div class="h${k === 0 ? " now" : ""}" data-t="${e[0].slice(0, 13)}" data-l="${LIB_APP[ik] || ""}"><span class="hh">${k === 0 ? "Maint." : +e[0].slice(11, 13) + " h"}</span>${iconeK(ik, 34)}<b>${Math.round(e[1])}°</b><span class="p">${e[6] >= 0.1 ? String(e[6]).replace(".", ",") + " mm" : ""}</span></div>`; }).join("");
     // En bref : aujourd'hui et demain en une phrase
     const D1 = x.d[1], j1 = D1 ? jourJ(x, 1) : null, lib1 = j1 ? j1.lib : null;
     const pluieTxt = (D, k) => (k === 0 ? j0 : j1).plNuit && D[6] >= 0.1 ? `, un peu de pluie la nuit` : D[6] >= 0.5 ? `, ${String(D[6]).replace(".", ",")} mm de pluie` : "";
@@ -712,8 +712,9 @@ async function pagesCommunes(ok, vig) {
     const titre = `Météo ${x.n} : prévisions heure par heure et à 7 jours`;
     const desc = `Météo ${article(x.n)} aujourd'hui : ${lib0.toLowerCase()}, ${Math.round(J[3])}° à ${Math.round(J[2])}°, rafales ${Math.round(J[4])} km/h. Prévisions Météo-France sur 7 jours, mises à jour toutes les 2 heures.`;
     const corps = `${fil}<script type="application/ld+json">${ld}</script><h1>Météo ${article(x.n)}</h1><p class="sub">${esc(dep)}${dep ? " · " : ""}${NOMS_SECTEURS[x.s] || ""} · mis à jour ${maj}</p>${vigB}
-<div class="hero"><div class="q">Aujourd'hui · ${cap(jourTxt(J[0]))}</div><div class="l1"><div class="t">${Math.round(J[2])}°<small>max</small></div>${iconeK(j0.ico, 84)}</div>
-<p class="lib">${lib0}${mistral(J[4], J[5]) && j0.type !== "mistral" ? ", mistral" : ""}</p><div class="chips"><span>Min ${Math.round(J[3])}°</span><span>Rafales ${Math.round(J[4])} km/h${J[5] != null && !mistral(J[4], J[5]) ? " " + dirTxt(J[5]) : ""}</span>${j0.plNuit ? `<span>Pluie la nuit</span>` : J[6] >= 0.5 ? `<span>Pluie ${String(J[6]).replace(".", ",")} mm</span>` : ""}</div>
+<div class="hero">${(() => { const e0 = n24[0], ik0 = e0 ? heureApp(e0[2], e0[3], e0[6], e0[4], e0[5], e0[1], nuitA(e0[0])) : j0.ico, t0 = e0 ? Math.round(e0[1]) : Math.round(J[2]);
+  return `<div class="q">Maintenant · ${cap(jourTxt(J[0]))}</div><div class="l1"><div class="t" id="mt">${t0}°</div><span id="mi">${iconeK(ik0, 84)}</span></div>
+<p class="lib" id="ml">${LIB_APP[ik0] || lib0}</p>`; })()}<div class="chips"><span>Min ${Math.round(J[3])}°</span><span>Max ${Math.round(J[2])}°</span><span>Rafales ${Math.round(J[4])} km/h${J[5] != null && !mistral(J[4], J[5]) ? " " + dirTxt(J[5]) : mistral(J[4], J[5]) ? ", mistral" : ""}</span>${j0.plNuit ? `<span>Pluie la nuit</span>` : J[6] >= 0.5 ? `<span>Pluie ${String(J[6]).replace(".", ",")} mm</span>` : ""}</div>
 <a class="btn" href="/?commune=${encodeURIComponent(x.n)}">Voir la météo heure par heure</a></div>
 <p class="bref">${bref}</p>
 ${heures ? `<h2>Les prochaines heures</h2><div class="hs">${heures}</div>` : ""}
