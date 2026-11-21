@@ -717,7 +717,6 @@ for (const x of liste) if (x.d && x.h) x.d.forEach((D, k) => {
   // Seul le ciel change : si le nouveau code donnait une autre conclusion sur la pluie, on garde l'ancien
   if (r.code !== D[1] && ["Ensoleillé", "Éclaircies", "Nuageux"].includes(ciel(r.code, D[7], D[6]))) { const t = lib + " → " + ciel(r.code, D[7], D[6]); passages[t] = (passages[t] || 0) + 1; if (norm(x.n) === norm("Le Puy-Sainte-Réparade")) exemple.push(`${D[0]} ${t} (heures ${H.slice(1, 6).map(e => e && e[1]).join(",")})`); D[1] = r.code; cielsAjustes++; }
 });
-for (const x of liste) if (["Aix-en-Provence", "Le Puy-Sainte-Réparade"].includes(x.n) && x.d && x.h) console.log(`Contrôle ${x.n} : jour ${JSON.stringify(x.d[0])} · heures ${JSON.stringify(x.h[0])}`);
 console.log(`Ciel du jour recalculé sur les heures de jour : ${cielsAjustes} journée(s) ajustée(s) · ${JSON.stringify(passages)} · Le Puy : ${exemple.join(" ; ") || "aucun changement"}`);
 const aujourdhui = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
 const bilan = controler(recues, aujourdhui), ok = bilan.valides;
