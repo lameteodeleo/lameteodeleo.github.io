@@ -1835,7 +1835,7 @@ const themeSombre=()=>{const t=document.documentElement.dataset.theme;return t?t
 function pillHTML(n,m,petit,dx,dy){
   const cls=mapMode!=="temp"?"":m.max<=10?"froid":m.max>=28?"chaud":"";
   const val=mapMode==="pluie"?(m.pl>=0.1?fr(m.pl>=10?Math.round(m.pl):m.pl)+" mm":"0 mm"):mapMode==="vent"?m.raf+" km/h":m.max+"°";
-  return '<div class="lpill'+(petit?" petit":"")+'" style="margin-left:'+(dx||0)+'px;margin-top:'+(dy||0)+'px">'+ICONS[m.ico||m.type]+'<span><span class="'+cls+'">'+val+'</span><small>'+(SHORT[n]||n)+'</small></span></div>';
+  return '<div class="lpill'+(petit?" petit":"")+'" style="margin-left:'+(dx||0)+'px;margin-top:'+(dy||0)+'px">'+ICONS[m.ico||m.type]+'<span><span class="'+cls+'">'+val+'</span><small>'+(SHORT[n]||n)+(mapMode==="pluie"&&m.pl>=0.1&&m.prob?' · '+m.prob+' %':'')+'</small></span></div>';
 }
 /* La carte en couleurs : chaque commune prend la couleur de sa température, de sa pluie ou de son vent */
 let mapMode="temp", LZONES=null;
@@ -1843,7 +1843,7 @@ const ECHELLES={
   temp:{titre:"Températures maximales",unite:"°",stops:[[-5,"#4A6FD1"],[0,"#6FA8DC"],[5,"#7FCDBB"],[10,"#A8D86B"],[15,"#F2E34C"],[20,"#F9B233"],[25,"#F0782A"],[30,"#E0412A"],[35,"#B01E3C"],[40,"#7A1250"]],val:m=>m.max},
   // Pluie et vent : des classes franches, comme sur une carte radar, plutôt qu'un dégradé difficile à lire
   pluie:{titre:"Pluie de la journée",unite:" mm",seuil:1,classes:[[1,"#BFE3FB","1 à 5"],[5,"#5AAEF0","5 à 15"],[15,"#1F63D6","15 à 30"],[30,"#F5A623","30 à 50"],[50,"#E0362C","50 et +"]],rien:"Moins de 1",val:m=>m.pl},
-  vent:{titre:"Rafales de vent",unite:" km/h",seuil:30,classes:[[30,"#FFE86A","30 à 50"],[50,"#F9A533","50 à 70"],[70,"#E8502E","70 à 90"],[90,"#9E1B4F","90 et +"]],rien:"Calme",val:m=>m.raf}
+  vent:{titre:"Rafales de vent",unite:" km/h",seuil:30,classes:[[30,"#FFE86A","30 à 50"],[50,"#F9A533","50 à 70"],[70,"#E8502E","70 à 90"],[90,"#9E1B4F","90 et +"]],rien:"Moins de 30",val:m=>m.raf}
 };
 /* Températures : des classes calculées sur l'écart du jour, pour que 15° et 20° ne se ressemblent pas.
    Du bleu (le plus frais du jour) au rouge (le plus chaud) ; la légende donne les degrés exacts. */
