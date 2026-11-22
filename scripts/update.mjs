@@ -428,6 +428,7 @@ async function verifier(ok, qa) {
   let prec = null;
   try { prec = await lireSite("/data/verif.json", 3); } catch (e) { console.warn("Historique de vérification introuvable (" + e.message + ") : on repart de zéro."); }
   const V = { prev: (prec && prec.prev) || {}, jours: (prec && prec.jours) || [], prevAir: (prec && prec.prevAir) || {}, coordsAir: (prec && prec.coordsAir) || null };
+  if (process.env.TEST_MESURES) for (const j of V.jours) console.log(`HIST ${j.date} st=${j.stations} tx=${JSON.stringify(j.tx)} tn=${JSON.stringify(j.tn)} pluie=${JSON.stringify(j.pluie)} icone=${JSON.stringify(j.icone)} hIcone=${JSON.stringify(j.hIcone)} cal=${JSON.stringify(j.cal)} pires=${JSON.stringify((j.pires || []).filter(x => x.rrM != null && (x.rrM >= 0.2 || x.rrP >= 0.5)).map(x => [x.n, x.rrP, x.rrM]))}`);
   const auj = dateParis(0);
   // Garde la prévision de demain (écrasée à chaque mise à jour jusqu'à minuit) : le jour et ses heures
   const dem = {}; let dDem = null;
