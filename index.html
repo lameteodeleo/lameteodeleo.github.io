@@ -2554,9 +2554,11 @@ async function creerReel(btn){
           cIcon(x,mom[i].type,560,640+i*330,170,true);
           x.fillStyle=B.white;x.font="800 120px "+FB;x.textAlign="right";x.fillText(mom[i].t+"°",W-120,790+i*330);x.textAlign="left"}));
     }else if(sc.type==="cons"){fond();titreSc(al?"La consigne":"Le conseil du jour",t);sousSc(jourTxt,t);
-      carte(620,760,t,.25,()=>{x.fillStyle=cons&&cons.warn?CA(al).clair:B.sun;x.font="800 50px "+FB;x.textAlign="center";x.fillText(((cons&&CAT[cons.cat])||"").toUpperCase(),W/2,740);x.textAlign="left";
-          let fs=64,n;do{x.font="800 "+fs+"px "+FB;const w=insec(cons?cons.txt:"").split(" ");let l="";n=1;for(const k of w){const u=l?l+" "+k:k;if(x.measureText(u).width>W-240&&l){n++;l=k}else l=u}fs-=4}while(n*fs*1.3>560&&fs>36);
-          lignesC(cons?cons.txt:"",840,"800 "+(fs+4)+"px "+FB,B.white,W-240,(fs+4)*1.3,x.globalAlpha)});
+      // Carte à la hauteur du texte, centrée dans l'espace disponible
+      let fs=64,n;do{x.font="800 "+fs+"px "+FB;const w=insec(cons?cons.txt:"").split(" ");let l="";n=1;for(const k of w){const u=l?l+" "+k:k;if(x.measureText(u).width>W-240&&l){n++;l=k}else l=u}fs-=4}while(n*fs*1.3>560&&fs>36);
+      const lhC=(fs+4)*1.3,hC=Math.min(760,Math.max(380,120+100+(n-1)*lhC+100)),yC=620+Math.round((760-hC)/2);
+      carte(yC,hC,t,.25,()=>{x.fillStyle=cons&&cons.warn?CA(al).clair:B.sun;x.font="800 50px "+FB;x.textAlign="center";x.fillText(((cons&&CAT[cons.cat])||"").toUpperCase(),W/2,yC+120);x.textAlign="left";
+          lignesC(cons?cons.txt:"",yC+220,"800 "+(fs+4)+"px "+FB,B.white,W-240,lhC,x.globalAlpha)});
     }else if(sc.type==="sourire"){fond(B.sun);
       centre("LE SOURIRE DU JOUR",470,"800 46px "+FB,B.sunInk,ease(t/.3));
       x.save();x.globalAlpha=ease((t-.2)/.4);let fs=76,n;do{x.font="800 "+fs+"px "+FD;const w=insec(sourire).split(" ");let l="";n=1;for(const k of w){const u=l?l+" "+k:k;if(x.measureText(u).width>W-200&&l){n++;l=k}else l=u}fs-=4}while(n*fs*1.25>720&&fs>40);x.restore();
