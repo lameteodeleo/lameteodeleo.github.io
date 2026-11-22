@@ -2498,7 +2498,7 @@ async function creerReel(btn){
     g.save();g.globalCompositeOperation="lighter";
     for(let i=0;i<9;i++){const a0=-Math.PI*.5+(i-4)*.21,l=g.createLinearGradient(W*.5,-120,W*.5+Math.cos(a0)*1100,-120+Math.sin(-a0)*1100);
       g.beginPath();g.moveTo(W*.5,-120);g.lineTo(W*.5+Math.cos(a0-.045)*1600,-120-Math.sin(a0-.045)*1600);g.lineTo(W*.5+Math.cos(a0+.045)*1600,-120-Math.sin(a0+.045)*1600);g.closePath();
-      g.fillStyle=sun?"rgba(255,255,255,.045)":alerte?"rgba(255,255,255,.025)":"rgba(255,194,26,.032)";g.fill()}
+      const rg=g.createRadialGradient(W*.5,-120,0,W*.5,-120,H*.42);rg.addColorStop(0,sun?"rgba(255,255,255,.06)":alerte?"rgba(255,255,255,.035)":"rgba(255,194,26,.045)");rg.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=rg;g.fill()}
     for(let i=0;i<34;i++){const zone=i<12?0:i<24?1:2,cx=zone<2?rnd()*W:(rnd()<.5?rnd()*W*.16:W*.84+rnd()*W*.16),cy=zone===0?rnd()*H*.14:zone===1?H*.86+rnd()*H*.14:rnd()*H,rr=30+rnd()*100,h=g.createRadialGradient(cx,cy,0,cx,cy,rr);
       h.addColorStop(0,sun?"rgba(255,255,255,.11)":alerte?"rgba(255,255,255,.05)":"rgba(170,155,255,.075)");h.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=h;g.fillRect(cx-rr,cy-rr,rr*2,rr*2)}
     g.restore();
