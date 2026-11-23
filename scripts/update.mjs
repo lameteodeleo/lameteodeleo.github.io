@@ -652,7 +652,14 @@ h2{font-size:1.15rem;margin:28px 0 10px}
 .vig{display:flex;gap:12px;align-items:flex-start;border-radius:18px;padding:14px 16px;margin:16px 0 0;text-decoration:none;font-weight:600;line-height:1.35}
 .vig b{display:block;font-size:1.02rem}.vig span{font-weight:500;font-size:.88rem}.vig i{font-style:normal;font-size:1.4rem;line-height:1}
 .vig.c2{background:#FFF3B0;color:#3D3300}.vig.c3{background:#FF8A00;color:#2A1600}.vig.c4{background:#E0201B;color:#fff}
-.bref{background:var(--card);border-radius:18px;padding:14px 16px;margin:0;line-height:1.5}.bref b{color:var(--brand)}
+.deux{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.jc{background:var(--card);border-radius:18px;padding:13px 14px 12px;box-shadow:0 2px 10px rgba(27,22,64,.05);min-width:0}
+.jc h3{font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--brand);margin:0}.jc h3 span{display:block;color:var(--muted);font-weight:600;text-transform:none;letter-spacing:0;font-size:.8rem;margin-top:1px}
+.jc .jl{display:flex;align-items:center;gap:8px;margin-top:6px}.jc .jl .ico{width:42px;height:42px;flex:none}
+.jc .lb{font-weight:800;line-height:1.2;min-width:0}.jc .tt{display:flex;gap:14px;margin-top:8px;font-size:.84rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}.jc .tt b{color:var(--ink);font-size:1.15rem;font-weight:800;margin-left:3px}
+.jc ul{list-style:none;margin:10px 0 0;padding:9px 0 0;border-top:1px solid var(--line);display:grid;gap:5px;font-size:.82rem;font-weight:600}
+.jc li{display:flex;align-items:center;gap:6px;line-height:1.25}.jc li svg{width:14px;height:14px;flex:none}.jc li.pl{color:#2F86E8}.jc li.vt svg{color:var(--muted)}.jc li.mis{color:#0E9AA7}.jc li.mis svg{color:#0E9AA7}
+@media (max-width:370px){.jc{padding:12px 11px 11px}.jc .jl .ico{width:36px;height:36px}.jc ul{font-size:.78rem}}
 .hs{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 8px;margin:0 -2px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 .h{flex:none;scroll-snap-align:start;width:64px;background:var(--card);border-radius:16px;padding:10px 4px 9px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
 .h .hh{font-size:.78rem;color:var(--muted);font-weight:600}.h .ico{width:34px;height:34px}.h b{font-size:1rem}.h .p{font-size:.72rem;color:#2F86E8;font-weight:700;min-height:1em}
@@ -706,10 +713,17 @@ async function pagesCommunes(ok, vig) {
     const sj = {}, nuitA = t => { const dj = t.slice(0, 10); sj[dj] = sj[dj] || soleilJour(x.lat, x.lon, dj); const hh = +t.slice(11, 13) + .5; return hh < sj[dj][0] || hh > sj[dj][1]; };
     const heures = n24.map((e, k) => { const ik = heureApp(e[2], e[3], e[6], e[4], e[5], e[1], nuitA(e[0]));
       return `<div class="h${k === 0 ? " now" : ""}" data-t="${e[0].slice(0, 13)}" data-l="${LIB_APP[ik] || ""}"><span class="hh">${k === 0 ? "Maint." : +e[0].slice(11, 13) + " h"}</span>${iconeK(ik, 34)}<b>${Math.round(e[1])}°</b><span class="p">${e[6] >= 0.1 ? String(e[6]).replace(".", ",") + " mm" : ""}</span></div>`; }).join("");
-    // En bref : aujourd'hui et demain en une phrase
-    const D1 = x.d[1], j1 = D1 ? jourJ(x, 1) : null, lib1 = j1 ? j1.lib : null;
-    const pluieTxt = (D, k) => (k === 0 ? j0 : j1).plNuit && D[6] >= 0.1 ? `, un peu de pluie la nuit` : D[6] >= 0.5 ? `, ${String(D[6]).replace(".", ",")} mm de pluie` : "";
-    const bref = `<b>Aujourd'hui</b> : ${lib0.toLowerCase()}, de ${Math.round(J[3])}° à ${Math.round(J[2])}°${pluieTxt(J, 0)}, rafales ${Math.round(J[4])} km/h${mistral(J[4], J[5]) && j0.type !== "mistral" ? " (mistral)" : ""}.` + (D1 ? ` <b>Demain</b> : ${lib1.toLowerCase()}, de ${Math.round(D1[3])}° à ${Math.round(D1[2])}°${pluieTxt(D1, 1)}, rafales ${Math.round(D1[4])} km/h${mistral(D1[4], D1[5]) && j1.type !== "mistral" ? " (mistral)" : ""}.` : "");
+    // Aujourd'hui et demain : deux cartes claires (ciel, températures, pluie, vent)
+    const VENTI = `<svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="currentColor" stroke-width="4.5" stroke-linecap="round" fill="none"><path d="M6 18h24a6 6 0 1 0-6-6"/><path d="M6 27h32a6 6 0 1 1-6 6"/><path d="M6 36h14"/></g></svg>`;
+    const GOUTTEI = `<svg viewBox="0 0 8 10" aria-hidden="true"><path d="M4 0C2.7 2.2 0 4.6 0 6.4A4 4 0 0 0 8 6.4C8 4.6 5.3 2.2 4 0z" fill="currentColor"/></svg>`;
+    const carte = (D, k) => { if (!D) return ""; const jj = jourJ(x, k), mis = mistral(D[4], D[5]);
+      const pl = jj.plNuit && D[6] >= 0.1 ? "Pluie la nuit" : D[6] >= 0.5 ? `Pluie ${String(D[6]).replace(".", ",")} mm` : "";
+      const vt = `Rafales ${Math.round(D[4])} km/h${mis ? " · mistral" : ""}`;
+      return `<section class="jc"><h3>${k === 0 ? "Aujourd'hui" : "Demain"}<span>${new Date(D[0] + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short", day: "numeric" })}</span></h3>` +
+        `<div class="jl">${iconeK(jj.ico, 42)}<span class="lb">${jj.lib}</span></div><div class="tt"><span>Min<b>${Math.round(D[3])}°</b></span><span>Max<b>${Math.round(D[2])}°</b></span></div>` +
+        `<ul>${pl ? `<li class="pl">${GOUTTEI}${pl}</li>` : ""}<li class="vt${mis ? " mis" : ""}">${VENTI}${vt}</li></ul></section>`; };
+    const D1 = x.d[1];
+    const deuxJours = `<div class="deux">${carte(J, 0)}${carte(D1, 1)}</div>`;
     const fil = `<nav class="fil" aria-label="Fil d'Ariane"><a href="/">Accueil</a> › <a href="/meteo/">Météo du 13</a> › ${esc(NOMS_SECTEURS[x.s] || "")} › ${esc(x.n)}</nav>`;
     const ld = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [["Accueil", SITE + "/"], ["Météo du 13", SITE + "/meteo/"], [x.n, url]].map(([name, item], k) => ({ "@type": "ListItem", position: k + 1, name, item })) });
     const titre = `Météo ${x.n} : prévisions heure par heure et à 7 jours`;
@@ -717,9 +731,9 @@ async function pagesCommunes(ok, vig) {
     const corps = `${fil}<script type="application/ld+json">${ld}</script><h1>Météo ${article(x.n)}</h1><p class="sub">${esc(dep)}${dep ? " · " : ""}${NOMS_SECTEURS[x.s] || ""} · mis à jour ${maj}</p>${vigB}
 <div class="hero">${(() => { const e0 = n24[0], ik0 = e0 ? heureApp(e0[2], e0[3], e0[6], e0[4], e0[5], e0[1], nuitA(e0[0])) : j0.ico, t0 = e0 ? Math.round(e0[1]) : Math.round(J[2]);
   return `<div class="q">Maintenant · ${cap(jourTxt(J[0]))}</div><div class="l1"><div class="t" id="mt">${t0}°</div><span id="mi">${iconeK(ik0, 84)}</span></div>
-<p class="lib" id="ml">${LIB_APP[ik0] || lib0}</p>`; })()}<div class="chips"><span>Min ${Math.round(J[3])}°</span><span>Max ${Math.round(J[2])}°</span><span>Rafales ${Math.round(J[4])} km/h${J[5] != null && !mistral(J[4], J[5]) ? " " + dirTxt(J[5]) : mistral(J[4], J[5]) ? ", mistral" : ""}</span>${j0.plNuit ? `<span>Pluie la nuit</span>` : J[6] >= 0.5 ? `<span>Pluie ${String(J[6]).replace(".", ",")} mm</span>` : ""}</div>
+<p class="lib" id="ml">${LIB_APP[ik0] || lib0}</p>`; })()}
 <a class="btn" href="/?commune=${encodeURIComponent(x.n)}">Voir la météo heure par heure</a></div>
-<p class="bref">${bref}</p>
+${deuxJours}
 ${heures ? `<h2>Les prochaines heures</h2><div class="hs">${heures}</div>` : ""}
 <h2>Prévisions sur 7 jours</h2><div class="jours"><div class="j tete"><span></span><span>Ciel</span><span>Rafales<small>km/h</small></span><span>Min · max</span></div>${lignes}</div>
 <div class="app"><img src="/icons/icon-192.png" alt=""><div><b>La météo ${deC(x.n)} dans votre poche</b><p>Température en direct, pluie dans les 2 prochaines heures, vigilances et sourire du jour. Gratuit, sans pub, sans inscription.</p><a href="/?commune=${encodeURIComponent(x.n)}">Ouvrir l'app →</a></div></div>
