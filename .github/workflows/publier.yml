@@ -39,7 +39,7 @@ permissions:
 
 env:
   # « oui » : publication automatique chaque jour. « non » : seulement à la main (bouton « Run workflow »).
-  PUBLICATION_AUTO: "non"
+  PUBLICATION_AUTO: "oui"
 
 concurrency:
   group: publication
