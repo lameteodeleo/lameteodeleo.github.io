@@ -614,13 +614,14 @@ function iconeK(k, t = 40) {
   return `<svg class="ico" width="${t}" height="${t}" viewBox="0 0 48 52" aria-hidden="true">${G[k] || NUAGE()}</svg>`;
 }
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+const GOUTTE = `<svg viewBox="0 0 8 10" aria-hidden="true"><path d="M4 0C2.7 2.2 0 4.6 0 6.4A4 4 0 0 0 8 6.4C8 4.6 5.3 2.2 4 0z" fill="currentColor"/></svg>`;
 const mistral = (raf, dir) => raf >= 40 && dir != null && (dir >= 290 || dir <= 20);
 const dirTxt = d => d == null ? "" : ["nord", "nord-est", "est", "sud-est", "sud", "sud-ouest", "ouest", "nord-ouest"][Math.round(((d % 360) + 360) % 360 / 45) % 8];
 const jourJ = (x, k) => jourApp(x.d[k], x.h && x.h[k]);
 const deC = n => /^Le /.test(n) ? n.replace(/^Le /, "du ") : /^Les /.test(n) ? n.replace(/^Les /, "des ") : /^La /.test(n) ? "de " + n.replace(/^La /, "la ") : /^[AEIOUYÉÈÊÂÎÔHaeiouyéèh]/.test(n) ? "d'" + n : "de " + n;
 const article = n => /^(Le|La|Les) /.test(n) ? n.replace(/^Le /, "au ").replace(/^Les /, "aux ").replace(/^La /, "à la ") : "à " + n;
-const STYLE = `:root{--bg:#F4F2FB;--card:#fff;--ink:#1B1640;--muted:#655F86;--brand:#4B3BB8;--sun:#FFC21A;--line:#ECE9F8;--froid:#4DA3FF;--chaud:#FF9A3D}
-@media (prefers-color-scheme:dark){:root{--bg:#100E24;--card:#1C1838;--ink:#F2F0FF;--muted:#A7A1CC;--brand:#A99FF5;--line:#2C2750}}
+const STYLE = `:root{--bg:#F4F2FB;--card:#fff;--ink:#1B1640;--muted:#655F86;--brand:#4B3BB8;--sun:#FFC21A;--line:#ECE9F8;--froid:#4DA3FF;--chaud:#FF9A3D;--auj:#F3F0FF}
+@media (prefers-color-scheme:dark){:root{--bg:#100E24;--card:#1C1838;--ink:#F2F0FF;--muted:#A7A1CC;--brand:#A99FF5;--line:#2C2750;--auj:#26214A}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 main{max-width:720px;margin:0 auto;padding:20px 16px 40px}a{color:var(--brand)}
 .top{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:800;font-size:1.1rem}.top img{width:36px;height:36px;border-radius:9px}.top em{font-style:normal;color:#E0A400}
@@ -635,11 +636,12 @@ h1{font-size:1.65rem;line-height:1.2;margin:22px 0 4px;letter-spacing:-.01em}.su
 .btn{display:inline-block;margin-top:16px;background:var(--sun);color:#1B1640;font-weight:800;text-decoration:none;padding:13px 20px;border-radius:999px;box-shadow:0 6px 16px rgba(0,0,0,.18)}
 .jours{background:var(--card);border-radius:20px;padding:4px 14px;box-shadow:0 2px 10px rgba(27,22,64,.05)}
 .j{display:grid;grid-template-columns:78px 52px 50px 1fr;align-items:center;column-gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.j:last-child{border-bottom:0}
-.j.tete{padding:10px 0 8px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}.j.tete span{text-align:center}.j.tete span:last-child{text-align:center}
+.j.tete{padding:10px 0 8px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);line-height:1.15}.j.tete span{text-align:center}.j.tete small{display:block;text-transform:none;letter-spacing:0;font-weight:600;font-size:.68rem;opacity:.8}
+.j.auj{background:var(--auj);border-radius:14px;margin:4px -8px;padding:11px 8px;border-bottom-color:transparent}.j.auj+.j{border-top:0}
 .j .d{font-weight:700;line-height:1.2}.j .d span{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
-.ci,.ve{display:flex;flex-direction:column;align-items:center;line-height:1.1}.ci .ico{width:34px;height:34px}.ci em,.ve em{font-style:normal;font-size:.72rem;font-weight:700;min-height:1em}.ci em{color:#2F86E8;margin-top:1px}
-.ve span{display:flex;align-items:center;gap:3px;font-weight:700;font-variant-numeric:tabular-nums}.ve em{color:var(--muted);font-weight:500}.ve .fl{width:12px;height:12px;color:var(--muted)}
-.ve.mis span,.ve.mis em,.ve.mis .fl{color:#0E9AA7}.ve.mis em{font-weight:700}
+.ci,.ve{display:flex;flex-direction:column;align-items:center;line-height:1.1}.ci .ico{width:34px;height:34px}.ci em,.ve em{font-style:normal;font-size:.72rem;font-weight:700}.ci em{display:flex;align-items:center;gap:2px;color:#2F86E8;margin-top:1px;white-space:nowrap}.ci em svg{width:8px;height:10px;flex:none}
+.ve span{display:flex;align-items:center;gap:3px;font-weight:700;font-size:1.02rem;font-variant-numeric:tabular-nums}.ve .fl{width:12px;height:12px;color:var(--muted)}
+.ve.mis span,.ve.mis .fl{color:#0E9AA7}.ve.mis em{margin-top:2px;background:rgba(14,154,167,.12);color:#0E9AA7;border-radius:999px;padding:1px 6px;font-size:.66rem;font-weight:800}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .tp{display:flex;align-items:center;gap:7px;font-variant-numeric:tabular-nums;font-size:.95rem}.tp .mn{color:var(--muted);width:2.1em;text-align:right;flex:none}.tp .mx{font-weight:800;width:2.1em;flex:none}
 .bar{position:relative;flex:1;min-width:30px;height:6px;border-radius:9px;background:var(--line)}.bar i{position:absolute;top:0;bottom:0;border-radius:9px;background:linear-gradient(90deg,var(--froid),var(--chaud))}
@@ -688,9 +690,9 @@ async function pagesCommunes(ok, vig) {
     const lignes = S7.map((D, k) => { const jj = jourJ(x, k), lb = jj.lib, mis = mistral(D[4], D[5]);
       const fl = D[5] != null ? `<svg class="fl" viewBox="0 0 12 12" style="transform:rotate(${Math.round(D[5] + 180)}deg)" aria-hidden="true"><path d="M6 1l3.5 9L6 8 2.5 10z" fill="currentColor"/></svg>` : "";
       const cur = k === 0 && t0 ? `<b class="cur" data-bas="${bas}" data-et="${et}" style="left:${pos(t0[1])}%" title="Maintenant ${Math.round(t0[1])}°"></b>` : "";
-      return `<div class="j"><div class="d">${k === 0 ? "Aujourd'hui" : k === 1 ? "Demain" : cap(jourTxt(D[0]).split(" ")[0])}<span>${new Date(D[0] + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span></div>` +
-        `<div class="ci" title="${lb}">${iconeK(jj.ico, 34)}<span class="sr">${lb}</span><em>${jj.plNuit ? "nuit" : D[6] >= 0.5 ? String(D[6]).replace(".", ",") + " mm" : ""}</em></div>` +
-        `<div class="ve${mis ? " mis" : ""}"><span>${fl}${Math.round(D[4])}</span><em>${mis ? "mistral" : "km/h"}</em></div>` +
+      return `<div class="j${k === 0 ? " auj" : ""}"><div class="d">${k === 0 ? "Aujourd'hui" : k === 1 ? "Demain" : cap(jourTxt(D[0]).split(" ")[0])}<span>${new Date(D[0] + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span></div>` +
+        `<div class="ci" title="${lb}">${iconeK(jj.ico, 34)}<span class="sr">${lb}</span>${jj.plNuit ? `<em>${GOUTTE}la nuit</em>` : D[6] >= 0.5 ? `<em>${GOUTTE}${String(D[6]).replace(".", ",")} mm</em>` : ""}</div>` +
+        `<div class="ve${mis ? " mis" : ""}"><span>${fl}${Math.round(D[4])}</span>${mis ? "<em>mistral</em>" : ""}</div>` +
         `<div class="tp"><span class="mn">${Math.round(D[3])}°</span><span class="bar"><i style="left:${pos(D[3])}%;right:${100 - pos(D[2])}%"></i>${cur}</span><span class="mx">${Math.round(D[2])}°</span></div></div>`; }).join("");
     const voisines = ok.filter(o => o.s === x.s && o.n !== x.n).sort((a, b) => Math.hypot(a.lat - x.lat, a.lon - x.lon) - Math.hypot(b.lat - x.lat, b.lon - x.lon)).slice(0, 8);
     // Vigilance Météo-France du département (et du littoral pour les communes au bord de la mer)
@@ -719,7 +721,7 @@ async function pagesCommunes(ok, vig) {
 <a class="btn" href="/?commune=${encodeURIComponent(x.n)}">Voir la météo heure par heure</a></div>
 <p class="bref">${bref}</p>
 ${heures ? `<h2>Les prochaines heures</h2><div class="hs">${heures}</div>` : ""}
-<h2>Prévisions sur 7 jours</h2><div class="jours"><div class="j tete"><span></span><span>Ciel</span><span>Rafales</span><span>Min · max</span></div>${lignes}</div>
+<h2>Prévisions sur 7 jours</h2><div class="jours"><div class="j tete"><span></span><span>Ciel</span><span>Rafales<small>km/h</small></span><span>Min · max</span></div>${lignes}</div>
 <div class="app"><img src="/icons/icon-192.png" alt=""><div><b>La météo ${deC(x.n)} dans votre poche</b><p>Température en direct, pluie dans les 2 prochaines heures, vigilances et sourire du jour. Gratuit, sans pub, sans inscription.</p><a href="/?commune=${encodeURIComponent(x.n)}">Ouvrir l'app →</a></div></div>
 ${ANEC[x.n] && ANEC[x.n].length ? `<h2>Le saviez-vous ?</h2>${ANEC[x.n].slice(0, 3).map(a => `<p class="anec">${esc(a.t)}</p>`).join("")}` : ""}
 <h2>Communes voisines</h2><div class="liens">${voisines.map(o => `<a href="/meteo/${slug(o.n)}/">${esc(o.n)}</a>`).join("")}<a href="/meteo/">Toutes les communes</a></div>
