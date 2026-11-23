@@ -1,4 +1,7 @@
-name: Diagnostic statistiques
+# Diagnostic : vérifie que la politique de sécurité (CSP) ne bloque rien sur l'appli et les pages,
+# et que les fichiers importants (Google Search Console, plan du site…) sont bien en ligne.
+# Le robot n'est pas compté comme visiteur (les envois vers Umami sont coupés après le contrôle CSP).
+name: Diagnostic du site
 on:
   workflow_dispatch:
 permissions:
@@ -11,22 +14,37 @@ jobs:
         with:
           node-version: 20
       - run: npm install --no-save --no-audit --no-fund playwright-core@1.49.1
-      - name: Visite test de l'app et d'une page commune
+      - name: Fichiers en ligne
+        run: |
+          for u in googlec345ccc8f9d6353e.html robots.txt sitemap.xml manifest.webmanifest sw.js icons/icon-192.png icons/partage-v2.png data/meteo.json meteo/ meteo/rognes/ meteo/marseille/; do
+            printf "%s  %s\n" "$(curl -s -o /dev/null -w '%{http_code}' "https://lameteodeleo.fr/$u")" "$u"; done
+          echo "Search Console :"; curl -s https://lameteodeleo.fr/googlec345ccc8f9d6353e.html | head -c 120; echo
+          echo "robots.txt :"; curl -s https://lameteodeleo.fr/robots.txt
+      - name: Visites complètes (CSP, erreurs, requêtes bloquées)
         run: |
           cat > d.mjs <<'JS'
           import { chromium } from "playwright-core";
           const b = await chromium.launch({ channel: "chrome" });
-          for (const url of ["https://lameteodeleo.fr/", "https://lameteodeleo.fr/meteo/rognes/"]) {
-            const p = await b.newPage();
-            p.on("console", m => { if (/Content Security|Refused/i.test(m.text())) console.log("CSP :", m.text().slice(0, 300)); });
-            p.on("request", r => { if (/umami/.test(r.url())) console.log("requête :", r.method(), r.url()); });
-            p.on("response", r => { if (/umami/.test(r.url())) console.log("réponse :", r.status(), r.url()); });
-            p.on("requestfailed", r => { if (/umami/.test(r.url())) console.log("ÉCHEC :", r.url(), r.failure() && r.failure().errorText); });
-            console.log("== " + url);
-            await p.goto(url, { waitUntil: "load" }); await p.waitForTimeout(6000);
-            console.log("umami chargé :", await p.evaluate(() => typeof window.umami));
-            await p.close();
+          const ctx = await b.newContext({ locale: "fr-FR", timezoneId: "Europe/Paris", viewport: { width: 400, height: 860 } });
+          await ctx.addInitScript(() => document.addEventListener("securitypolicyviolation", e => console.log("CSP-BLOQUÉ " + e.violatedDirective + " → " + e.blockedURI)));
+          await ctx.route(/umami\.(is|dev)\/api\/send/, r => r.abort());   // pas de fausse visite
+          let pb = 0;
+          const suivre = (p, nom) => {
+            p.on("console", m => { const t = m.text(); if (/CSP-BLOQUÉ|Content Security|Refused/i.test(t)) { pb++; console.log(`  ✘ [${nom}] ${t.slice(0, 250)}`); } });
+            p.on("pageerror", e => { pb++; console.log(`  ✘ [${nom}] erreur JS : ${e.message.slice(0, 200)}`); });
+            p.on("requestfailed", r => { if (!/umami\.(is|dev)\/api\/send/.test(r.url())) { pb++; console.log(`  ✘ [${nom}] échec ${r.url().slice(0, 150)} (${r.failure() && r.failure().errorText})`); } });
+            p.on("response", r => { if (r.status() >= 400) { pb++; console.log(`  ✘ [${nom}] HTTP ${r.status()} ${r.url().slice(0, 150)}`); } });
+          };
+          const p = await ctx.newPage(); suivre(p, "appli");
+          await p.goto("https://lameteodeleo.fr/", { waitUntil: "load" }); await p.waitForTimeout(5000);
+          console.log("Appli : prévisions réelles =", await p.evaluate(() => enReel()));
+          for (const h of ["#secteurs", "#carte", "#apropos", "#meteo"]) { await p.evaluate(h => location.hash = h, h); await p.waitForTimeout(2500); console.log("vue " + h + " ok"); }
+          await p.evaluate(async () => { studioOuvert = true; route(); await buildSlides(); }); await p.waitForTimeout(3000); console.log("espace créateur ok");
+          await p.reload({ waitUntil: "load" }); await p.waitForTimeout(4000); console.log("rechargement (service worker) ok");
+          for (const u of ["meteo/", "meteo/rognes/", "meteo/marseille/", "meteo/arles/"]) {
+            const q = await ctx.newPage(); suivre(q, u); await q.goto("https://lameteodeleo.fr/" + u, { waitUntil: "load" }); await q.waitForTimeout(3000); console.log("page " + u + " ok"); await q.close();
           }
+          console.log(pb ? `${pb} problème(s) trouvé(s)` : "AUCUN PROBLÈME");
           await b.close();
           JS
           node d.mjs
