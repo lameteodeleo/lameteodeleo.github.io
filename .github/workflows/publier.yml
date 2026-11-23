@@ -33,6 +33,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # « oui » : publication automatique chaque jour. « non » : seulement à la main (bouton « Run workflow »).
+  PUBLICATION_AUTO: "non"
+
 concurrency:
   group: publication
   cancel-in-progress: false
@@ -48,6 +52,7 @@ jobs:
         run: |
           hm=$(TZ=Europe/Paris date +%H%M); hm=$((10#$hm))
           go=true
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ "$PUBLICATION_AUTO" != "oui" ]; then go=false; echo "Publication automatique en pause."; fi
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
             if ! { [ $hm -ge 600 ] && [ $hm -lt 1030 ]; } && ! { [ $hm -ge 1700 ] && [ $hm -lt 2100 ]; }; then go=false; fi
           fi
