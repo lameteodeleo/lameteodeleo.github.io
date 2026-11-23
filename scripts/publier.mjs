@@ -34,7 +34,7 @@ const paris = (d = new Date()) => {
 const maintenant = paris();
 const jourParis = d => paris(new Date(d)).jour;
 // Créneaux (heure de Paris) : la première mise à jour réussie dans le créneau déclenche la publication
-const CRENEAU = { story: [6 * 60, 10 * 60 + 30], reel: [17 * 60, 21 * 60] };
+const CRENEAU = { story: [6 * 60 + 45, 10 * 60 + 30], reel: [17 * 60, 21 * 60] };
 const dansCreneau = t => maintenant.min >= CRENEAU[t][0] && maintenant.min < CRENEAU[t][1];
 
 // ---------- API de Meta ----------
@@ -184,7 +184,7 @@ async function principal() {
   else if (MODE === "auto") type = dansCreneau("reel") ? "reel" : dansCreneau("story") ? "story" : null;
   else if (MODE === "controle-reel") type = "reel";
   else if (MODE === "controle-story") type = "story";
-  if (!type) { log("Hors des créneaux de publication (story 6 h – 10 h 30, Reel 17 h – 21 h) : rien à faire."); return; }
+  if (!type) { log("Hors des créneaux de publication (story 6 h 45 – 10 h 30, Reel 17 h – 21 h) : rien à faire."); return; }
 
   // La clé fonctionne-t-elle ? Quel est le compte Instagram de la Page ?
   const pg = await api(`/${PAGE_ID}`, { params: { fields: "name,instagram_business_account{id,username}" } });

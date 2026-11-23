@@ -1,5 +1,6 @@
 # La météo de Léo : publication automatique sur Instagram et sur la Page Facebook.
-#  - Story du jour : après la première mise à jour météo réussie entre 6 h et 10 h 30 (heure de Paris).
+#  - Story du jour : après la première mise à jour météo réussie entre 6 h 45 et 10 h 30 (heure de Paris),
+#    ou vers 7 h 15 au plus tard si les prévisions ont moins de 3 heures.
 #  - Reel de demain : après la première mise à jour météo réussie entre 17 h et 21 h.
 #  - Contrôles : vers 10 h 40 et 21 h 10 (heure d'hiver), le robot vérifie que tout est paru ;
 #    sinon, ce travail échoue et GitHub envoie un e-mail d'alerte.
@@ -12,6 +13,7 @@ on:
   schedule:
     - cron: "10 20 * * *" # contrôle du Reel (21 h 10 en hiver, 22 h 10 en été)
     - cron: "40 9 * * *"  # contrôle de la story (10 h 40 en hiver, 11 h 40 en été)
+    - cron: "12 5,6 * * *" # filet de sécurité : story vers 7 h 15 même si la mise à jour de 7 h est en retard
   workflow_dispatch:
     inputs:
       mode:
@@ -53,8 +55,8 @@ jobs:
           hm=$(TZ=Europe/Paris date +%H%M); hm=$((10#$hm))
           go=true
           if [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ "$PUBLICATION_AUTO" != "oui" ]; then go=false; echo "Publication automatique en pause."; fi
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            if ! { [ $hm -ge 600 ] && [ $hm -lt 1030 ]; } && ! { [ $hm -ge 1700 ] && [ $hm -lt 2100 ]; }; then go=false; fi
+          if [ "${{ github.event_name }}" = "workflow_run" ] || [ "${{ github.event.schedule }}" = "12 5,6 * * *" ]; then
+            if ! { [ $hm -ge 645 ] && [ $hm -lt 1030 ]; } && ! { [ $hm -ge 1700 ] && [ $hm -lt 2100 ]; }; then go=false; fi
           fi
           echo "Heure de Paris : $(TZ=Europe/Paris date '+%H h %M') ; publier : $go"
           echo "go=$go" >> "$GITHUB_OUTPUT"
@@ -75,6 +77,6 @@ jobs:
         run: node scripts/publier.mjs
         env:
           META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
-          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event_name == 'schedule' && (github.event.schedule == '10 20 * * *' && 'controle-reel' || 'controle-story')) || 'auto' }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event_name == 'schedule' && (github.event.schedule == '10 20 * * *' && 'controle-reel' || github.event.schedule == '40 9 * * *' && 'controle-story' || 'auto')) || 'auto' }}
           TYPE_TEST: ${{ inputs.type_test }}
           RESEAUX: ${{ inputs.reseaux || 'instagram,facebook' }}
