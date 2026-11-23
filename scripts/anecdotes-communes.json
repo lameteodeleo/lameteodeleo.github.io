@@ -25,8 +25,8 @@
  ],
  "Cassis": [
   {
-   "t": "Le vin de Cassis a obtenu son appellation d'origine en 1936 : c'est l'une des trois premières reconnues en France. Plus des deux tiers de la production sont du vin blanc.",
-   "s": "https://www.provence7.com/portails/gastronomie/vins-et-vignobles-provencaux/vins-et-vignobles-de-cassis/"
+   "t": "Le vin de Cassis fait partie des six toutes premières appellations d'origine contrôlée de France, reconnues en 1936.",
+   "s": "https://www.inao.gouv.fr/en/expo-90ans/9-six-premieres-aoc"
   },
   {
    "t": "Entre Cassis et La Ciotat, le cap Canaille culmine à 394 mètres : c'est la plus haute falaise maritime de France. Ses couches de grès ocre lui donnent sa couleur.",
@@ -35,8 +35,8 @@
  ],
  "Roquefort-la-Bédoule": [
   {
-   "t": "Au milieu des ruines de Roquefort-le-Vieux se dresse la chapelle Saint-André, un édifice roman du XIIIe siècle inscrit aux Monuments historiques.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/roquefort-la-bedoule-a-visiter-13/"
+   "t": "À Roquefort-la-Bédoule, la chapelle Saint-André-de-Julhans date du XIIe siècle. Elle est inscrite aux Monuments historiques depuis 1987.",
+   "s": "https://pop.culture.gouv.fr/notice/merimee/PA00081419"
   }
  ],
  "Plan-de-Cuques": [
@@ -47,8 +47,8 @@
  ],
  "Ceyreste": [
   {
-   "t": "Le nom de Ceyreste viendrait de Citharista, une colonie fondée par les Grecs de Marseille.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/ceyreste-a-visiter-13/"
+   "t": "Ceyreste aurait gardé le nom de Citharista, une ville antique du bord de mer : à la fin de l'Antiquité, ses habitants se seraient repliés dans les terres, là où se trouve le village aujourd'hui.",
+   "s": "https://www.inrap.fr/sites/inrap.fr/files/atoms/files/la_ciotat_plaquette_1.pdf"
   }
  ],
  "Gémenos": [
@@ -107,14 +107,14 @@
  ],
  "Saint-Savournin": [
   {
-   "t": "En 2003, le dernier puits du bassin houiller de Provence a fermé. Saint-Savournin, l'un des villages miniers du bassin, a vu son église devenir un prieuré de l'abbaye Saint-Victor de Marseille dès 1010.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/saint-savournin-a-visiter-13/"
+   "t": "Saint-Savournin est un ancien village minier : le puits Germain, profond de 600 mètres, y a fonctionné de 1927 à 1961. Au-dessus du village, on voit les restes d'un castellas du Moyen Âge.",
+   "s": "https://en.tourisme-paysdaubagne.fr/discover-the-region/towns-and-villages/saint-savournin/"
   }
  ],
  "Septèmes-les-Vallons": [
   {
-   "t": "Le nom de Septèmes viendrait de la septième borne milliaire de la voie romaine entre Aix et Marseille. La commune a été détachée des Pennes-Mirabeau en 1790.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/septemes-les-vallons-a-visiter-13/"
+   "t": "À Septèmes-les-Vallons, l'oppidum des Mayans a été construit à la fin du VIe siècle avant J.-C. Ce village fortifié est classé Monument historique depuis 2004.",
+   "s": "https://pop.culture.gouv.fr/notice/merimee/PA13000025"
   }
  ],
  "Le Rove": [
@@ -138,13 +138,13 @@
  "Sausset-les-Pins": [
   {
    "t": "Sausset-les-Pins n'est devenue une commune qu'en 1924, en se séparant de Carry-le-Rouet.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/sausset-les-pins-a-visiter-13/"
+   "s": "https://ville-sausset-les-pins.fr/site/wp-content/uploads/2024/03/discours-MM-du-centenaire.pdf"
   }
  ],
  "Éguilles": [
   {
-   "t": "Perché au-dessus de la vallée de l'Arc, Éguilles offre un large panorama sur la campagne. Aux XVIIe et XVIIIe siècles, les Boyer y ont bâti leur château à la place de l'ancien château féodal.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/eguilles-a-visiter-13/"
+   "t": "À Éguilles, le château a été bâti au XVIIe siècle pour la famille Boyer d'Éguilles, sur les fondations de l'ancien château féodal. Il abrite aujourd'hui la mairie, et son esplanade domine l'étang de Berre.",
+   "s": "https://aixenprovencetourism.com/en/fiche/chateau-d-eguilles-5539035"
   }
  ],
  "Le Tholonet": [
@@ -185,14 +185,14 @@
  ],
  "Peynier": [
   {
-   "t": "Peynier est considéré comme le berceau des maîtres savonniers de Marseille. Le point culminant de la commune est le pic du Garri, à 497 mètres.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/peynier-a-visiter-13/"
+   "t": "Le château de Peynier a été bâti au milieu du XVIe siècle. Il est resté à la famille Thomassin de Peynier et à ses héritiers jusqu'en 1933.",
+   "s": "https://provence-alpes-cotedazur.com/en/things-to-do/culture-and-heritage/places/peyniers-castle-peynier-en-2869860/"
   }
  ],
  "Trets": [
   {
-   "t": "Trets serait née très tôt de Trittia, une ville créée par les Grecs de Marseille. Une maison romane du XIIIe siècle y aurait abrité une synagogue.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/trets-a-visiter-13/"
+   "t": "À Trets, une maison du XIIe siècle dite « synagogue » rappelle la communauté juive du Moyen Âge. Elle est inscrite aux Monuments historiques depuis 1926.",
+   "s": "https://www.culture.gouv.fr/switchToLanguage/38506/fre-FR"
   }
  ],
  "Puyloubier": [
@@ -209,8 +209,8 @@
  ],
  "Mimet": [
   {
-   "t": "Mimet est le plus haut village des Bouches-du-Rhône. Sa glacière, mise en service en 1646, a été la première de Provence.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/mimet-a-visiter-13/"
+   "t": "Perché à près de 500 mètres d'altitude, Mimet garde une glacière : aux XVIIe et XVIIIe siècles, on y conservait la neige et la glace de l'hiver pour l'été.",
+   "s": "https://aixenprovencetourism.com/en/fiche/la-glaciere-6300951"
   }
  ],
  "Gardanne": [
@@ -222,19 +222,19 @@
  "Meyreuil": [
   {
    "t": "À Meyreuil, le pont des Trois-Sautets, construit en 1655, n'a qu'une seule arche en dos d'âne. Paul Cézanne l'a immortalisé dans ses tableaux.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/meyreuil-a-visiter-13/"
+   "s": "https://provence-alpes-cotedazur.com/que-faire/culture-et-patrimoine/lieux/pont-des-trois-sautets-meyreuil-fr-2879910/"
   }
  ],
  "Bouc-Bel-Air": [
   {
-   "t": "Les jardins d'Albertas, à Bouc-Bel-Air, ont été créés au XVIIe siècle par la famille de Séguiran. Ils ont pris le nom des Albertas après un mariage, en 1673.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/bouc-bel-air-a-visiter-13/"
+   "t": "Les jardins d'Albertas, à Bouc-Bel-Air, ont été dessinés à partir de 1751 pour Jean-Baptiste d'Albertas. Le domaine était entré dans la famille en 1673, par un mariage.",
+   "s": "https://www.culture.gouv.fr/switchToLanguage/36732/fre-FR"
   }
  ],
  "Simiane-Collongue": [
   {
-   "t": "En 1720, la peste a frappé Simiane-Collongue et fait mourir plus de 200 personnes.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/simiane-collongue-a-visiter-13/"
+   "t": "Près de Venel, la chapelle Saint-Germain, à la voûte romane en pierre, a été bâtie sur l'ancienne route qui venait de Marseille à travers les bois de chênes et de pins d'Alep.",
+   "s": "https://provence-alpes-cotedazur.com/que-faire/culture-et-patrimoine/lieux/chapelle-saint-germain-simiane-collongue-fr-2865171/"
   }
  ],
  "Cabriès": [
@@ -245,8 +245,8 @@
  ],
  "Les Pennes-Mirabeau": [
   {
-   "t": "Aux Pennes-Mirabeau, l'oppidum de la Teste-Nègre, classé Monument historique, domine la plaine de Marignane. La commune ne porte son nom actuel que depuis 1902.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/les-pennes-mirabeau-a-visiter-13/"
+   "t": "Aux Pennes-Mirabeau, l'oppidum de la Teste-Nègre a été habité par les Ligures dès le IIIe siècle avant J.-C. Il est protégé au titre des Monuments historiques.",
+   "s": "https://provence-alpes-cotedazur.com/en/things-to-do/culture-and-heritage/places/teste-negre-oppidum-les-pennes-mirabeau-en-2886818/"
   }
  ],
  "Ventabren": [
@@ -287,8 +287,8 @@
  ],
  "Jouques": [
   {
-   "t": "La source de la Traconnade, à Jouques, alimentait au Ier siècle l'aqueduc romain qui amenait l'eau jusqu'à Aix.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/jouques-a-visiter-13/"
+   "t": "Dans l'Antiquité, l'aqueduc romain de la Traconnade prenait sa source à Jouques pour amener l'eau jusqu'à Aix.",
+   "s": "https://www.aixenprovence.fr/IMG/pdf/6_37_un_aqueduc_aux_platanes.pdf"
   }
  ],
  "Saint-Paul-lès-Durance": [
@@ -299,14 +299,14 @@
  ],
  "Saint-Estève-Janson": [
   {
-   "t": "Avec 8,25 km², Saint-Estève-Janson est l'une des plus petites communes des Bouches-du-Rhône. Elle a pris sa forme actuelle en 1507, sur les terres du seigneur de Janson.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/saint-esteve-janson-a-visiter-13/"
+   "t": "À Saint-Estève-Janson, la grotte de l'Escale garde les traces de cinq foyers, datés d'environ 200 000 ans.",
+   "s": "https://en.wikipedia.org/wiki/Saint-Est%C3%A8ve-Janson"
   }
  ],
  "Saint-Antonin-sur-Bayon": [
   {
-   "t": "Saint-Antonin-sur-Bayon ne comptait que 130 habitants en 2012. Un aqueduc romain de 12 km prenait sa source sur la commune.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/saint-antonin-sur-bayon-a-visiter-13/"
+   "t": "Au pied de la Sainte-Victoire, Saint-Antonin-sur-Bayon était le point de départ d'un des aqueducs romains qui amenaient l'eau jusqu'à Aix.",
+   "s": "https://www.aixenprovence.fr/IMG/pdf/livreteau.pdf"
   }
  ],
  "La Roque-d'Anthéron": [
@@ -317,14 +317,14 @@
  ],
  "Châteauneuf-les-Martigues": [
   {
-   "t": "La raffinerie de La Mède, à Châteauneuf-les-Martigues, s'est installée en 1934.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/chateauneuf-les-martigues-a-visiter-13/"
+   "t": "La raffinerie de La Mède, à Châteauneuf-les-Martigues, a démarré en 1935. Elle est devenue une bioraffinerie.",
+   "s": "https://totalenergies.com/fr/compagnie/projets/biomasse-biogaz/la-mede-plateforme-bioraffinerie-france"
   }
  ],
  "Gignac-la-Nerthe": [
   {
-   "t": "Le tunnel du Rove, creusé de 1910 à 1926, passe sous la commune de Gignac-la-Nerthe.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/gignac-la-nerthe-a-visiter-13-2/"
+   "t": "Le tunnel du Rove passe sous Gignac-la-Nerthe. Inauguré en 1927 et long de 7,2 km, c'est le plus long tunnel-canal maritime du monde.",
+   "s": "https://www.gignaclanerthe.fr/wp-content/uploads/2022/12/1.-Tunnel-presentation-en-CM.-Rapport-definitif.pdf"
   }
  ],
  "Marignane": [
@@ -345,8 +345,8 @@
  ],
  "Berre-l'Étang": [
   {
-   "t": "À Berre-l'Étang, la chapelle Notre-Dame-de-Caderot repose sur des bases du VIe siècle, bâties sur les fondations d'un temple païen du IIIe siècle. Le sel et l'étang ont fait la richesse de la commune.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/berre-letang-a-visiter-13/"
+   "t": "À Berre-l'Étang, la chapelle Notre-Dame-de-Caderot remonte au haut Moyen Âge, avec des agrandissements au XIIIe et au XVIIe siècle. Elle est inscrite aux Monuments historiques depuis 1974.",
+   "s": "https://pop.culture.gouv.fr/notice/merimee/PA00081226"
   }
  ],
  "Velaux": [
@@ -357,14 +357,14 @@
  ],
  "Coudoux": [
   {
-   "t": "Coudoux n'est une commune que depuis 1950 : elle a été détachée de Ventabren. Elle comptait 457 habitants en 1954, et près de 3 500 en 2012.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/coudoux-a-visiter-13/"
+   "t": "Coudoux n'est une commune que depuis 1950 : avant, le village faisait partie de Ventabren.",
+   "s": "https://en.wikipedia.org/wiki/Coudoux"
   }
  ],
  "La Fare-les-Oliviers": [
   {
-   "t": "En 1768, la seigneurie de La Fare a été élevée au rang de marquisat.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/la-fare-les-oliviers-13/"
+   "t": "À La Fare-les-Oliviers, le Castellas, un château bien connu dans la région, a été construit au Xe siècle.",
+   "s": "https://en.wikipedia.org/wiki/La_Fare-les-Oliviers"
   }
  ],
  "Saint-Chamas": [
@@ -411,8 +411,8 @@
  ],
  "Cornillon-Confoux": [
   {
-   "t": "Cornillon-Confoux est l'un des rares villages perchés des Bouches-du-Rhône. Son mur des abeilles, long de 60 mètres, compte 56 niches où l'on installait des ruches.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/cornillon-confoux-a-visiter-13/"
+   "t": "À Cornillon-Confoux, le mur des abeilles, du XIXe siècle, mesure 60 mètres de long et compte 55 niches où l'on installait des ruches.",
+   "s": "https://provence-alpes-cotedazur.com/que-faire/culture-et-patrimoine/lieux/le-mur-dabeilles-cornillon-confoux-fr-2863585/"
   }
  ],
  "Lançon-Provence": [
@@ -433,26 +433,26 @@
  ],
  "Pélissanne": [
   {
-   "t": "La fontaine du Pélican, à Pélissanne, date de 1769 et a été taillée dans la pierre de Calissanne. La Touloubre, qui traverse la commune, est un fleuve côtier de 59 km.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/pelissanne-a-visiter-13/"
+   "t": "À Pélissanne, la fontaine dite du Pélican, symbole du village, est protégée au titre des Monuments historiques.",
+   "s": "https://monumentum.fr/monument-historique/pa00081401/pelissanne-fontaine-dite-du-pelican"
   }
  ],
  "Grans": [
   {
-   "t": "Au XIXe siècle, le village de Grans comptait jusqu'à 12 moulins à blé.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/grans-a-visiter-13/"
+   "t": "À Grans, le moulin Saint-Joseph, dont les origines remontent au XVIIe siècle, moud encore de la farine grâce à l'énergie de la Touloubre.",
+   "s": "https://www.myprovence.fr/les-guides/preparer-vos-vacances/tout-le-guide/grans/moulin-saint-joseph"
   }
  ],
  "Lambesc": [
   {
-   "t": "De 1646 à 1786, Lambesc a été le siège de l'Assemblée générale des communautés de Provence. En 1909, le village a subi un important tremblement de terre.",
-   "s": "https://www.provence7.com/?p=29772"
+   "t": "Pendant plus d'un siècle, de 1646 à 1786, les assemblées générales des communautés de Provence se sont réunies à Lambesc. Le 11 juin 1909, le village a été très touché par un tremblement de terre.",
+   "s": "https://irsn.fr/page/source-parameters-11-june-1909-lambesc-provence-southeastern-france-earthquake-reappraisal"
   }
  ],
  "Alleins": [
   {
-   "t": "Au IIe siècle avant J.-C., le général romain Caius Marius aurait choisi le site d'Alleins pour y installer le camp de ses troupes.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/histoire-dalleins-13/"
+   "t": "Alleins est légèrement perché au-dessus de la plaine de la Durance, face aux Alpilles et au Luberon. Dans le village, on découvre les ruines des remparts médiévaux et du château.",
+   "s": "https://provence-alpes-cotedazur.com/que-faire/culture-et-patrimoine/lieux/village-dalleins-alleins-fr-3326824/"
   }
  ],
  "Aurons": [
@@ -475,26 +475,26 @@
  ],
  "Eyguières": [
   {
-   "t": "Le nom ancien d'Eyguières, Aquaria, évoque l'eau : les marais environnants et trois sources. Ses fontaines de la Coquille, du XVIIIe siècle, sont classées Monument historique.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/eyguieres-a-visiter-13/"
+   "t": "Eyguières est un village de fontaines : Coquille, Trinquetaille, Cocotte, Calandalo… La fontaine Coquille en est l'emblème.",
+   "s": "https://provence-alpes-cotedazur.com/en/things-to-do/culture-and-heritage/places/fontaine-coquille-eyguieres-en-2877739/"
   }
  ],
  "Sénas": [
   {
-   "t": "L'église Saint-Armand de Sénas repose sur une base romane du XIIe siècle.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/senas-a-visiter-13/"
+   "t": "L'église Saint-Amand de Sénas date de la fin du XIe siècle. Elle est inscrite aux Monuments historiques depuis 1997.",
+   "s": "https://pop.culture.gouv.fr/notice/merimee/PA13000018"
   }
  ],
  "Mallemort": [
   {
-   "t": "En 1092, Mallemort s'appelait Castro Malemortis. Le donjon carré du château des évêques de Marseille veille toujours sur le village.",
-   "s": "https://www.provence7.com/portails/villes-et-villages/communes-a-visiter/mallemort-a-visiter-13/"
+   "t": "À Mallemort, le donjon est le seul vestige du château des évêques de Marseille, seigneurs du village de 1260 à 1789.",
+   "s": "https://www.myprovence.fr/sites/default/files/poi/5593418/pdf_2021-04-12T083644000000topo_bdrpaysages_mallemortv2.pdf"
   }
  ],
  "Charleval": [
   {
-   "t": "Charleval a été créé de toutes pièces le 21 novembre 1741 par Pierre-César de Cadenet et son épouse. Ses maisons sont parfaitement alignées, selon les plans dessinés par César de Cadenet lui-même.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/charleval-a-visiter-13/"
+   "t": "Charleval a été fondé en 1741 par César de Cadenet. Ses rues ont été tracées au cordeau : droites et régulières, elles ne ressemblent pas aux ruelles tortueuses des autres villages de Provence.",
+   "s": "https://www.provenceweb.fr/f/bouches/charleval/charleval.htm"
   }
  ],
  "Orgon": [
@@ -511,8 +511,8 @@
  ],
  "Cabannes": [
   {
-   "t": "Cabannes doit son nom aux cabanes qui servaient autrefois d'habitations.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/cabannes-a-visiter-13/"
+   "t": "En provençal, Cabannes se dit « Cabanas », c'est-à-dire « les cabanes ».",
+   "s": "https://en.wikipedia.org/wiki/Cabannes,_Bouches-du-Rh%C3%B4ne"
   }
  ],
  "Saint-Andiol": [
@@ -523,8 +523,8 @@
  ],
  "Mollégès": [
   {
-   "t": "L'abbaye cistercienne des Nobles-Dames de Mollégès a été fondée en 1208. Il en reste une belle façade Renaissance, derrière l'église.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/molleges-a-visiter-13/"
+   "t": "L'abbaye cistercienne de Mollégès remonte au XIIIe siècle. Il en reste une belle porte fortifiée, aux fenêtres de style Renaissance, et une partie de l'enceinte.",
+   "s": "https://provence-alpes-cotedazur.com/en/things-to-do/culture-and-heritage/places/abbaye-cistercienne-molleges-en-2880099/"
   }
  ],
  "Verquières": [
@@ -541,8 +541,8 @@
  ],
  "Eyragues": [
   {
-   "t": "La population d'Eyragues a doublé en cinquante ans : 2 092 habitants en 1962, 4 178 en 2012. Sa chapelle du Christ est inscrite aux Monuments historiques.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/eyragues-a-visiter-13/"
+   "t": "L'église d'Eyragues, dont la construction remonte au XIIe siècle, est inscrite aux Monuments historiques.",
+   "s": "https://pop.culture.gouv.fr/notice/merimee/PA00081255"
   }
  ],
  "Châteaurenard": [
@@ -595,8 +595,8 @@
  ],
  "Paradou": [
   {
-   "t": "Le Paradou doit son nom aux moulins à foulon des tisserands installés le long de l'Arcoule. Son musée de la Petite Provence présente l'une des plus vastes collections de santons du monde, plus de 400.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/paradou-a-visiter-13/"
+   "t": "Au Paradou, la Petite Provence présente plus de 450 santons dans un village provençal du début du XXe siècle, reconstitué à l'échelle 1/6.",
+   "s": "https://maussane.com/en/commerces/the-village-of-santons-petite-provence-paradou"
   }
  ],
  "Les Baux-de-Provence": [
@@ -750,7 +750,7 @@
  "Arles": [
   {
    "t": "Avec 758,93 km², Arles est la plus grande commune de France métropolitaine.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/territoire-de-la-commune-darles-situation-superficie-relief-espaces/"
+   "s": "https://en.wikipedia.org/wiki/List_of_French_communes_by_surface_area"
   },
   {
    "t": "Vincent van Gogh est arrivé à Arles le 20 février 1888. Il y a passé un peu plus de quatorze mois, et y a réalisé une multitude de tableaux et de dessins.",
@@ -801,8 +801,8 @@
  ],
  "Saint-Victoret": [
   {
-   "t": "En 965, l'abbaye Saint-Victor de Marseille a fondé à Saint-Victoret un prieuré rural, Sanctus Victor, au bord de la Cadière. Le village est devenu une commune en 1666.",
-   "s": "https://www.provence7.com/?p=21565"
+   "t": "Vers 965, des moines de l'abbaye Saint-Victor de Marseille ont fondé un prieuré à Saint-Victoret : le nom du village veut dire « petit Saint-Victor ».",
+   "s": "https://france-voyage.com/cities-towns/saint-victoret-1559.htm"
   }
  ],
  "Rognac": [
@@ -825,14 +825,14 @@
  ],
  "Saint-Étienne-du-Grès": [
   {
-   "t": "Saint-Étienne-du-Grès n'est une commune que depuis 1935 : elle a été détachée de Tarascon. Sa chapelle romane Notre-Dame-du-Château est inscrite aux Monuments historiques.",
-   "s": "https://www.provence7.com/a-a-z-des-articles/saint-etienne-du-gres-13/"
+   "t": "Saint-Étienne-du-Grès n'est une commune que depuis 1935 : elle a été détachée de Tarascon. Sa chapelle Notre-Dame-du-Château est inscrite aux Monuments historiques depuis 1926.",
+   "s": "https://pop.culture.gouv.fr/notice/merimee/PA00081430"
   }
  ],
  "Saint-Pierre-de-Mézoargues": [
   {
-   "t": "Saint-Pierre-de-Mézoargues, posée le long du Rhône, ne compte que quelque 230 habitants sur 4,13 km².",
-   "s": "https://www.provence7.com/a-a-z-des-articles/saint-pierre-de-mezoargues-a-visiter-13/"
+   "t": "Saint-Pierre-de-Mézoargues ne compte qu'environ 230 habitants, sur 4,13 km². Avant 1992, la commune s'appelait simplement Mézoargues.",
+   "s": "https://en.wikipedia.org/wiki/Saint-Pierre-de-M%C3%A9zoargues"
   }
  ],
  "Avignon": [
