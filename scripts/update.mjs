@@ -718,7 +718,7 @@ async function pagesCommunes(ok, vig) {
     const GOUTTEI = `<svg viewBox="0 0 8 10" aria-hidden="true"><path d="M4 0C2.7 2.2 0 4.6 0 6.4A4 4 0 0 0 8 6.4C8 4.6 5.3 2.2 4 0z" fill="currentColor"/></svg>`;
     const carte = (D, k) => { if (!D) return ""; const jj = jourJ(x, k), mis = mistral(D[4], D[5]);
       const pl = jj.plNuit && D[6] >= 0.1 ? "Pluie la nuit" : D[6] >= 0.5 ? `Pluie ${String(D[6]).replace(".", ",")} mm` : "";
-      const vt = `Rafales ${Math.round(D[4])} km/h${mis ? " · mistral" : ""}`;
+      const vt = mis ? `Mistral, rafales ${Math.round(D[4])}` : `Rafales ${Math.round(D[4])} km/h`;
       return `<section class="jc"><h3>${k === 0 ? "Aujourd'hui" : "Demain"}<span>${new Date(D[0] + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short", day: "numeric" })}</span></h3>` +
         `<div class="jl">${iconeK(jj.ico, 42)}<span class="lb">${jj.lib}</span></div><div class="tt"><span>Min<b>${Math.round(D[3])}°</b></span><span>Max<b>${Math.round(D[2])}°</b></span></div>` +
         `<ul>${pl ? `<li class="pl">${GOUTTEI}${pl}</li>` : ""}<li class="vt${mis ? " mis" : ""}">${VENTI}${vt}</li></ul></section>`; };
