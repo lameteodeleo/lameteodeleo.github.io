@@ -74,7 +74,7 @@ async function fabriquer(type) {
   await mkdir(OUT, { recursive: true });
   const nav = await chromium.launch({ ...(process.env.CHROME_CHANNEL === "aucun" ? {} : { channel: process.env.CHROME_CHANNEL || "chrome" }), args: ["--autoplay-policy=no-user-gesture-required"] });
   try {
-    const ctx = await nav.newContext({ viewport: { width: 420, height: 900 }, locale: "fr-FR", timezoneId: "Europe/Paris", serviceWorkers: "block" });
+    const ctx = await nav.newContext({ viewport: { width: 420, height: 900 }, locale: "fr-FR", timezoneId: "Europe/Paris", serviceWorkers: "block", bypassCSP: true });
     const page = await ctx.newPage();
     const erreurs = []; page.on("pageerror", e => erreurs.push(e.message));
     await page.route("**/cloud.umami.is/**", r => r.abort());          // le robot ne compte pas comme un visiteur
