@@ -1,0 +1,75 @@
+# La météo de Léo : publication automatique sur Instagram et sur la Page Facebook.
+#  - Story du jour : après la première mise à jour météo réussie entre 6 h et 10 h 30 (heure de Paris).
+#  - Reel de demain : après la première mise à jour météo réussie entre 17 h et 21 h.
+#  - Contrôles : vers 10 h 40 et 21 h 10 (heure d'hiver), le robot vérifie que tout est paru ;
+#    sinon, ce travail échoue et GitHub envoie un e-mail d'alerte.
+name: Publication Instagram et Facebook
+
+on:
+  workflow_run:
+    workflows: ["Mise à jour météo"]
+    types: [completed]
+  schedule:
+    - cron: "10 20 * * *" # contrôle du Reel (21 h 10 en hiver, 22 h 10 en été)
+    - cron: "40 9 * * *"  # contrôle de la story (10 h 40 en hiver, 11 h 40 en été)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "test = tout préparer sans publier ; reel ou story = publier maintenant"
+        type: choice
+        options: [test, reel, story]
+        default: test
+      type_test:
+        description: "En mode test : préparer le Reel ou la story"
+        type: choice
+        options: [reel, story]
+        default: reel
+      reseaux:
+        description: "Réseaux"
+        type: choice
+        options: ["instagram,facebook", "instagram", "facebook"]
+        default: "instagram,facebook"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publication
+  cancel-in-progress: false
+
+jobs:
+  publier:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Faut-il publier maintenant ?
+        id: creneau
+        run: |
+          hm=$(TZ=Europe/Paris date +%H%M); hm=$((10#$hm))
+          go=true
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            if ! { [ $hm -ge 600 ] && [ $hm -lt 1030 ]; } && ! { [ $hm -ge 1700 ] && [ $hm -lt 2100 ]; }; then go=false; fi
+          fi
+          echo "Heure de Paris : $(TZ=Europe/Paris date '+%H h %M') ; publier : $go"
+          echo "go=$go" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: steps.creneau.outputs.go == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.creneau.outputs.go == 'true'
+        with:
+          node-version: 20
+      - name: Outils (Chrome, ffmpeg)
+        if: steps.creneau.outputs.go == 'true'
+        run: |
+          npm install --no-save --no-audit --no-fund playwright-core@1.49.1
+          command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+          google-chrome --version
+      - name: Publier
+        if: steps.creneau.outputs.go == 'true'
+        run: node scripts/publier.mjs
+        env:
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event_name == 'schedule' && (github.event.schedule == '10 20 * * *' && 'controle-reel' || 'controle-story')) || 'auto' }}
+          TYPE_TEST: ${{ inputs.type_test }}
+          RESEAUX: ${{ inputs.reseaux || 'instagram,facebook' }}

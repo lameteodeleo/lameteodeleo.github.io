@@ -2345,6 +2345,7 @@ function slideFin(j){
 }
 /* Instagram accepte 5 hashtags au plus : 4 fixes (le sujet et le lieu) et 1 selon le temps du jour */
 const TAG_TEMPS={mistral:"#mistral",vent:"#vent",pluie:"#pluie",orage:"#orage",neige:"#neige",gel:"#gel",brouillard:"#brouillard",chaleur:"#canicule",soleil:"#soleil"};
+let STORY_AUTO=null;   // "instagram" ou "facebook" quand le robot publie la story
 function slideStory(){
   const cv=document.createElement("canvas");cv.width=1080;cv.height=1920;const x=cv.getContext("2d");
   const J=postJour, RS=bilanDep(J), al=RS.al;
@@ -2366,8 +2367,11 @@ function slideStory(){
   x.fillStyle=al?B.white:B.sun;rr(x,70,1230,940,290,40);x.fill();
   x.fillStyle=al?CA(al).texte:B.sunInk;x.font="800 28px "+FB;x.fillText(al?"CONSIGNES":"LE SOURIRE DU JOUR",112,1292);
   x.font="600 44px "+FD;wrapText(x,txt,112,1354,856,54,3);
-  // Sous cette phrase, la place est libre pour l'autocollant « Lien » d'Instagram
-  x.fillStyle=B.white;x.font="800 40px "+FD;x.textAlign="center";x.fillText("Chaque commune, heure par heure ↓",540,1610);
+  // Sous cette phrase, la place est libre pour l'autocollant « Lien » d'Instagram.
+  // Story publiée par le robot : pas d'autocollant possible, le lien est écrit sur l'image.
+  x.fillStyle=B.white;x.font="800 40px "+FD;x.textAlign="center";
+  if(STORY_AUTO){x.fillText("Chaque commune, heure par heure",540,1610);x.fillStyle=al?B.white:B.sun;x.font="800 44px "+FD;x.fillText(STORY_AUTO==="facebook"?"lameteodeleo.fr":"Lien en bio",540,1680)}
+  else x.fillText("Chaque commune, heure par heure ↓",540,1610);
   x.globalAlpha=.6;x.font="700 28px "+FB;x.fillText(PSEUDO,540,1860);x.textAlign="left";x.globalAlpha=1;
   return cv;
 }
