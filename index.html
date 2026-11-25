@@ -125,6 +125,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .cond{font-family:var(--f-display);font-weight:700;font-size:1.15rem}
 .facts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.92rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .facts b{color:var(--ink)}
+.hero .fete{margin-top:-6px;font-size:.88rem;opacity:.9}
 .resume{margin:14px 0 0;padding:10px 14px;border-radius:14px;background:var(--surface-2);font-size:.95rem;line-height:1.4;display:flex;flex-direction:column;gap:4px}.resume b{font-weight:800}
 /* Premier passage : on aide à choisir sa commune, en un geste */
 .bienvenue{padding:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;background:linear-gradient(135deg,var(--brand-soft,rgba(91,75,208,.12)),var(--surface) 70%)}
@@ -478,6 +479,7 @@ details.plus[open] .tiles{margin-top:10px}
       </div>
       <div class="locmsg" id="locMsg" role="status" hidden></div>
       <div class="sub" id="when"></div>
+      <div class="sub fete" id="fete" hidden></div>
       <div class="stale" id="stale" role="status" hidden></div>
       <div class="hero-main">
         <div>
@@ -1851,7 +1853,7 @@ function render(){
   { const fb=$("favbar"), FL=st.favs.filter(n=>idx(n)>=0);
     fb.hidden=!FL.length;
     fb.innerHTML=FL.map(n=>{const i=idx(n),mm=(enReel()?reel(COMMUNES[i],0):null);return '<button type="button" data-i="'+i+'"'+(i===st.c?' aria-current="true"':'')+'>'+(mm?'<span class="fi">'+ICONS[mm.ico||mm.type]+'</span>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>')+n+(mm?' <b>'+mm.max+'°</b>':'')+'</button>'}).join(""); }$("fav").setAttribute("aria-label",fav?"Retirer des favoris":"Ajouter aux favoris");
-  {const fe=feteDuJour(dayDate(st.jour));$("when").textContent=(st.jour===0?"Aujourd'hui":st.jour===1?"Demain":"Prévision")+" · "+fmt(dayDate(st.jour))+(fe?" · "+fe:"");}
+  {const fe=feteDuJour(dayDate(st.jour));$("when").textContent=(st.jour===0?"Aujourd'hui":st.jour===1?"Demain":"Prévision")+" · "+fmt(dayDate(st.jour));$("fete").hidden=!fe;$("fete").textContent=fe?"🎉 "+fe:"";}
   $("hero").dataset.t=m.type;
   $("heroIco").innerHTML=ICONS[m.ico||m.type];
   $("cond").textContent=LIB[m.ico||m.type]+(m.plNuit&&m.pl>=0.3?" · pluie la nuit":"");
