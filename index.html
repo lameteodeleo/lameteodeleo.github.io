@@ -126,9 +126,13 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .facts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.92rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .facts b{color:var(--ink)}
 .resume{margin:14px 0 0;padding:10px 14px;border-radius:14px;background:var(--surface-2);font-weight:700;font-size:.95rem;line-height:1.4}
-/* Premier passage : on aide à choisir sa commune */
-.bienvenue{position:relative;padding:16px 44px 16px 16px;margin-bottom:12px}.bienvenue p{margin:0 0 10px;line-height:1.4}.bienvenue .chips{gap:8px}
-.bienvenue .x{position:absolute;top:8px;right:8px;width:32px;height:32px;border:0;background:none;color:var(--muted);font-size:1.3rem;cursor:pointer;border-radius:50%}
+/* Premier passage : on aide à choisir sa commune, en un geste */
+.bienvenue{padding:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;background:linear-gradient(135deg,var(--brand-soft,rgba(91,75,208,.12)),var(--surface) 70%)}
+.bv-h{display:flex;gap:12px;align-items:center}.bv-h .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.bv-h .tx b{font-family:var(--f-display);font-size:1.15rem}.bv-h .tx span{color:var(--muted);font-size:.92rem}
+.bv-h .mm svg{width:44px;height:44px;display:block}
+.bienvenue .x{border:0;background:none;color:var(--muted);font-size:1rem;font-weight:800;min-width:36px;min-height:40px;cursor:pointer;align-self:flex-start}
+.bv-go{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;font-size:1rem}.bv-go svg{width:20px;height:20px}
+.bv-liste{padding:12px}.bienvenue small{text-align:center;color:var(--muted);font-size:.8rem}
 /* vigilance */
 .fiab-t{overflow-x:auto;margin:10px -4px 6px}.fiab-t table{width:100%;border-collapse:collapse;font-size:.82rem}.fiab-t th{text-align:left;color:var(--muted);font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;padding:6px 4px;border-bottom:1px solid var(--line)}.fiab-t td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}.fiab-t td.bon{color:var(--ok);font-weight:800}.fiab-t td.moyen{color:var(--warm);font-weight:800}.fiab-t td.faible{color:var(--alert);font-weight:800}.fiab-t td.vide{color:var(--muted)}.fiab-t td.tend{color:var(--muted);font-size:.78rem}.fiab-h{margin:14px 0 2px;font-size:.92rem}.fiab-p{margin:6px 0 8px 18px;padding:0;line-height:1.5;font-size:.88rem}
 .alert{--al:var(--alert);--al-fond:#E0201B;--al-txt:#fff;--al-doux:var(--alert-soft);background:var(--surface);border:1.5px solid var(--al);border-radius:20px;overflow:hidden;padding:0}
@@ -435,9 +439,11 @@ details.plus[open] .tiles{margin-top:10px}
   <main class="view" id="v-meteo">
     <nav class="favbar" id="favbar" aria-label="Mes communes favorites" hidden></nav>
     <div class="card bienvenue" id="bienvenue" role="region" aria-label="Bienvenue" hidden>
-      <p><b>Bienvenue 👋</b> Choisissez votre commune pour voir sa météo heure par heure. Elle sera retenue pour vos prochaines visites.</p>
-      <div class="chips"><button class="chip" type="button" id="bvLoc">📍 Me localiser</button><button class="chip" type="button" id="bvCh">Choisir ma commune</button></div>
-      <button class="x" type="button" id="bvX" aria-label="Fermer">×</button>
+      <div class="bv-h"><span class="mm" id="markBv"></span><div class="tx"><b>Bienvenue&nbsp;!</b><span>La météo de votre commune, heure par heure.</span></div>
+        <button class="x" type="button" id="bvX" aria-label="Fermer">✕</button></div>
+      <button class="btn-brand bv-go" type="button" id="bvLoc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/><circle cx="12" cy="12" r="7.5"/></svg>Trouver ma commune</button>
+      <button class="wide bv-liste" type="button" id="bvCh">Choisir dans la liste</button>
+      <small>Elle sera retenue pour vos prochaines visites.</small>
     </div>
     <article class="card hero" id="hero" aria-live="polite">
       <div class="place">
@@ -2165,6 +2171,7 @@ if(PREMIERE_VISITE&&!new URLSearchParams(location.search).get("robot"))$("bienve
 $("bvLoc").addEventListener("click",()=>{finBienvenue();$("locate").click()});
 $("bvCh").addEventListener("click",()=>{finBienvenue();openSearch()});
 $("bvX").addEventListener("click",finBienvenue);
+{const mb=$("markBv");if(mb)mb.innerHTML=MARK}
 $("openSearch2").addEventListener("click",openSearch);
 $("openSearch3").addEventListener("click",openSearch);
 $("closeSearch").addEventListener("click",closeSearch);
