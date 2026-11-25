@@ -1,0 +1,7 @@
+
+=== Fête du jour (ligne « Bonne fête … » sous la date) ===
+Calendrier traditionnel français (un prénom par jour, comme sur les calendriers imprimés).
+Liste reprise de github.com/William-De71/gladys-fete-du-jour (src/days.js, Apache 2.0, elle-même d'après monsieurm/scriptable-fete-du-jour, MIT),
+recoupée jour par jour avec github.com/theofidry/ephemeris (src/ephemeris.json) : 366 jours concordants, sauf 19 écarts tous expliqués
+(accents, fêtes mobiles retirées des jours fixes, fêtes nommées autrement). Contrôles ponctuels : 1/1, 19/3, 14/7, 1/11, 25/11, 25/12.
+Il n'existe pas de liste officielle unique de la « fête du jour » ; décision (25/11/2026) : garder ce niveau de fiabilité.
