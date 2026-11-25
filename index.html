@@ -214,6 +214,14 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .uvbar i{position:absolute;top:-3px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:3px solid var(--ink);transform:translateX(-50%)}
 /* conseils */
 .tips{display:flex;flex-direction:column;padding:4px 14px}
+/* Quand sortir ? : le meilleur créneau selon l'activité */
+.sortie{padding:14px}.sortie-acts{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -2px 12px;padding:0 2px}.sortie-acts::-webkit-scrollbar{display:none}
+.sortie-acts button{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 12px;font-weight:700;font-size:.88rem;cursor:pointer;white-space:nowrap}
+.sortie-acts button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--surface)}
+.sortie-res{display:flex;flex-direction:column;gap:8px}.sortie-res .cr{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--surface-2)}
+.sortie-res .cr svg{width:38px;height:38px;flex:0 0 auto}.sortie-res .cr b{display:block}.sortie-res .cr span{color:var(--muted);font-size:.9rem}
+.sortie-res .cr.top{background:var(--brand-soft)}.sortie-res .cr .rg{display:block;font-weight:800;font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--brand);margin-bottom:2px}
+.sortie-res p{margin:0;color:var(--muted);font-size:.9rem}
 .tip{display:flex;align-items:center;gap:12px;padding:11px 0;font-size:.95rem}
 .tip+.tip{border-top:1px solid var(--line)}
 .tip span.i{flex:0 0 36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand)}
@@ -534,6 +542,14 @@ details.plus[open] .tiles{margin-top:10px}
     <section>
       <div class="sec-h"><h2 id="tipsTitre">Les conseils du jour</h2></div>
       <div class="card tips" id="tips"></div>
+    </section>
+
+    <section id="sortieSec" hidden>
+      <div class="sec-h"><h2>Quand sortir&nbsp;?</h2><span class="sub">Les 3 prochains jours</span></div>
+      <div class="card sortie">
+        <div class="sortie-acts" id="sortieActs" role="group" aria-label="Choisissez une activité"></div>
+        <div class="sortie-res" id="sortieRes" aria-live="polite"></div>
+      </div>
     </section>
 
     <div class="card saviez" id="saviezBox" hidden>
@@ -1755,6 +1771,44 @@ function renderPluie(c){
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&COMMUNES[st.c]&&enReel())liveMaintenant(COMMUNES[st.c])});
 
+/* ---------- Quand sortir ? Le meilleur créneau des 3 prochains jours selon l'activité ----------
+   D'après les prévisions de 7 h à 21 h (toutes les 2 heures), de jour seulement, au sec, avec le vent et la température qui conviennent. */
+const ACTIVITES={velo:{lib:"Vélo",e:"🚲",tMin:10,tMax:26,raf:35},rando:{lib:"Randonnée",e:"🥾",tMin:6,tMax:24,raf:50},course:{lib:"Course à pied",e:"🏃",tMin:5,tMax:20,raf:45},
+  jardin:{lib:"Jardin",e:"🌱",tMin:7,tMax:28,raf:45},linge:{lib:"Linge dehors",e:"👕"},terrasse:{lib:"Terrasse",e:"☕",tMin:15,tMax:30,raf:30}};
+let actSortie=(()=>{try{const a=localStorage.getItem(CLE+"-sortie");return ACTIVITES[a]?a:"velo"}catch(e){return "velo"}})();
+function creneauxSortie(c,act){
+  if(!enReel()||!DATA.par[c.n]||!DATA.par[c.n].h)return null;
+  const A=ACTIVITES[act], now=new Date(), L=[], plu=t=>["pluie","orage","neige"].includes(t);
+  for(let j=0;j<3;j++){const H=heuresReelles(c,j), raw=DATA.par[c.n].h[j];if(!H)continue;const d=dayDate(j), sl=soleil(d), lev=enMin(sl.lever)/60, cou=enMin(sl.coucher)/60;
+    H.forEach((x,i)=>{if(!x)return;const h=7+2*i;if(j===0&&h<=now.getHours())return;
+      const raf=raw&&raw[i]&&raw[i][3]!=null?Math.round(raw[i][3]):0;L.push({j,h,t:x.t,p:x.prob,raf,type:x.type,code:x.code,jour:h>=lev+.5&&h<=cou-.75})})}
+  if(!L.length)return null;
+  const quand=o=>(o.j===0?"Aujourd'hui":o.j===1?"Demain":cap(dayDate(o.j).toLocaleDateString("fr-FR",{weekday:"long"}))), ventTxt=r=>r<25?"vent faible":r<40?"un peu de vent":"rafales à "+r+" km/h";
+  if(act==="linge"){ // une demi-journée au sec : 3 créneaux de suite (6 heures) sans pluie
+    const res=[];for(let j=0;j<3;j++){const D=L.filter(o=>o.j===j&&o.jour);let best=null;
+      for(let k=0;k+2<D.length;k++){const w=D.slice(k,k+3);if(w.some(o=>plu(o.type)||o.p>=30)||w[2].h-w[0].h!==4)continue;
+        const sc=100-Math.max(...w.map(o=>o.p))+w.filter(o=>o.code<=2).length*6+Math.min(15,Math.max(...w.map(o=>o.raf))/3);if(!best||sc>best.sc)best={sc,j,de:w[0].h,a:Math.min(w[2].h+2,Math.floor(enMin(soleil(dayDate(j)).coucher)/60)),t:Math.max(...w.map(o=>o.t)),raf:Math.max(...w.map(o=>o.raf))}}
+      if(best)res.push(best)}
+    res.sort((a,b)=>b.sc-a.sc);
+    return res.slice(0,2).map(o=>({titre:quand(o)+", de "+o.de+" h à "+o.a+" h",detail:"Au sec"+(o.raf>=25?", un peu de vent : ça sèche vite":"")+" · "+o.t+"°",ico:"soleil",sc:o.sc}));
+  }
+  const S=L.filter(o=>o.jour&&!plu(o.type)&&o.p<50&&o.t>=A.tMin-5).map(o=>({...o,sc:100-o.p*.8-Math.max(0,A.tMin-o.t)*6-Math.max(0,o.t-A.tMax)*5-Math.max(0,o.raf-A.raf)*3+(o.code<=1?8:o.code<=2?4:0)}));
+  S.sort((a,b)=>b.sc-a.sc);
+  const pris=[];for(const o of S){if(pris.length>=2)break;if(pris.some(q=>q.j===o.j))continue;pris.push(o)}
+  if(pris.length<2)for(const o of S){if(pris.length>=2)break;if(!pris.includes(o)&&!pris.some(q=>q.j===o.j&&Math.abs(q.h-o.h)<4))pris.push(o)}
+  return pris.map(o=>({titre:quand(o)+" vers "+o.h+" h",detail:o.t+"° · "+(o.p<20?"au sec":"risque de pluie "+o.p+" %")+" · "+ventTxt(o.raf),ico:o.code<=1?"soleil":"nuageux",sc:o.sc}));
+}
+function renderSortie(){
+  const sec=$("sortieSec"), c=COMMUNES[st.c];if(!sec||!c)return;
+  const R=enReel()&&st.jour===0?creneauxSortie(c,actSortie):null;
+  if(!enReel()||st.jour!==0){sec.hidden=true;return}
+  sec.hidden=false;
+  $("sortieActs").innerHTML=Object.entries(ACTIVITES).map(([k,a])=>'<button type="button" data-a="'+k+'" aria-pressed="'+(k===actSortie)+'">'+a.e+" "+a.lib+'</button>').join("");
+  const r=$("sortieRes");
+  if(!R||!R.length){r.innerHTML="<p>Pas de bon créneau d'ici 3 jours"+(actSortie==="linge"?" pour étendre dehors : séchez plutôt à l'intérieur.":" : la pluie ou le vent seront de la partie.")+"</p>";return}
+  r.innerHTML=R.map((o,i)=>'<div class="cr'+(i===0?" top":"")+'">'+ICONS[o.ico]+'<div>'+(i===0&&R[0].sc>=60?'<small class="rg">Le meilleur moment</small>':'')+'<b>'+insec(o.titre)+'</b><span>'+insec(o.detail)+'</span></div>'+'</div>').join("")+
+    (R[0].sc<50?"<p>Rien d'idéal d'ici 3 jours : c'est le moins mauvais moment.</p>":"");
+}
 /* Le résumé : une ligne par sujet (pluie, vent, demain), chacune commence par un mot en gras.
    Plus facile à lire d'un coup d'œil qu'une longue phrase. */
 function resumeSlots(S,auj,rafJour){
@@ -1868,6 +1922,7 @@ function render(){
   T.push('<div class="card tile"><span class="k">'+SMALL.rise+'Soleil</span><span class="v soleil">'+sun.lever+' <i>→</i> '+sun.coucher+'</span><span class="d">Lever et coucher · '+sun.duree+' de jour</span></div>');
   $("tiles").innerHTML=T.join("");
   const cs=conseils(m,c);$("tipsTitre").textContent=cs.titre;
+  renderSortie();
   $("tips").innerHTML=cs.liste.map(x=>'<div class="tip'+(x.warn?" warn":"")+(x.orange?" orange":"")+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+insec(x.txt)+'</span></div></div>').join("");
   let maj=enReel()?new Date(DATA.maj):new Date();if(!enReel())maj.setMinutes(0,0,0);if(st.stale)maj=new Date(maj.getTime()-5*36e5);
   const age=Math.floor((Date.now()-maj)/36e5), hMaj=maj.getHours()+" h "+String(maj.getMinutes()).padStart(2,"0");
@@ -2187,6 +2242,7 @@ if(PREMIERE_VISITE&&!new URLSearchParams(location.search).get("robot")){$("bienv
 $("bvLoc").addEventListener("click",()=>{finBienvenue();$("locate").click()});
 $("bvCh").addEventListener("click",()=>{finBienvenue();openSearch()});
 $("bvX").addEventListener("click",finBienvenue);
+$("sortieActs").addEventListener("click",e=>{const b=e.target.closest("button[data-a]");if(!b)return;actSortie=b.dataset.a;try{localStorage.setItem(CLE+"-sortie",actSortie)}catch(err){}renderSortie()});
 {const mb=$("markBv");if(mb)mb.innerHTML=MARK}
 $("openSearch2").addEventListener("click",openSearch);
 $("openSearch3").addEventListener("click",openSearch);
@@ -2235,10 +2291,39 @@ document.addEventListener("click",e=>{
   const a=e.target.closest&&e.target.closest('a[href^="http"]');if(!a||a.href.startsWith(location.origin))return;
   if(NAV_INTEGRE&&a.target==="_blank"){e.preventDefault();location.href=a.href}
 },true);
-// Partager le sourire (avec le lien de l'app) : c'est ainsi que l'app se fait connaître ; sinon, on le copie
-$("share").addEventListener("click",async e=>{const b=e.currentTarget,t=$("mot").textContent+"\n\n"+NOM+" · la météo de "+COMMUNES[st.c].n+" heure par heure",u="https://lameteodeleo.fr/";
-  if(navigator.share){try{await navigator.share({text:t,url:u});return}catch(err){if(err&&err.name==="AbortError")return}}
-  copyText(t+"\n"+u,b,"Copié !")});
+/* Partager sa météo en image : une carte prête à envoyer (commune, temps du jour, résumé, sourire, adresse de l'app).
+   C'est ainsi que l'app se fait connaître. Sans partage d'images possible, on partage le texte ; sinon, on le copie. */
+function imageMeteo(){
+  const W=1080,H=1350,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d"),c=COMMUNES[st.c],m=meteo(c,st.scen,st.jour);
+  const g=x.createLinearGradient(0,0,W*.4,H);g.addColorStop(0,"#5B4BD0");g.addColorStop(1,"#2B2366");x.fillStyle=g;x.fillRect(0,0,W,H);
+  drawMark(x,130,130,96,true);logoCanvas(x,200,148,52,B.white,B.sun);
+  const nom=c.n;let fs=ajuste(x,nom,W-160,96,"800",FD);x.fillStyle=B.white;x.fillText(nom,80,330);
+  x.fillStyle=B.sun;x.font="800 40px "+FB;x.fillText((st.jour===0?"Aujourd'hui · ":"")+cap(fmt(dayDate(st.jour))),80,395);
+  cIcon(x,m.ico||m.type,W-310,420,230,true);
+  x.fillStyle=B.white;x.font="800 170px "+FB;x.fillText(m.max+"°",80,585);
+  x.font="800 50px "+FD;x.fillText(LIB[m.ico||m.type]||"",80,655);
+  x.globalAlpha=.85;x.font="700 38px "+FB;x.fillText("Min "+m.min+"°  ·  Max "+m.max+"°",80,712);x.globalAlpha=1;
+  // Le résumé en lignes, comme dans l'app
+  const L=[...document.querySelectorAll("#resume span")].map(e=>[e.querySelector("b")?e.querySelector("b").textContent:"",e.textContent.replace(e.querySelector("b")?e.querySelector("b").textContent:"","").trim()]);
+  let y=740;if(L.length&&!$("resume").hidden){const hB=40+L.length*58;x.fillStyle="rgba(255,255,255,.12)";rr(x,60,y,W-120,hB,32);x.fill();
+    L.forEach(([k,v],i)=>{const yy=y+66+i*58;x.fillStyle=B.white;x.font="800 40px "+FB;x.fillText(k,100,yy);const wk=x.measureText(k+" ").width;x.font="600 40px "+FB;const t=v;let f=40;while(x.measureText(t).width>W-220-wk&&f>26){f-=2;x.font="600 "+f+"px "+FB}x.fillText(t,100+wk,yy)});y+=hB+24}
+  // Le sourire du jour (jamais en vigilance orange ou rouge : la carte du sourire est alors masquée)
+  const mot=!$("motBox").hidden?$("mot").textContent:"";
+  if(mot){const lignes=[];x.font="800 40px "+FD;let l="";for(const w of insec(mot).split(" ")){const u=l?l+" "+w:w;if(x.measureText(u).width>W-220&&l){lignes.push(l);l=w}else l=u}if(l)lignes.push(l);
+    const n=Math.min(lignes.length,Math.max(1,Math.floor((H-200-y-82)/50))),hS=82+n*50;if(lignes.length>n)lignes[n-1]=lignes[n-1].replace(/\s*\S+$/,"")+"…";x.fillStyle=B.sun;rr(x,60,y,W-120,hS,32);x.fill();x.fillStyle=B.sunInk;x.font="800 28px "+FB;x.fillText("LE SOURIRE DU JOUR",100,y+52);
+    x.font="800 40px "+FD;lignes.slice(0,n).forEach((li,i)=>x.fillText(li,100,y+104+i*50))}
+  // Pied : l'adresse de l'app
+  x.fillStyle=B.white;rr(x,W/2-260,H-128,520,88,44);x.fill();x.fillStyle=B.brand;x.font="800 46px "+FB;x.textAlign="center";x.fillText("lameteodeleo.fr",W/2,H-69);
+  x.fillStyle="rgba(255,255,255,.8)";x.font="700 30px "+FB;x.fillText("La météo de votre commune, heure par heure",W/2,H-152);x.textAlign="left";
+  return cv;
+}
+$("share").addEventListener("click",async e=>{const b=e.currentTarget,c=COMMUNES[st.c],u="https://lameteodeleo.fr/",t="La météo de "+c.n+" heure par heure, sur "+NOM+" :";
+  try{await document.fonts.ready}catch(err){}
+  try{const blob=await new Promise(r=>imageMeteo().toBlob(r,"image/png"));
+    const f=new File([blob],"meteo-"+c.n.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g,"-")+".png",{type:"image/png"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:t+" "+u});return}}catch(err){if(err&&err.name==="AbortError")return}
+  if(navigator.share){try{await navigator.share({text:$("mot").textContent+"\n\n"+t,url:u});return}catch(err){if(err&&err.name==="AbortError")return}}
+  copyText($("mot").textContent+"\n\n"+t+" "+u,b,"Copié !")});
 
 /* ---------- Espace créateur : scénarios + carrousel Instagram ---------- */
 (()=>{const b=document.createElement("button");b.type="button";b.className="chip";b.dataset.k="__reel";b.textContent="Prévisions réelles";b.addEventListener("click",()=>{if(!DATA){flash(b,"Pas encore disponibles");return}st.demo=false;$("demoPill").hidden=true;markScen();buildSlides()});$("scen").appendChild(b)})();
