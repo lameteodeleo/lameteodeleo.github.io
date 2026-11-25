@@ -177,6 +177,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .hwrap.fg::before,.hwrap.fd::after{opacity:1}
 .hnav svg{width:16px;height:16px}.hnav.g{left:4px}.hnav.d{right:4px}.hnav[hidden]{display:none}
 .hour{flex:0 0 56px;display:flex;flex-direction:column;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
+.hours.trois{overflow:visible}.hours.trois .moment{flex:1 1 0;min-width:0}.hours.trois .moment small{font-weight:800;color:var(--ink)}.hours.trois .moment>svg{width:52px;height:52px}.hours.trois .moment .p svg{width:12px;height:12px}.hours.trois .moment b{font-size:1.35rem}.hours.trois .moment em{font-style:normal;font-size:.78rem;color:var(--muted);text-align:center;line-height:1.2;min-height:2.4em}
 .hour small{color:var(--muted);font-size:.75rem;font-weight:700}
 .hour svg{width:36px;height:36px}
 .hour b{font-size:.98rem}
@@ -337,6 +338,7 @@ html{overscroll-behavior-y:contain}
 .favbar button{flex:none;display:flex;align-items:center;gap:6px;min-height:40px;font:inherit;font-size:.86rem;font-weight:700;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
 .favbar button svg{width:15px;height:15px;color:#E0A100;fill:currentColor}
 .favbar button b{font-weight:800;color:var(--brand)}
+.favbar .fi svg{width:24px;height:24px;color:inherit;fill:none;margin:-4px -2px -4px -6px}.favbar button[aria-current="true"] .fi svg{filter:brightness(0) invert(1)}
 .favbar button[aria-current="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
 .favbar button[aria-current="true"] b{color:#FFC21A}
 .favbar button[aria-current="true"] svg{color:#FFC21A}
@@ -1809,6 +1811,22 @@ function renderSortie(){
   r.innerHTML=R.map((o,i)=>'<div class="cr'+(i===0?" top":"")+'">'+ICONS[o.ico]+'<div>'+(i===0&&R[0].sc>=60?'<small class="rg">Le meilleur moment</small>':'')+'<b>'+insec(o.titre)+'</b><span>'+insec(o.detail)+'</span></div>'+'</div>').join("")+
     (R[0].sc<50?"<p>Rien d'idéal d'ici 3 jours : c'est le moins mauvais moment.</p>":"");
 }
+/* Fête du jour : calendrier traditionnel français (un prénom par jour, comme sur le calendrier des Postes).
+   Liste reprise de « gladys-fete-du-jour » (Apache 2.0, d'après monsieurm/scriptable-fete-du-jour, MIT), recoupée avec « theofidry/ephemeris » :
+   seules différences, des corrections documentées (accents, fêtes mobiles retirées). Format : "Fête|Prénom" les jours de fête. */
+const FETES=[["Jour de l'An","Basile","Geneviève","Odilon","Édouard","Mélaine","Raymond","Lucien","Alix","Guillaume","Pauline","Tatiana","Yvette","Nina","Rémi","Marcel","Roseline","Prisca","Marius","Sébastien","Agnès","Vincent","Barnard","François de Sales","Conversion de Paul","Paule","Angèle","Thomas d'Aquin","Gildas","Martine","Marcelle"],["Ella","Présentation du Seigneur","Blaise","Véronique","Agathe","Gaston","Eugénie","Jacqueline","Apolline","Arnaud","Notre-Dame de Lourdes","Félix","Béatrice","Valentin","Cl\u0061ude","Julienne","Alexis","Bernadette","Gabin","Aimée","Pierre Damien","Isabelle","Lazare","Modeste","Roméo","Nestor","Honorine","Romain","Auguste"],["Aubin","Charles le Bon","Guénolé","Casimir","Olive","Colette","Félicité","Jean de Dieu","Françoise","Vivien","Rosine","Justine","Rodrigue","Mathilde","Louise","Bénédicte","Patrice","Cyrille","Joseph","Herbert","Clémence","Léa","Victorien","Karine","Annonciation|Humbert","Larissa","Habib","Gontran","Gwladys","Amédée","Benjamin"],["Hugues","Sandrine","Richard","Isidore","Irène","Marcellin","Jean-Baptiste de la Salle","Julie","Gautier","Fulbert","Stanislas","Jules","Ida","Maxime","Paterne","Benoît-Joseph","Anicet","Parfait","Emma","Odette","Anselme","Alexandre","Georges","Fidèle","Marc","Alida","Zita","Valérie","Catherine de Sienne","Robert"],["Fête du Travail|Joseph","Boris","Philippe","Sylvain","Judith","Prudence","Gisèle","Victoire 1945|Désiré","Pacôme","Solange","Estelle","Achille","Rolande","Matthias","Denise","Honoré","Pascal","Éric","Yves","Bernardin","Constantin","Émile","Didier","Donatien","Sophie","Bérenger","Augustin","Germain","Aymar","Ferdinand","Pétronille"],["Justin","Blandine","Kévin","Clotilde","Igor","Norbert","Gilbert","Médard","Diane","Landry","Barnabé","Guy","Antoine de Padoue","Élisée","Germaine","Jean-François Régis","Hervé","Léonce","Romuald","Silvère","Gonzague","Alban","Audrey","Jean-Baptiste","Prosper","Anthelme","Fernand","Irénée","Pierre","Martial"],["Thierry","Martinien","Thomas","Florent","Antoine","Mariette","Raoul","Thibault","Amandine","Ulrich","Benoît","Olivier","Henri","Fête nationale|Camille","Donald","Notre-Dame du Mont-Carmel","Charlotte","Frédéric","Arsène","Marina","Victor","Marie-Madeleine","Brigitte","Christine","Jacques","Anne","Nathalie","Samson","Marthe","Juliette","Ignace de Loyola"],["Alphonse","Julien Eymard","Lydie","Jean-Marie Vianney","Abel","Transfiguration","Gaétan","Dominique","Amour","Laurent","Claire","Clarisse","Hippolyte","Évrard","Assomption|Marie","Armel","Hyacinthe","Hélène","Jean-Eudes","Bernard","Christophe","Fabrice","Rose de Lima","Barthélemy","Louis","Natacha","Monique","Augustin","Sabine","Fiacre","Aristide"],["Gilles","Ingrid","Grégoire","Rosalie","Raïssa","Bertrand","Reine","Nativité de Marie","Alain","Inès","Adelphe","Apollinaire","Aimé","Croix glorieuse","Roland","Édith","Renaud","Nadège","Émilie","Davy","Matthieu","Maurice","Constant","Thècle","Hermann","Côme","Vincent de Paul","Venceslas","Michel","Jérôme"],["Thérèse de l'Enfant Jésus","Léger","Gérard","François d'Assise","Fleur","Bruno","Serge","Pélagie","Denis","Ghislain","Firmin","Wilfried","Géraud","Juste","Thérèse d'Avila","Edwige","Baudouin","Luc","René","Adeline","Céline","Élodie","Jean de Capistran","Florentin","Crépin","Dimitri","Émeline","Jude","Narcisse","Bienvenue","Quentin"],["Toussaint","Défunts","Hubert","Charles","Sylvie","Bertille","Carine","Geoffroy","Théodore","Léon","Armistice 1918|Martin","Christian","Brice","Sidoine","Albert","Marguerite","Élisabeth","Aude","Tanguy","Edmond","Présentation de Marie","Cécile","Clément","Flora","Catherine","Delphine","Séverin","Jacques de la Marche","Saturnin","André"],["Florence","Viviane","François-Xavier","Barbara","Gérald","Nicolas","Ambroise","Immaculée Conception","Pierre Fourier","Romaric","Daniel","Jeanne-Françoise de Chantal","Lucie","Odile","Ninon","Alice","Gaël","Gatien","Urbain","Théophile","Pierre Canisius","Françoise-Xavière","Armand","Adèle","Noël|Emmanuel","Étienne","Jean","Saints Innocents","David","Roger","Sylvestre"]];
+function feteDuJour(d){const e=(FETES[d.getMonth()]||[])[d.getDate()-1];if(!e)return "";const [a,b]=e.split("|");
+  if(b)return a;                                        // un jour de fête (Noël, Fête nationale…) : on écrit la fête
+  if(/^(Présentation|Notre-Dame|Nativité|Conversion|Annonciation|Assomption|Toussaint|Jour)/.test(a))return a;
+  return "Bonne fête "+a.replace(/\s+(de|d'|du|des)\s*.*$/i,"").replace(/\s+d'.*$/,"")}
+/* La lune : âge depuis une nouvelle lune connue (6 janvier 2000, 18 h 14 UTC), mois lunaire de 29,53 jours */
+function lune(d){const P=29.530588853,a=(((d.getTime()-Date.UTC(2000,0,6,18,14))/864e5)%P+P)%P;
+  const L=[[1.85,"🌑","Nouvelle lune"],[5.54,"🌒","Premier croissant"],[9.23,"🌓","Premier quartier"],[12.92,"🌔","Lune gibbeuse croissante"],[16.61,"🌕","Pleine lune"],[20.30,"🌖","Lune gibbeuse décroissante"],[23.99,"🌗","Dernier quartier"],[27.68,"🌘","Dernier croissant"],[P+1,"🌑","Nouvelle lune"]];
+  const f=L.find(x=>a<x[0]);const pl=Math.round(((14.77-a)%P+P)%P);
+  return f[1]+" "+f[2]+(f[2]!=="Pleine lune"&&pl<=5&&pl>0?" · pleine lune dans "+pl+" jour"+(pl>1?"s":""):"")}
+/* La durée du jour, comparée à la veille : « 2 min de plus qu'hier » */
+function dureeJourDelta(d){const m=x=>{const s=soleil(x);return enMin(s.coucher)-enMin(s.lever)};const v=new Date(d.getTime()-864e5),dt=m(d)-m(v);
+  return dt>=1?"les jours rallongent de "+dt+" min":dt<=-1?"les jours raccourcissent de "+(-dt)+" min":"durée du jour stable"}
 /* Le résumé : une ligne par sujet (pluie, vent, demain), chacune commence par un mot en gras.
    Plus facile à lire d'un coup d'œil qu'une longue phrase. */
 function resumeSlots(S,auj,rafJour){
@@ -1832,8 +1850,8 @@ function render(){
   const fav=st.favs.includes(c.n);$("fav").setAttribute("aria-pressed",fav);
   { const fb=$("favbar"), FL=st.favs.filter(n=>idx(n)>=0);
     fb.hidden=!FL.length;
-    fb.innerHTML=FL.map(n=>{const i=idx(n),mm=(enReel()?reel(COMMUNES[i],0):null);return '<button type="button" data-i="'+i+'"'+(i===st.c?' aria-current="true"':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>'+n+(mm?' <b>'+mm.max+'°</b>':'')+'</button>'}).join(""); }$("fav").setAttribute("aria-label",fav?"Retirer des favoris":"Ajouter aux favoris");
-  $("when").textContent=(st.jour===0?"Aujourd'hui":st.jour===1?"Demain":"Prévision")+" · "+fmt(dayDate(st.jour));
+    fb.innerHTML=FL.map(n=>{const i=idx(n),mm=(enReel()?reel(COMMUNES[i],0):null);return '<button type="button" data-i="'+i+'"'+(i===st.c?' aria-current="true"':'')+'>'+(mm?'<span class="fi">'+ICONS[mm.ico||mm.type]+'</span>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>')+n+(mm?' <b>'+mm.max+'°</b>':'')+'</button>'}).join(""); }$("fav").setAttribute("aria-label",fav?"Retirer des favoris":"Ajouter aux favoris");
+  {const fe=feteDuJour(dayDate(st.jour));$("when").textContent=(st.jour===0?"Aujourd'hui":st.jour===1?"Demain":"Prévision")+" · "+fmt(dayDate(st.jour))+(fe?" · "+fe:"");}
   $("hero").dataset.t=m.type;
   $("heroIco").innerHTML=ICONS[m.ico||m.type];
   $("cond").textContent=LIB[m.ico||m.type]+(m.plNuit&&m.pl>=0.3?" · pluie la nuit":"");
@@ -1878,6 +1896,8 @@ function render(){
   {const el=$("resume");let L=null;
     try{if(enReel()){
       if(prochaines){const S=prochaines.filter(x=>!x.demain);if(S.length>=3)L=resumeSlots(S,true,null);
+        // Par rapport à hier : seulement quand l'écart se sent vraiment (4° ou plus sur la maximale)
+        {const hi=DATA.par[c.n]&&DATA.par[c.n].hier;if(hi&&hi[0]!=null){const dT=Math.round(m.max-hi[0]);if(Math.abs(dT)>=4)(L=L||[]).push([dT<0?"Plus frais":"Plus doux",Math.abs(dT)+"° de "+(dT<0?"moins":"plus")+" qu'hier"])}}
         const d=reel(c,1);if(d){const D=[];if(["pluie","orage","neige"].includes(d.type))D.push(d.type==="orage"?"risque d'orages":d.type==="neige"?"neige":"pluie"+(d.pl>=10?" ("+Math.round(d.pl)+" mm)":""));
           if(d.type==="mistral"||d.raf>=60)D.push((d.type==="mistral"?"mistral":"vent fort")+" jusqu'à "+d.raf+" km/h en rafales");
           if(d.min<=0)D.push("gelée au réveil ("+d.min+"°)");
@@ -1886,6 +1906,14 @@ function render(){
       else if(hr){const S=hr.map((x,i)=>x&&{h:7+2*i,type:x.type,ico:variante(x.code,x.type,false)}).filter(Boolean);if(S.length>=4)L=resumeSlots(S,false,m.raf)}}}catch(e){L=null}
     el.hidden=!(L&&L.length);if(L&&L.length)el.innerHTML=L.map(([k,v])=>"<span><b>"+k+"</b> "+insec(v)+"</span>").join("")}
   if(prochaines) $("hours").innerHTML=prochaines.map(x=>'<div class="hour"><small>'+x.lbl+'</small>'+ICONS[x.ico||x.type]+'<b>'+x.t+'°</b><span class="p"'+(x.prob>=30?' title="Risque de pluie">'+SMALL.drop+x.prob+" %":x.raf>=40?' title="Rafales de vent" style="color:var(--muted)">'+x.raf+" km/h":'>')+'</span></div>').join("");
+  // Un autre jour que aujourd'hui : trois moments clairs (matin, après-midi, soirée) plutôt que 8 colonnes
+  $("hours").classList.toggle("trois",!!(hr&&st.jour>=1));
+  if(hr&&st.jour>=1){$("hoursTitle").textContent="Le déroulé de la journée";
+    const raw=(DATA.par[c.n].h||[])[st.jour]||[], G=[["Matin",[0,1,2]],["Après-midi",[3,4,5]],["Soirée",[6,7]]];
+    $("hours").innerHTML=G.map(([lib,I])=>{const X=I.map(i=>{const x=hr[i];if(!x)return null;const hh=7+2*i,nuit=estNuit(dayDate(st.jour),hh*60),ty=nuit?versNuit(x.type):x.type;return {t:x.t,prob:x.prob,type:ty,ico:variante(x.code,ty,nuit),raf:raw[i]&&raw[i][3]!=null?Math.round(raw[i][3]):0}}).filter(Boolean);
+      if(!X.length)return "";const d=typeDominant(X), tp=lib==="Après-midi"?Math.max(...X.map(o=>o.t)):lib==="Matin"?(X[1]||X[0]).t:X[0].t, pr=Math.max(...X.map(o=>o.prob)), rf=Math.max(...X.map(o=>o.raf));
+      return '<div class="hour moment"><small>'+lib+'</small>'+ICONS[d.ico||d.dom]+'<b>'+tp+'°</b><em>'+insec(LIB[d.ico]||LIB[d.dom]||"")+'</em><span class="p">'+(pr>=30?SMALL.drop+pr+" %":rf>=40?'<span style="color:var(--muted)">'+rf+" km/h</span>":"")+'</span></div>'}).join("");
+  }
   else if(hr) $("hours").innerHTML=hr.map((x,i)=>{
     const hh=7+i*2;if(!x)return "";
     {const nuit=estNuit(dayDate(st.jour),hh*60);const ty=nuit?versNuit(x.type):x.type;x=Object.assign({},x,{type:ty,ico:variante(x.code,ty,nuit)})}
@@ -1919,7 +1947,7 @@ function render(){
   if(tAir){const [lbl]=AQI(tAir.aqi), pf=pollenFort(tAir.pol);T.push('<div class="card tile"><span class="k">'+CICO.air+"Air</span><span class=\"v\">"+lbl+'</span><span class="d">Indice européen '+tAir.aqi+(pf?" · pollens "+POLNOM[pf.k].replace(/^d'|^de /,"")+" "+(pf.niv===2?"élevés":"modérés"):" · pollens faibles")+'</span></div>')}
   if(tMer) T.push('<div class="card tile"><span class="k">'+CICO.mer+'La mer</span><span class="v">'+(tMer.eau!=null?tMer.eau+"°":"–")+'</span><span class="d">Vagues jusqu\'à '+fr(tMer.vague)+' m · '+tMer.zone+'</span></div>');
   T.push('<div class="card tile"><span class="k">'+SMALL.sun+'Indice UV</span><span class="v">'+m.uv+' · '+uvLabel(m.uv)+'</span><div class="uvbar" aria-hidden="true"><i style="left:'+Math.min(100,m.uv/11*100)+'%"></i></div><span class="d">'+(m.uv>=3&&m.uvDe!=null&&m.uvA!=null?'Protection de '+m.uvDe+' h à '+m.uvA+' h':m.uv<3?'Pas de protection nécessaire':(st.jour===0&&estNuit(new Date(),new Date().getHours()*60+new Date().getMinutes())?'Maximum de la journée':'Protection conseillée'))+'</span></div>');
-  T.push('<div class="card tile"><span class="k">'+SMALL.rise+'Soleil</span><span class="v soleil">'+sun.lever+' <i>→</i> '+sun.coucher+'</span><span class="d">Lever et coucher · '+sun.duree+' de jour</span></div>');
+  T.push('<div class="card tile"><span class="k">'+SMALL.rise+'Soleil</span><span class="v soleil">'+sun.lever+' <i>→</i> '+sun.coucher+'</span><span class="d">'+sun.duree+' de jour : '+dureeJourDelta(dayDate(st.jour))+'</span><span class="d">'+lune(new Date(dayDate(st.jour).getTime()+12*36e5))+'</span></div>');
   $("tiles").innerHTML=T.join("");
   const cs=conseils(m,c);$("tipsTitre").textContent=cs.titre;
   renderSortie();

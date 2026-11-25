@@ -99,8 +99,9 @@ const PARAMS_MF = new URLSearchParams({
   current: "temperature_2m,apparent_temperature,weather_code,wind_gusts_10m,wind_direction_10m",
   hourly: "temperature_2m,weather_code,wind_gusts_10m,wind_direction_10m,precipitation",
   daily: "weather_code,temperature_2m_max,temperature_2m_min,wind_gusts_10m_max,precipitation_sum",
-  timezone: "Europe/Paris", forecast_days: "3", wind_speed_unit: "kmh"
+  timezone: "Europe/Paris", forecast_days: "3", past_days: "1", wind_speed_unit: "kmh"
 });
+// past_days = 1 : la veille aussi, pour dire dans l'app « 4° de moins qu'hier ». Les jours sont retrouvés par leur date, pas par leur rang.
 const JOURS_MF = 3;
 const HEURES = [7, 9, 11, 13, 15, 17, 19, 21];
 const r1 = v => v == null ? null : Math.round(v * 10) / 10;
@@ -133,8 +134,10 @@ function appliquerMF(x, p) {
         vu(c.wind_gusts_10m) ? Math.round(c.wind_gusts_10m) : x.cur[3], vu(c.wind_direction_10m) ? c.wind_direction_10m : x.cur[4]];
     }
     if (d && d.time) d.time.forEach((date, k) => {
-      if (k >= JOURS_MF) return;
-      const J = x.d.find(j => j[0] === date); if (!J) return;
+      // La veille : on garde seulement ses maximale et minimale
+      if (x.d[0] && date < x.d[0][0]) { const ex = extremes(h, date); const mx = ex ? ex.max : d.temperature_2m_max[k], mn = ex ? ex.min : d.temperature_2m_min[k]; if (vu(mx) && vu(mn)) x.hier = [r1(mx), r1(mn)]; return; }
+      const ki = x.d.findIndex(j => j[0] === date); if (ki < 0 || ki >= JOURS_MF) return;
+      const J = x.d[ki];
       if (!vu(d.temperature_2m_max[k]) || !vu(d.temperature_2m_min[k])) return;
       const ex = extremes(h, date) || { max: d.temperature_2m_max[k], min: d.temperature_2m_min[k] };
       // Garde-fou : un écart énorme avec le modèle global signale une donnée incomplète
@@ -764,7 +767,7 @@ if (liste.some(x => !x.d)) {
     if (Date.now() - new Date(prec.maj).getTime() < 5 * 3600e3) {
       for (const x of liste) if (!x.d) {
         const a = prec.communes.find(c => c.n === x.n);
-        if (a && a.d) { x.cur = a.cur; x.d = a.d; x.h = a.h; x.n24 = a.n24; x.mf = 1; reprises++; }
+        if (a && a.d) { x.cur = a.cur; x.d = a.d; x.h = a.h; x.n24 = a.n24; x.hier = a.hier; x.mf = 1; reprises++; }
       }
     }
     console.log(`${reprises} commune(s) reprise(s) de la mise à jour précédente`);
@@ -855,7 +858,7 @@ await writeFile("site/data/meteo.json", JSON.stringify({
   air: qualiteAir,
   mer: laMer,
   fiabilite,
-  communes: ok.map(({ n, s, dep, cote, lat, lon, cur, d, h, n24 }) => ({ n, s, dep, cote, lat: r1x(lat), lon: r1x(lon), cur, d, h, n24 }))
+  communes: ok.map(({ n, s, dep, cote, lat, lon, cur, d, h, n24, hier }) => ({ n, s, dep, cote, lat: r1x(lat), lon: r1x(lon), cur, d, h, n24, ...(hier ? { hier } : {}) }))
 }));
 function r1x(v) { return Math.round(v * 1000) / 1000; }
 // Copie tous les fichiers de l'app (tout sauf les outils et le dossier « site » lui-même)
