@@ -2010,8 +2010,9 @@ function renderPluie(c){
   const niv=mm=>mm<0.05?0:mm<0.25?1:mm<1?2:3, mots=["","faible","modérée","forte"], hm=d=>d.getHours()+" h "+String(d.getMinutes()).padStart(2,"0");
   const P=v.pluie, n=P.map(x=>niv(x.mm)), premier=n.findIndex(x=>x>0), maxN=Math.max(...n);
   let titre,sous;
-  if(premier<0){titre="Pas de pluie d'ici 2 heures";sous="Prévision Météo-France, au quart d'heure près"}
-  else if(premier===0){const fin=n.findIndex(x=>x===0);titre="Pluie "+mots[n[0]]+" en ce moment"+(maxN>n[0]?", "+mots[maxN]+" par moments":"");sous=fin>0?"Fin prévue vers "+hm(P[fin].t):"Elle devrait durer au moins 2 heures"}
+  // Pas de pluie dans les 2 heures : on n'affiche rien, l'encadré n'apparaît que quand il a quelque chose à dire
+  if(premier<0){box.hidden=true;return}
+  if(premier===0){const fin=n.findIndex(x=>x===0);titre="Pluie "+mots[n[0]]+" en ce moment"+(maxN>n[0]?", "+mots[maxN]+" par moments":"");sous=fin>0?"Fin prévue vers "+hm(P[fin].t):"Elle devrait durer au moins 2 heures"}
   else{const dans=Math.max(5,Math.round((P[premier].t-Date.now())/6e4/5)*5);titre="Pluie vers "+hm(P[premier].t)+(maxN>=2?", "+mots[maxN]+" par moments":"");sous="Dans "+(dans<60?dans+" min":"environ "+(dans/60).toFixed(0).replace(".",",")+" h")+" · prévision Météo-France"}
   $("pdhTitre").textContent=titre;$("pdhSous").textContent=sous;
   $("pdhBars").innerHTML=n.map(x=>'<i class="l'+x+'"></i>').join("");
@@ -2115,7 +2116,8 @@ function render(){
     $("tempLbl").textContent=quand?"Maintenant · "+quand.getHours()+" h "+String(quand.getMinutes()).padStart(2,"0"):"Maintenant · "+DATA.maj.getHours()+" h";$("temp").textContent=Math.round(cur[0])+"°";
     heroNow={t:Math.round(cur[0]),type:tNow,ico:iNow};
     $("hero").dataset.t=tNow;$("heroIco").innerHTML=ICONS[iNow];$("cond").textContent=LIB[iNow];
-    m=Object.assign({},m,{feel:Math.round(cur[1])});
+    // La température actuelle peut sortir de la fourchette prévue : on garde des min/max cohérents avec elle
+    m=Object.assign({},m,{feel:Math.round(cur[1]),min:Math.min(m.min,Math.round(cur[0])),max:Math.max(m.max,Math.round(cur[0]))});
   }
   else if(st.jour===0){$("tempLbl").textContent="Maintenant · "+new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}).replace(":"," h ");$("temp").textContent=tAt(m,new Date().getHours()+new Date().getMinutes()/60)+"°"}
   else{$("tempLbl").textContent="Maximale";$("temp").textContent=m.max+"°"}
