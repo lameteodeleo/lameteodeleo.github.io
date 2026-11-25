@@ -2545,8 +2545,9 @@ async function creerReel(btn){
         const lh=Math.round(fs*1.08), y0=1170-(ls.length-1)*lh;ls.forEach((l,i)=>centre(l,y0+i*lh,"800 "+fs+"px "+FD,B.white))}
       centre(hook.lab,1250,"800 54px "+FB,B.white);
       if(!al&&R.vj){const t="⚠ "+R.vj,fs=ajuste(x,t,W-200,38,"800",FB),w=Math.min(W-140,x.measureText(t).width+60);x.fillStyle="#FFD43B";rr(x,(W-w)/2,1305,w,72,36);x.fill();centre(t,1353,"800 "+fs+"px "+FB,B.ink)}
-      const b=ease((t-1.1)/.4);if(b>0){x.globalAlpha=b;x.fillStyle=al?B.white:B.sun;rr(x,150,1330,W-300,110,55);x.fill();x.globalAlpha=1;
-        {x.font="800 44px "+FB;let fs=44;while(x.measureText(phrase).width>W-360&&fs>30){fs-=2;x.font="800 "+fs+"px "+FB}centre(phrase,1402,"800 "+fs+"px "+FB,al?CA(al).texte:B.sunInk,b)}}
+      // Avec le bandeau de vigilance jaune, le bouton « 👇 » descend pour ne pas le recouvrir
+      const dy=(!al&&R.vj)?130:0, b=ease((t-1.1)/.4);if(b>0){x.globalAlpha=b;x.fillStyle=al?B.white:B.sun;rr(x,150,1330+dy,W-300,110,55);x.fill();x.globalAlpha=1;
+        {x.font="800 44px "+FB;let fs=44;while(x.measureText(phrase).width>W-360&&fs>30){fs-=2;x.font="800 "+fs+"px "+FB}centre(phrase,1402+dy,"800 "+fs+"px "+FB,al?CA(al).texte:B.sunInk,b)}}
     }else if(sc.type==="temp"){fond();titreSc("Les températures",t);sousSc(jourTxt,t);
       [[R.chaud.m.max,"Le plus chaud",R.chaud.nom,"chaleur","#F2994A"],[parMin.m.min,"Le plus frais, au réveil",parMin.nom,"gel","#6EA8F0"]].forEach(([v,k,o,ic,col],i)=>
         carte(620+i*480,420,t,.25+i*.35,()=>{x.fillStyle=col;x.font="800 50px "+FB;x.fillText(k,130,720+i*480);
