@@ -1779,7 +1779,7 @@ function render(){
   { const fb=$("favbar"), FL=st.favs.filter(n=>idx(n)>=0);
     fb.hidden=!FL.length;
     fb.innerHTML=FL.map(n=>{const i=idx(n),mm=(enReel()?reel(COMMUNES[i],0):null);return '<button type="button" data-i="'+i+'"'+(i===st.c?' aria-current="true"':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>'+n+(mm?' <b>'+mm.max+'°</b>':'')+'</button>'}).join(""); }$("fav").setAttribute("aria-label",fav?"Retirer des favoris":"Ajouter aux favoris");
-  $("when").textContent=($("bienvenue").hidden?"":"Exemple · ")+(st.jour===0?"Aujourd'hui":st.jour===1?"Demain":"Prévision")+" · "+fmt(dayDate(st.jour));
+  $("when").textContent=(st.jour===0?"Aujourd'hui":st.jour===1?"Demain":"Prévision")+" · "+fmt(dayDate(st.jour));
   $("hero").dataset.t=m.type;
   $("heroIco").innerHTML=ICONS[m.ico||m.type];
   $("cond").textContent=LIB[m.ico||m.type]+(m.plNuit&&m.pl>=0.3?" · pluie la nuit":"");
