@@ -125,7 +125,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .cond{font-family:var(--f-display);font-weight:700;font-size:1.15rem}
 .facts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.92rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .facts b{color:var(--ink)}
-.resume{margin:14px 0 0;padding:10px 14px;border-radius:14px;background:var(--surface-2);font-weight:700;font-size:.95rem;line-height:1.4}
+.resume{margin:14px 0 0;padding:10px 14px;border-radius:14px;background:var(--surface-2);font-size:.95rem;line-height:1.4;display:flex;flex-direction:column;gap:4px}.resume b{font-weight:800}
 /* Premier passage : on aide à choisir sa commune, en un geste */
 .bienvenue{padding:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;background:linear-gradient(135deg,var(--brand-soft,rgba(91,75,208,.12)),var(--surface) 70%)}
 .bv-h{display:flex;gap:12px;align-items:center}.bv-h .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.bv-h .tx b{font-family:var(--f-display);font-size:1.15rem}.bv-h .tx span{color:var(--muted);font-size:.92rem}
@@ -1750,21 +1750,21 @@ function renderPluie(c){
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&COMMUNES[st.c]&&enReel())liveMaintenant(COMMUNES[st.c])});
 
-/* Le résumé en une phrase : quand tombe la pluie, le vent, et ce qui change demain */
+/* Le résumé : une ligne par sujet (pluie, vent, demain), chacune commence par un mot en gras.
+   Plus facile à lire d'un coup d'œil qu'une longue phrase. */
 function resumeSlots(S,auj,rafJour){
-  const pl=x=>x&&["pluie","orage","neige"].includes(x.type), nom=x=>x.type==="orage"?"orages":x.type==="neige"?"neige":"pluie";
+  const pl=x=>x&&["pluie","orage","neige"].includes(x.type), L=[];
   const apres={soleil:"soleil",nuageux:"éclaircies",couvert:"ciel gris",lune:"ciel dégagé",nuitNuageux:"nuages",mistral:"mistral",vent:"vent",brouillard:"brouillard"};
-  const i=S.findIndex(pl);let t;
-  if(i<0)t=auj?"Pas de pluie prévue d'ici ce soir":"Journée sèche";
-  else{let j=i;while(j+1<S.length&&pl(S[j+1]))j++;const N=nom(S[i]),C=N.charAt(0).toUpperCase()+N.slice(1),fin=S[j+1];
-    const encore=fin&&S.slice(j+1).some(pl);   // pluie en plusieurs fois : on dit « par moments », plus simple qu'une liste d'heures
-    if(i===0)t=encore?C+" par moments"+(auj?" jusqu'à ce soir":" toute la journée"):!fin?C+(auj?" jusqu'à ce soir":" toute la journée"):C+" jusqu'à "+fin.h+" h, puis "+(apres[fin.ico]||apres[fin.type]||"temps sec");
-    else t="Au sec jusqu'à "+S[i].h+" h, puis "+N+(encore?" par moments":fin?" jusqu'à "+fin.h+" h":"")}
-  const r=rafJour!=null?rafJour:Math.max(0,...S.map(x=>x.raf||0)), mis=S.some(x=>x.type==="mistral");
-  // Le mistral : on dit à partir de quand il souffle, s'il n'est pas déjà là
-  const km=S.findIndex(x=>x.type==="mistral");
-  if(mis)t+=". Mistral"+(km>0?" à partir de "+S[km].h+" h":"")+(r>=30?" (rafales jusqu'à "+r+" km/h)":"");else if(r>=50)t+=". Rafales jusqu'à "+r+" km/h";
-  return t+".";
+  const i=S.findIndex(pl);
+  if(i<0)L.push(["Au sec",auj?"jusqu'à ce soir":"toute la journée"]);
+  else{let j=i;while(j+1<S.length&&pl(S[j+1]))j++;const fin=S[j+1], encore=fin&&S.slice(j+1).some(pl);
+    const k=S[i].type==="orage"?"Orages":S[i].type==="neige"?"Neige":"Pluie";
+    L.push([k,i===0?(encore?"par moments, "+(auj?"jusqu'à ce soir":"toute la journée"):!fin?(auj?"jusqu'à ce soir":"toute la journée"):"jusqu'à "+fin.h+" h, puis "+(apres[fin.ico]||apres[fin.type]||"temps sec"))
+      :(encore?"dès "+S[i].h+" h, par moments":fin?"de "+S[i].h+" h à "+fin.h+" h":"dès "+S[i].h+" h")])}
+  const r=rafJour!=null?rafJour:Math.max(0,...S.map(x=>x.raf||0)), km=S.findIndex(x=>x.type==="mistral");
+  if(km>=0)L.push(["Mistral",(km>0?"dès "+S[km].h+" h, ":"")+(r>=30?"rafales jusqu'à "+r+" km/h":"modéré")]);
+  else if(r>=50)L.push(["Vent","rafales jusqu'à "+r+" km/h"]);
+  return L;
 }
 /* ---------- Rendu : Ma météo ---------- */
 function render(){
@@ -1816,16 +1816,16 @@ function render(){
   $("hoursTitle").textContent=prochaines?"Les prochaines heures":"Heure par heure";
   $("hoursDay").textContent=prochaines?"24 heures à venir":st.jour===0?"Aujourd'hui":fmt(dayDate(st.jour));
   const hr=(enReel()&&!prochaines)?heuresReelles(c,st.jour):null;
-  {const el=$("resume");let t=null;
+  {const el=$("resume");let L=null;
     try{if(enReel()){
-      if(prochaines){const S=prochaines.filter(x=>!x.demain);if(S.length>=3)t=resumeSlots(S,true,null);
+      if(prochaines){const S=prochaines.filter(x=>!x.demain);if(S.length>=3)L=resumeSlots(S,true,null);
         const d=reel(c,1);if(d){const D=[];if(["pluie","orage","neige"].includes(d.type))D.push(d.type==="orage"?"risque d'orages":d.type==="neige"?"neige":"pluie"+(d.pl>=10?" ("+Math.round(d.pl)+" mm)":""));
-          if(d.type==="mistral"||d.raf>=60)D.push((d.type==="mistral"?"mistral":"vent fort")+" jusqu'à "+d.raf+" km/h");
+          if(d.type==="mistral"||d.raf>=60)D.push((d.type==="mistral"?"mistral":"vent fort")+", rafales jusqu'à "+d.raf+" km/h");
           if(d.min<=0)D.push("gelée au réveil ("+d.min+"°)");
           const dT=d.max-m.max;if(dT<=-4)D.push("nettement plus frais ("+d.max+"°)");else if(dT>=4)D.push("nettement plus doux ("+d.max+"°)");
-          if(D.length)t=(t?t+" ":"")+"Demain : "+D.join(", ")+"."}}
-      else if(hr){const S=hr.map((x,i)=>x&&{h:7+2*i,type:x.type,ico:variante(x.code,x.type,false)}).filter(Boolean);if(S.length>=4)t=resumeSlots(S,false,m.raf)}}}catch(e){t=null}
-    el.hidden=!t;if(t)el.textContent=insec(t)}
+          if(D.length)(L=L||[]).push(["Demain",D.join(", ")])}}
+      else if(hr){const S=hr.map((x,i)=>x&&{h:7+2*i,type:x.type,ico:variante(x.code,x.type,false)}).filter(Boolean);if(S.length>=4)L=resumeSlots(S,false,m.raf)}}}catch(e){L=null}
+    el.hidden=!(L&&L.length);if(L&&L.length)el.innerHTML=L.map(([k,v])=>"<span><b>"+k+"</b> "+insec(v)+"</span>").join("")}
   if(prochaines) $("hours").innerHTML=prochaines.map(x=>'<div class="hour"><small>'+x.lbl+'</small>'+ICONS[x.ico||x.type]+'<b>'+x.t+'°</b><span class="p"'+(x.prob>=30?' title="Risque de pluie">'+SMALL.drop+x.prob+" %":x.raf>=40?' title="Rafales de vent" style="color:var(--muted)">'+x.raf+" km/h":'>')+'</span></div>').join("");
   else if(hr) $("hours").innerHTML=hr.map((x,i)=>{
     const hh=7+i*2;if(!x)return "";
