@@ -1907,10 +1907,10 @@ function render(){
           if(D.length)(L=L||[]).push(["Demain",D.join(", ")])}}
       else if(hr){const S=hr.map((x,i)=>x&&{h:7+2*i,type:x.type,ico:variante(x.code,x.type,false)}).filter(Boolean);if(S.length>=4)L=resumeSlots(S,false,m.raf)}}}catch(e){L=null}
     el.hidden=!(L&&L.length);if(L&&L.length)el.innerHTML=L.map(([k,v])=>"<span><b>"+k+"</b> "+insec(v)+"</span>").join("")}
+  $("hours").classList.toggle("trois",!!(hr&&st.jour>=1));
   if(prochaines) $("hours").innerHTML=prochaines.map(x=>'<div class="hour"><small>'+x.lbl+'</small>'+ICONS[x.ico||x.type]+'<b>'+x.t+'°</b><span class="p"'+(x.prob>=30?' title="Risque de pluie">'+SMALL.drop+x.prob+" %":x.raf>=40?' title="Rafales de vent" style="color:var(--muted)">'+x.raf+" km/h":'>')+'</span></div>').join("");
   // Un autre jour que aujourd'hui : trois moments clairs (matin, après-midi, soirée) plutôt que 8 colonnes
-  $("hours").classList.toggle("trois",!!(hr&&st.jour>=1));
-  if(hr&&st.jour>=1){$("hoursTitle").textContent="Le déroulé de la journée";
+  else if(hr&&st.jour>=1){$("hoursTitle").textContent="Le déroulé de la journée";
     const raw=(DATA.par[c.n].h||[])[st.jour]||[], G=[["Matin",[0,1,2]],["Après-midi",[3,4,5]],["Soirée",[6,7]]];
     $("hours").innerHTML=G.map(([lib,I])=>{const X=I.map(i=>{const x=hr[i];if(!x)return null;const hh=7+2*i,nuit=estNuit(dayDate(st.jour),hh*60),ty=nuit?versNuit(x.type):x.type;return {t:x.t,prob:x.prob,type:ty,ico:variante(x.code,ty,nuit),raf:raw[i]&&raw[i][3]!=null?Math.round(raw[i][3]):0}}).filter(Boolean);
       if(!X.length)return "";const d=typeDominant(X), tp=lib==="Après-midi"?Math.max(...X.map(o=>o.t)):lib==="Matin"?(X[1]||X[0]).t:X[0].t, pr=Math.max(...X.map(o=>o.prob)), rf=Math.max(...X.map(o=>o.raf));
