@@ -230,7 +230,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .tip span.i svg{width:20px;height:20px}
 .tip .tx{display:flex;flex-direction:column;gap:1px;min-width:0}
 .tip .tx small{font-size:.68rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-.tip .tx span{line-height:1.35}
+.tip .tx span{line-height:1.4;color:color-mix(in srgb,var(--ink) 80%,transparent)}.tip .tx span b{font-weight:800;color:var(--ink,inherit)}
 .tip.warn span.i{background:var(--alert-soft);color:var(--alert)}.tip.warn.orange span.i{background:var(--orange-soft);color:var(--orange)}
 footer{font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:4px;padding:4px 2px}
 footer a{color:var(--brand);font-weight:800;display:inline-block;padding:9px 0}
@@ -1788,7 +1788,7 @@ const CICO={
  pollen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="10" r="2.5"/><path d="M12 5.5V3M12 17v4M16.5 10H19M5 10h2.5M15.2 6.8l1.8-1.8M7 15l1.8-1.8M15.2 13.2l1.8 1.8M7 5l1.8 1.8"/></svg>',
  mer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 9c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 14c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 19c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/></svg>'
 };
-const CAT={soir:"Cette nuit",feu:"Risque d'incendie",pluie:"Dans les 2 heures",change:"À venir",nuit:"En fin de journée",tenue:"S'habiller",sortir:"Sortir",linge:"Linge",jardin:"Jardin",route:"Sur la route",sante:"Santé",alerte:"Vigilance",soleil:"Soleil",air:"Qualité de l'air",pollen:"Pollens",mer:"La mer"};
+const CAT={soir:"Cette nuit",feu:"Risque d'incendie",pluie:"Dans les 2 heures",change:"À venir",nuit:"En fin de journée",tenue:"S'habiller",sortir:"Pour sortir",linge:"Linge",jardin:"Jardin",route:"Sur la route",sante:"Santé",alerte:"Vigilance",soleil:"Soleil",air:"Qualité de l'air",pollen:"Pollens",mer:"La mer"};
 function creneaux(c,m){
   let slots=[];
   if(enReel()){
@@ -1800,6 +1800,8 @@ function creneaux(c,m){
   return slots.filter(x=>x.h>=Math.ceil(lev)&&x.h<=Math.floor(cou)&&(st.jour>0||x.h>=maint));
 }
 /* Pourquoi ce moment est le meilleur, en quelques mots */
+/* Conseils : le début de la phrase (la réponse) en gras, le reste en explication */
+function essentiel(t){const m=t.match(/^(.{3,38}?)( \(| : |, |\. )/);if(!m||/^(Pluie|Neige|Avec|Le matin|D'ici)/.test(t))return insec(t);return "<b>"+insec(m[1])+"</b>"+insec(t.slice(m[1].length))}
 function raisonSortie(c,m,b){
   const J=creneaux(c,m), av=J.filter(x=>x.h<b.h), ap=J.filter(x=>x.h>b.h);
   const mou=x=>["pluie","orage","neige"].includes(x.type)||x.prob>=60, vt=x=>x.type==="mistral"||x.type==="vent"||x.raf>=50;
@@ -1919,10 +1921,10 @@ function conseils(m,c,profondeur){
   let soirT=null,soirTh=null,soirRaf=null;if(apresMidiPasse){const ph=prochainesHeures(c);if(ph){const s2=ph.filter(x=>!x.demain&&x.h<=22);if(s2.length){soirTh=Math.min(...s2.map(x=>x.t));const rs=Math.max(...s2.map(x=>x.raf||0));soirRaf=rs;soirT=soirTh-(soirTh<=18?(rs>=70?4:rs>=55?3:rs>=40?2:0):0)}}}
   let tenue=apresMidiPasse?"D'ici ce soir"+(soirT!=null?" ("+soirTh+"°"+(soirT<soirTh?", ressenti "+soirT+"°":"")+")":"")+" : "+habit(soirT!=null?soirT:Math.min(aprem,matin+3))+".":
     (aprem-matin>=7&&habit(matin)!==habit(aprem))?"Le matin ("+matin+"°) : "+habit(matin)+". L'après-midi ("+aprem+"°) : "+habit(aprem)+(/ et /.test(habit(aprem))?" suffisent.":" suffit."):
-    (st.jour===1?"Tenue de demain ("+matin+"° le matin, "+tAprem+"° l'après-midi) : "+habit(Math.min(aprem,matin+4))+".":varie("Tenue du jour : "+habit(Math.min(aprem,matin+4))+".","Pour la journée : "+habit(Math.min(aprem,matin+4))+"."));
+    (()=>{const hb=habit(Math.min(aprem,matin+4));return hb.charAt(0).toUpperCase()+hb.slice(1)+" ("+matin+"° le matin, "+tAprem+"° l'après-midi)."})();
   // Le ressenti avec le vent : le mistral fait paraître bien plus froid que le thermomètre
-  if(vent>=3&&m.raf>=40) tenue+=" Avec le vent, on ressent environ "+aprem+"° pour "+tAprem+"° au thermomètre : couvrez-vous plus que prévu.";
-  else if((soirRaf!=null?soirRaf:m.raf)>=50&&m.feel<24) tenue+=" Ajoutez un coupe-vent : ça souffle.";
+  if(vent>=3&&m.raf>=40) tenue+=" Avec le vent, ressenti "+aprem+"° : couvrez-vous un peu plus.";
+  else if((soirRaf!=null?soirRaf:m.raf)>=50&&m.feel<24) tenue+=" Et un coupe-vent : ça souffle.";
   if(m.type==="neige") tenue+=" Gants, et chaussures qui accrochent.";
   else if(pluieJour&&!finPluie) tenue+=m.raf>=50?" Laissez le parapluie, préférez une capuche.":perPluie==="matin"?" Parapluie utile le matin.":perPluie==="aprem"?" Parapluie utile l'après-midi.":perPluie==="jour"?" Parapluie utile toute la journée.":" Prenez un parapluie.";
   add("tenue",tenue);
@@ -1953,14 +1955,14 @@ function conseils(m,c,profondeur){
   const mc=meilleurCreneau(c,m);
   if(mc&&!mc.seul){
     if(mc.toutMouille){if(!finPluie&&slots.length>=3) add("sortir",m.type==="neige"?"Neige ou pluie toute la journée : limitez les sorties, privilégiez les activités à l'abri.":st.jour===0?"Pluie jusqu'au soir : une sortie à l'abri sera plus agréable.":"Journée humide : prévoyez une activité à l'abri.")}
-    else if(m.prob>=30||m.raf>=40||(m.max<=14&&m.max-m.min>=8)){const b=mc.best;add("sortir",(st.jour===0&&b.h===hNow?"C'est maintenant le meilleur moment pour sortir":"Meilleur moment pour sortir : vers "+b.h+" h")+raisonSortie(c,m,b)+" ("+b.t+"°).")}
+    else if(m.prob>=30||m.raf>=40||(m.max<=14&&m.max-m.min>=8)){const b=mc.best;add("sortir",(()=>{const r=raisonSortie(c,m,b);return (st.jour===0&&b.h===hNow?"Maintenant":"Vers "+b.h+" h")+(r||" ("+b.t+"°)")+"."})())}
   }
   // Linge et jardin, seulement quand il y a quelque chose d'utile à dire
   if(!(st.jour===0&&hNow>=16)){
     const sec=slots.length?slots.every(x=>!mouille(x)&&x.prob<30):(m.prob<20&&m.pl<0.3);
     if(pluieJour) add("linge",st.jour===0?"Pluie prévue dans la journée : on étend à l'intérieur.":"Pluie prévue dans la journée : on étendra à l'intérieur.");
-    else if(sec&&m.raf>=35&&m.raf<70) add("linge","Linge sec en un temps record : pensez aux pinces.");
-    else if(sec&&(m.max>=16||m.raf>=25)) add("linge","Belle journée pour étendre dehors.");
+    else if(sec&&m.raf>=35&&m.raf<70) add("linge","Étendez dehors : avec le vent, ça sèche vite. Pensez aux pinces.");
+    else if(sec&&(m.max>=16||m.raf>=25)) add("linge","Étendez dehors : belle journée pour faire sécher.");
   }
   const moisJ=dayDate(st.jour).getMonth()+1;
   if(m.min<=2&&!matinPasse) add("jardin",m.min<=0?"Gel au petit matin ("+m.min+"°) : protégez les plantes fragiles avec un voile.":"Gelée blanche possible au sol ("+m.min+"°) : un voile sur les plantes fragiles.");
@@ -2195,7 +2197,7 @@ function render(){
   $("tiles").innerHTML=T.join("");
   const cs=conseils(m,c);$("tipsTitre").textContent=cs.titre;
   /* « Quand sortir ? » retiré : trop chargé, le conseil « Sortir » suffit */
-  $("tips").innerHTML=cs.liste.map(x=>'<div class="tip'+(x.warn?" warn":"")+(x.orange?" orange":"")+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+insec(x.txt)+'</span></div></div>').join("");
+  $("tips").innerHTML=cs.liste.map(x=>'<div class="tip'+(x.warn?" warn":"")+(x.orange?" orange":"")+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+essentiel(x.txt)+'</span></div></div>').join("");
   let maj=enReel()?new Date(DATA.maj):new Date();if(!enReel())maj.setMinutes(0,0,0);if(st.stale)maj=new Date(maj.getTime()-5*36e5);
   const age=Math.floor((Date.now()-maj)/36e5), hMaj=maj.getHours()+" h "+String(maj.getMinutes()).padStart(2,"0");
   $("foot").textContent="Mis à jour à "+hMaj+" · "+COMMUNES.length+" communes couvertes";
