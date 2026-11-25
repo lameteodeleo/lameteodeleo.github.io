@@ -132,7 +132,8 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .bv-h .mm svg{width:44px;height:44px;display:block}
 .bienvenue .x{border:0;background:none;color:var(--muted);font-size:1rem;font-weight:800;min-width:36px;min-height:40px;cursor:pointer;align-self:flex-start}
 .bv-go{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;font-size:1rem}.bv-go svg{width:20px;height:20px}
-.bv-liste{padding:12px}.bienvenue small{text-align:center;color:var(--muted);font-size:.8rem}
+.bv-liste{padding:12px}
+.bv-vite{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}.bv-vite button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 11px;font-weight:700;font-size:.84rem;cursor:pointer}.bv-vite .autre{color:var(--brand);border-style:dashed}.bv-vite button:active{background:var(--brand-soft)}.bienvenue small{text-align:center;color:var(--muted);font-size:.8rem}
 /* vigilance */
 .fiab-t{overflow-x:auto;margin:10px -4px 6px}.fiab-t table{width:100%;border-collapse:collapse;font-size:.82rem}.fiab-t th{text-align:left;color:var(--muted);font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;padding:6px 4px;border-bottom:1px solid var(--line)}.fiab-t td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}.fiab-t td.bon{color:var(--ok);font-weight:800}.fiab-t td.moyen{color:var(--warm);font-weight:800}.fiab-t td.faible{color:var(--alert);font-weight:800}.fiab-t td.vide{color:var(--muted)}.fiab-t td.tend{color:var(--muted);font-size:.78rem}.fiab-h{margin:14px 0 2px;font-size:.92rem}.fiab-p{margin:6px 0 8px 18px;padding:0;line-height:1.5;font-size:.88rem}
 .alert{--al:var(--alert);--al-fond:#E0201B;--al-txt:#fff;--al-doux:var(--alert-soft);background:var(--surface);border:1.5px solid var(--al);border-radius:20px;overflow:hidden;padding:0}
@@ -441,8 +442,9 @@ details.plus[open] .tiles{margin-top:10px}
     <div class="card bienvenue" id="bienvenue" role="region" aria-label="Bienvenue" hidden>
       <div class="bv-h"><span class="mm" id="markBv"></span><div class="tx"><b>Bienvenue&nbsp;!</b><span>La météo de votre commune, heure par heure.</span></div>
         <button class="x" type="button" id="bvX" aria-label="Fermer">✕</button></div>
-      <button class="btn-brand bv-go" type="button" id="bvLoc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/><circle cx="12" cy="12" r="7.5"/></svg>Trouver ma commune</button>
-      <button class="wide bv-liste" type="button" id="bvCh">Choisir dans la liste</button>
+      <button class="btn-brand bv-go" type="button" id="bvLoc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/><circle cx="12" cy="12" r="7.5"/></svg>Utiliser ma position</button>
+      <button class="wide bv-liste" type="button" id="bvCh" hidden>Choisir dans la liste</button>
+      <div class="bv-vite" id="bvVite" aria-label="Communes fréquentes"></div>
       <small>Elle sera retenue pour vos prochaines visites.</small>
     </div>
     <article class="card hero" id="hero" aria-live="polite">
@@ -1774,7 +1776,7 @@ function render(){
   { const fb=$("favbar"), FL=st.favs.filter(n=>idx(n)>=0);
     fb.hidden=!FL.length;
     fb.innerHTML=FL.map(n=>{const i=idx(n),mm=(enReel()?reel(COMMUNES[i],0):null);return '<button type="button" data-i="'+i+'"'+(i===st.c?' aria-current="true"':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>'+n+(mm?' <b>'+mm.max+'°</b>':'')+'</button>'}).join(""); }$("fav").setAttribute("aria-label",fav?"Retirer des favoris":"Ajouter aux favoris");
-  $("when").textContent=(st.jour===0?"Aujourd'hui":st.jour===1?"Demain":"Prévision")+" · "+fmt(dayDate(st.jour));
+  $("when").textContent=($("bienvenue").hidden?"":"Exemple · ")+(st.jour===0?"Aujourd'hui":st.jour===1?"Demain":"Prévision")+" · "+fmt(dayDate(st.jour));
   $("hero").dataset.t=m.type;
   $("heroIco").innerHTML=ICONS[m.ico||m.type];
   $("cond").textContent=LIB[m.ico||m.type]+(m.plNuit&&m.pl>=0.3?" · pluie la nuit":"");
@@ -2171,8 +2173,14 @@ q.addEventListener("keydown",e=>{
 slist.addEventListener("click",e=>{const o=e.target.closest(".opt");if(o)choose(o.dataset.i)});
 sheet.addEventListener("keydown",e=>{if(e.key==="Escape")closeSearch()});
 $("openSearch").addEventListener("click",openSearch);
-const finBienvenue=()=>{$("bienvenue").hidden=true;try{localStorage.setItem(CLE+"-bienvenue","1")}catch(e){}};
-if(PREMIERE_VISITE&&!new URLSearchParams(location.search).get("robot"))$("bienvenue").hidden=false;
+const finBienvenue=()=>{if($("bienvenue").hidden)return;$("bienvenue").hidden=true;try{localStorage.setItem(CLE+"-bienvenue","1")}catch(e){}render()};
+// Communes en un geste : celles d'où viennent le plus de visiteurs
+{const V=["Aix-en-Provence","Marseille","Pertuis","Venelles","Le Puy-Sainte-Réparade","Rognes","Meyrargues","Peyrolles-en-Provence"].filter(n=>idx(n)>=0);
+  $("bvVite").innerHTML=V.map(n=>'<button type="button" data-n="'+n+'">'+(n==="Aix-en-Provence"?"Aix":n==="Le Puy-Sainte-Réparade"?"Le Puy":n==="Peyrolles-en-Provence"?"Peyrolles":n)+'</button>').join("")+'<button type="button" class="autre" data-autre="1">Autre commune…</button>';
+  $("bvVite").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.autre){finBienvenue();openSearch()}else choose(idx(b.dataset.n))})}
+// Dans Facebook ou Instagram, la localisation échoue souvent : la liste devient le bouton principal
+if(/FBAN|FBAV|FB_IAB|Instagram|Messenger/i.test(navigator.userAgent)){$("bvLoc").hidden=true;$("bvCh").hidden=false;$("bvCh").className="btn-brand bv-go";$("bvCh").textContent="Choisir ma commune";const a=$("bvVite").querySelector(".autre");if(a)a.remove()}
+if(PREMIERE_VISITE&&!new URLSearchParams(location.search).get("robot")){$("bienvenue").hidden=false;try{if(COMMUNES[st.c])render()}catch(e){}}
 $("bvLoc").addEventListener("click",()=>{finBienvenue();$("locate").click()});
 $("bvCh").addEventListener("click",()=>{finBienvenue();openSearch()});
 $("bvX").addEventListener("click",finBienvenue);
