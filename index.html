@@ -1704,7 +1704,11 @@ function render(){
   renderPluie(c);
   if(st.jour===0&&cur){
     const now=new Date();let tNow=classer(cur[2],cur[3],cur[4],cur[0],cur[0]);
-    const nuitNow=estNuit(now,now.getHours()*60+now.getMinutes());if(nuitNow) tNow=versNuit(tNow);const iNow=variante(cur[2],tNow,nuitNow);
+    const nuitNow=estNuit(now,now.getHours()*60+now.getMinutes());if(nuitNow) tNow=versNuit(tNow);let iNow=variante(cur[2],tNow,nuitNow);
+    // L'instant présent suit la « pluie dans l'heure » de Météo-France (au quart d'heure, plus fiable que le modèle) : jamais « Pluie » en haut et « Pas de pluie » juste en dessous
+    {const vp=vif&&vif.pluie, t0=Date.now();if(vp){const ici=vp.filter(x=>Math.abs(x.t.getTime()-t0)<=20*6e4), mx=ici.length?Math.max(...ici.map(x=>x.mm)):null;
+      if(mx!=null){if(tNow==="pluie"&&mx<0.05){tNow=nuitNow?"nuitNuageux":"nuageux";iNow="couvert"}
+        else if(mx>=0.05&&!["pluie","orage","neige"].includes(tNow)){tNow="pluie";iNow=mx<0.25?"bruine":mx<1?"pluie":"pluieForte"}}}}
     $("tempLbl").textContent=quand?"Maintenant · "+quand.getHours()+" h "+String(quand.getMinutes()).padStart(2,"0"):"Maintenant · "+DATA.maj.getHours()+" h";$("temp").textContent=Math.round(cur[0])+"°";
     heroNow={t:Math.round(cur[0]),type:tNow,ico:iNow};
     $("hero").dataset.t=tNow;$("heroIco").innerHTML=ICONS[iNow];$("cond").textContent=LIB[iNow];
