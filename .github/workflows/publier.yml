@@ -28,6 +28,11 @@ on:
         type: choice
         options: [reel, story]
         default: reel
+      jour_reel:
+        description: "Reel : pour demain (normal) ou pour aujourd'hui (rattrapage du matin)"
+        type: choice
+        options: [demain, aujourdhui]
+        default: demain
       reseaux:
         description: "Réseaux"
         type: choice
@@ -82,3 +87,4 @@ jobs:
           MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event_name == 'schedule' && (github.event.schedule == '10 20 * * *' && 'controle-reel' || github.event.schedule == '40 9 * * *' && 'controle-story' || 'auto')) || 'auto' }}
           TYPE_TEST: ${{ inputs.type_test }}
           RESEAUX: ${{ inputs.reseaux || 'instagram,facebook' }}
+          REEL_JOUR: ${{ inputs.jour_reel || 'demain' }}
