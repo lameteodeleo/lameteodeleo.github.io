@@ -1802,6 +1802,8 @@ function creneaux(c,m){
 /* Pourquoi ce moment est le meilleur, en quelques mots */
 /* Conseils : le début de la phrase (la réponse) en gras, le reste en explication */
 function essentiel(t){const m=t.match(/^(.{3,38}?)( \(| : |, |\. )/);if(!m||/^(Pluie|Neige|Avec|Le matin|D'ici)/.test(t))return insec(t);return "<b>"+insec(m[1])+"</b>"+insec(t.slice(m[1].length))}
+/* Heure où l'appli passe à « demain » : une heure après le coucher du soleil, entre 18 h (hiver) et 20 h (été) */
+function heureSoir(){try{return Math.min(20,Math.max(18,Math.floor(enMin(soleil(dayDate(0)).coucher)/60)+1))}catch(e){return 18}}
 function raisonSortie(c,m,b){
   const J=creneaux(c,m), av=J.filter(x=>x.h<b.h), ap=J.filter(x=>x.h>b.h);
   const mou=x=>["pluie","orage","neige"].includes(x.type)||x.prob>=60, vt=x=>x.type==="mistral"||x.type==="vent"||x.raf>=50;
@@ -1832,7 +1834,7 @@ function conseils(m,c,profondeur){
   const reelOK=enReel(), maintenant=new Date(), hNow=maintenant.getHours();
   const varie=(...v)=>v[(hash(c.n+dayDate(st.jour).toDateString()+v[0].length)>>>0)%v.length];   // formulations qui tournent d'un jour à l'autre
   // Le soir, les conseils parlent de demain (la journée est presque finie)
-  if(!profondeur&&st.jour===0&&hNow>=18&&reelOK&&!m.alert){
+  if(!profondeur&&st.jour===0&&hNow>=heureSoir()&&reelOK&&!m.alert){
     const m2=reel(c,1);
     if(m2){const sauve=st.jour;st.jour=1;let r;try{r=conseils(m2,c,1)}finally{st.jour=sauve}
       const soir=[];const ph=prochainesHeures(c);
@@ -2123,7 +2125,7 @@ function render(){
   else{$("tempLbl").textContent="Maximale";$("temp").textContent=m.max+"°"}
   $("facts").innerHTML='<span>Min <b>'+m.min+'°</b></span><span>Max <b>'+m.max+'°</b></span><span>Ressenti <b>'+m.feel+'°</b></span>';
   // Vigilance : celle du jour affiché ; le soir, celle de demain si elle est orange ou rouge
-  const soir=st.jour===0&&new Date().getHours()>=18&&enReel(), m2=soir?reel(c,1):null;
+  const soir=st.jour===0&&new Date().getHours()>=heureSoir()&&enReel(), m2=soir?reel(c,1):null;
   const alAff=m.alert||(m2&&m2.alert?Object.assign({},m2.alert,{titre:"Demain, v"+m2.alert.titre.slice(1)}):null);
   {let vj=enReel()&&!alAff?vigJaune(c,st.jour):null;
    if(!vj&&soir&&!alAff){const d1=vigJaune(c,1);if(d1)vj="Demain, v"+d1.slice(1)}
