@@ -232,8 +232,11 @@ footer{line-height:1.35}
 .scard h3 small{font-family:var(--f-body);font-weight:700;color:var(--muted);font-size:.8rem}
 .crow{display:grid;grid-template-columns:28px 1fr auto auto;align-items:center;gap:10px;width:100%;border:0;background:none;padding:9px 0;cursor:pointer;text-align:left;font-variant-numeric:tabular-nums}
 .crow+.crow{border-top:1px solid var(--line)}
+/* Petit retour visuel au toucher, partout : on sent que le bouton a réagi */
+button,.chip,a.chip{transition:transform .12s ease,background-color .15s}button:active:not(:disabled),a.chip:active{transform:scale(.97)}
+@media (prefers-reduced-motion:reduce){button,.chip{transition:none}button:active,a.chip:active{transform:none}}
 .crow svg{width:30px;height:30px}
-.crow .n{font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crow .n{font-weight:700;min-width:0;font-variant-numeric:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .crow .lo{color:var(--muted)}
 .crow .hi{font-weight:800;min-width:34px;text-align:right}
 .wide{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:13px;font-weight:800;color:var(--brand);cursor:pointer}
@@ -502,7 +505,7 @@ details.plus[open] .tiles{margin-top:10px}
       <p id="mot"></p>
       <div class="acts">
         <small>Le sourire, avec des chiffres sérieux.</small>
-        <button class="btn-ink" type="button" id="share">Copier</button>
+        <button class="btn-ink" type="button" id="share">Partager</button>
       </div>
     </div>
 
@@ -2232,7 +2235,10 @@ document.addEventListener("click",e=>{
   const a=e.target.closest&&e.target.closest('a[href^="http"]');if(!a||a.href.startsWith(location.origin))return;
   if(NAV_INTEGRE&&a.target==="_blank"){e.preventDefault();location.href=a.href}
 },true);
-$("share").addEventListener("click",e=>copyText($("mot").textContent+" — "+NOM+", "+COMMUNES[st.c].n,e.currentTarget,"Copié !"));
+// Partager le sourire (avec le lien de l'app) : c'est ainsi que l'app se fait connaître ; sinon, on le copie
+$("share").addEventListener("click",async e=>{const b=e.currentTarget,t=$("mot").textContent+"\n\n"+NOM+" · la météo de "+COMMUNES[st.c].n+" heure par heure",u="https://lameteodeleo.fr/";
+  if(navigator.share){try{await navigator.share({text:t,url:u});return}catch(err){if(err&&err.name==="AbortError")return}}
+  copyText(t+"\n"+u,b,"Copié !")});
 
 /* ---------- Espace créateur : scénarios + carrousel Instagram ---------- */
 (()=>{const b=document.createElement("button");b.type="button";b.className="chip";b.dataset.k="__reel";b.textContent="Prévisions réelles";b.addEventListener("click",()=>{if(!DATA){flash(b,"Pas encore disponibles");return}st.demo=false;$("demoPill").hidden=true;markScen();buildSlides()});$("scen").appendChild(b)})();
