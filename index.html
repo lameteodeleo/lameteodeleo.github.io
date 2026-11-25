@@ -630,7 +630,7 @@ details.plus[open] .tiles{margin-top:10px}
       <div class="sec-h"><h2>Publier le Reel</h2><span class="sub">Chaque soir, vers 18 h</span></div>
       <ol class="card steps">
         <li><b>Choisis le jour</b> juste en dessous. Le soir, «&nbsp;Demain&nbsp;» est déjà choisi.</li>
-        <li><b>Touche «&nbsp;Créer la vidéo&nbsp;»</b> et garde l'écran allumé 17 secondes, sans quitter la page.</li>
+        <li><b>Touche «&nbsp;Créer la vidéo&nbsp;»</b> et garde l'écran allumé 15 secondes, sans quitter la page.</li>
         <li><b>Enregistre la vidéo</b>, puis <b>copie la légende</b>.</li>
         <li><b>Instagram</b> : «&nbsp;+&nbsp;», «&nbsp;Reel&nbsp;», choisis la vidéo, ajoute un son tendance, volume bas.</li>
         <li><b>Couverture</b> : l'image d'accroche. <b>Colle la légende</b>, puis «&nbsp;Partager&nbsp;».</li>
@@ -641,8 +641,13 @@ details.plus[open] .tiles{margin-top:10px}
     <div class="chips" id="postJour" role="group" aria-label="Jour du post"><button class="chip" type="button" data-j="0">Aujourd'hui</button><button class="chip" type="button" data-j="1">Demain</button></div>
     <section>
       <div class="card kit">
-        <span class="sub">17 secondes, une information par écran : le chiffre du jour, les températures, la pluie et le vent, la journée, le conseil, les jours suivants, puis le lien. Choisis le réseau : la fin s'adapte.</span>
+        <span class="sub">15 secondes, 5 écrans : le chiffre du jour avec une question, le 13 heure par heure, 6 communes, le conseil ou le sourire, puis «&nbsp;Et chez vous&nbsp;?&nbsp;». Choisis le réseau : la fin s'adapte.</span>
         <div class="chips" id="reelReseau" role="group" aria-label="Réseau" style="margin-top:10px"><button class="chip" type="button" data-r="instagram" aria-pressed="true">Pour Instagram</button><button class="chip" type="button" data-r="facebook" aria-pressed="false">Pour Facebook</button></div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><span class="sub"><b>Photo du jour</b> (facultatif) : une photo du ciel envoyée par un abonné, <b>seulement avec son accord écrit</b>, sans personne reconnaissable. Elle devient le fond de la 1re image, avec son prénom et sa commune.</span>
+          <div class="chips" style="margin-top:8px"><label class="chip" for="photoFich" style="cursor:pointer">Choisir une photo</label><button class="chip" type="button" id="photoSuppr" hidden>Retirer la photo</button></div>
+          <input type="file" id="photoFich" accept="image/*" hidden>
+          <div id="photoZone" hidden style="margin-top:8px"><img id="photoApercu" alt="" style="width:84px;height:150px;object-fit:cover;border-radius:10px;display:block">
+            <input id="photoCredit" type="text" maxlength="40" autocomplete="off" placeholder="Prénom et commune (ex. : Sophie, Rognes)" style="margin-top:8px;width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit"></div></div>
         <div class="chips" style="margin-top:10px"><button class="chip" type="button" id="reelGo">Créer la vidéo</button></div>
         <div id="reelOut" style="margin-top:10px"></div>
       </div>
@@ -2463,6 +2468,7 @@ function assemblerMP4(W,H,fps,images,avcC){
 }
 async function creerReel(btn){
   const out=$("reelOut");if(!SLIDES.length){flash(btn,"Pas d'images");return}
+  if(PHOTO_JOUR&&!photoCredit()){flash(btn,"Ajoute le prénom et la commune");$("photoCredit").focus();return}
   const W=1080,H=1920,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
   // Reel pensé pour la rétention : accroche forte en 1 seconde, images courtes qui glissent, barre de progression, fin qui renvoie au lien
   const J=SLIDES_J, R=bilanDep(J), al=R.al, dj=dayDate(J);
@@ -2514,6 +2520,11 @@ async function creerReel(btn){
   const animType=(R.pl.jour>=2||PLU(R.dom))?"pluie":(R.dom==="mistral"||R.vent.m.raf>=50)?"vent":null;
   const parts=Array.from({length:70},(_,i)=>{const f=v=>v-Math.floor(v);return {x:f(Math.sin(i*12.9898)*43758.5453)*W,y:f(Math.sin(i*78.233)*24634.6345)*H,v:.7+(i*37%10)/16,l:40+(i*13%60)}});
   let tG=0;
+  const photo=(PHOTO_JOUR&&!al)?PHOTO_JOUR:null, credit=photo?photoCredit():"";let photoCv=null;
+  // La photo remplit l'écran (recadrée au centre), assombrie pour que le texte reste lisible
+  const fondPhoto=()=>{if(!photoCv){photoCv=document.createElement("canvas");photoCv.width=W;photoCv.height=H;const g=photoCv.getContext("2d"),k=Math.max(W/photo.naturalWidth,H/photo.naturalHeight),pw=photo.naturalWidth*k,ph=photo.naturalHeight*k;
+      g.drawImage(photo,(W-pw)/2,(H-ph)/2,pw,ph);const lg=g.createLinearGradient(0,0,0,H);lg.addColorStop(0,"rgba(20,14,60,.62)");lg.addColorStop(.45,"rgba(20,14,60,.42)");lg.addColorStop(1,"rgba(20,14,60,.78)");g.fillStyle=lg;g.fillRect(0,0,W,H)}
+    x.drawImage(photoCv,0,0);animMeteo()};
   const animMeteo=()=>{if(!animType)return;x.save();x.strokeStyle="rgba(255,255,255,.15)";x.lineCap="round";
     if(animType==="pluie"){x.lineWidth=4;for(const p of parts){const y=(p.y+tG*1300*p.v)%(H+200)-100;let X=(p.x-tG*180*p.v)%W;if(X<0)X+=W;x.beginPath();x.moveTo(X,y);x.lineTo(X-p.l*.18,y+p.l);x.stroke()}}
     else{x.lineWidth=5;for(const p of parts.slice(0,26)){const X=(p.x+tG*1500*p.v)%(W+600)-300;x.beginPath();x.moveTo(X,p.y);x.lineTo(X+p.l*3,p.y);x.stroke()}}
@@ -2554,7 +2565,7 @@ async function creerReel(btn){
     x.fillStyle="rgba(255,255,255,.1)";rr(x,70,y,W-140,h,40);x.fill();dessin();x.restore()};
   const lignesC=(txt,y,font,col,maxW,lh,a)=>{x.font=font;const w=insec(txt).split(" ");let l="",L=[];for(const k of w){const u=l?l+" "+k:k;if(x.measureText(u).width>maxW&&l){L.push(l);l=k}else l=u}if(l)L.push(l);L.forEach((li,i)=>centre(li,y+i*lh,font,col,a));return L.length};
   const scene=(sc,t)=>{ // t : secondes depuis le début de la scène
-    if(sc.type==="hook"){fond(al?CA(al).fort:B.ink);
+    if(sc.type==="hook"){if(photo)fondPhoto();else fond(al?CA(al).fort:B.ink);
       drawMark(x,W/2-200,330,70,true);logoCanvas(x,W/2-150,350,48,B.white,al?B.white:B.sun);
       // Tout est visible dès la toute première image (c'est aussi la miniature et l'image de la boucle) ; seul un léger rebond anime l'entrée
       const rb=1+.06*Math.sin(Math.min(1,t/.5)*Math.PI);
@@ -2570,6 +2581,7 @@ async function creerReel(btn){
       // Avec le bandeau de vigilance jaune, le bouton « 👇 » descend pour ne pas le recouvrir
       const dy=(!al&&R.vj)?130:0, b=1;if(b>0){x.globalAlpha=b;x.fillStyle=al?B.white:B.sun;rr(x,150,1330+dy,W-300,110,55);x.fill();x.globalAlpha=1;
         {x.font="800 44px "+FB;let fs=44;while(x.measureText(phrase).width>W-360&&fs>30){fs-=2;x.font="800 "+fs+"px "+FB}centre(phrase,1402+dy,"800 "+fs+"px "+FB,al?CA(al).texte:B.sunInk,b)}}
+      if(credit){const ct="📸 Photo : "+credit;ajuste(x,ct,W-200,36,"700",FB);x.globalAlpha=.92;x.fillStyle=B.white;x.textAlign="center";x.fillText(ct,W/2,1510+dy);x.textAlign="left";x.globalAlpha=1}
     }else if(sc.type==="heures"){fond();titreSc("Heure par heure",t);sousSc("Dans le 13 · "+jourTxt.toLowerCase(),t);
       creneaux.forEach((o,i)=>{const y=540+i*132, e=ease((t+.1-i*.07)/.3);if(e<=0)return;x.save();x.globalAlpha=e;x.translate((1-e)*120,0);
         const fort=i===pic;x.fillStyle=fort?"rgba(255,194,26,.22)":"rgba(255,255,255,.1)";rr(x,70,y,W-230,116,30);x.fill();
@@ -2606,8 +2618,9 @@ async function creerReel(btn){
       centre("On vous répond avec sa météo",1010,"700 42px "+FB,B.white,ease((t-.45)/.35));
       const b=ease((t-.8)/.4);x.globalAlpha=b;x.fillStyle=B.white;rr(x,240,1080,W-480,110,55);x.fill();x.globalAlpha=1;
       centre(RESEAU==="facebook"?"lameteodeleo.fr":"Lien en bio",1152,"800 52px "+FB,B.brand,b);
-      centre("Abonnez-vous pour la météo de demain",1290,"700 40px "+FB,B.white,ease((t-1.1)/.4));
-      centre(PSEUDO,1360,"800 40px "+FB,B.sun,ease((t-1.1)/.4));
+      centre("🔔 Abonnez-vous",1300,"800 56px "+FB,B.sun,ease((t-1.1)/.4));
+      centre("La météo de demain, chaque soir",1370,"700 42px "+FB,B.white,ease((t-1.1)/.4));
+      centre(PSEUDO,1440,"800 38px "+FB,B.white,ease((t-1.1)/.4)*.8);
     }
     // Sur Facebook, le nom de la page s'affiche déjà en haut de la vidéo et cacherait le @ : on ne le met qu'à la fin
     if(sc.type!=="hook"&&sc.type!=="fin"&&RESEAU!=="facebook")centre(PSEUDO,300,"800 32px "+FB,sc.type==="sourire"?B.sunInk:B.white,.7);
@@ -2658,6 +2671,12 @@ async function creerReel(btn){
   if(ext==="webm"){const n=document.createElement("p");n.className="sub";n.textContent="Vidéo au format WebM : si Instagram ne la propose pas, mets Chrome à jour puis recommence (les versions récentes créent un MP4).";out.appendChild(n)}
 }
 $("reelGo").addEventListener("click",e=>creerReel(e.currentTarget));
+/* Photo du jour envoyée par un abonné : gardée seulement le temps de la session, jamais envoyée ailleurs */
+var PHOTO_JOUR=null;function photoCredit(){const e=$("photoCredit"),v=e?(e.value||"").trim():"";return PHOTO_JOUR&&v?v:""}
+$("photoFich").addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const u=URL.createObjectURL(f),im=new Image();
+  im.onload=()=>{PHOTO_JOUR=im;$("photoApercu").src=u;$("photoZone").hidden=false;$("photoSuppr").hidden=false;majLegende()};im.src=u;e.target.value=""});
+$("photoSuppr").addEventListener("click",()=>{PHOTO_JOUR=null;$("photoZone").hidden=true;$("photoSuppr").hidden=true;$("photoCredit").value="";majLegende()});
+$("photoCredit").addEventListener("input",()=>majLegende());
 document.querySelectorAll("#reelReseau .chip").forEach(b=>b.addEventListener("click",()=>{if(RESEAU!==b.dataset.r){const o=$("reelOut");if(o&&o.innerHTML.trim())o.innerHTML='<p class="sub">Réseau changé : touche «&nbsp;Créer la vidéo&nbsp;» pour la version '+(b.dataset.r==="facebook"?"Facebook":"Instagram")+'.</p>'}
   RESEAU=b.dataset.r;document.querySelectorAll("#reelReseau .chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b)));majLegende()}));
 async function buildSlides(){
@@ -2683,7 +2702,7 @@ function majLegende(){if(!LEG)return;const {R,al,c,m,J,dj}=LEG, fb=RESEAU==="fac
   const tags=fb?"#meteo #provence #bouchesdurhone"+(al?" #vigilance":R.dom&&R.dom!=="soleil"&&TAG_TEMPS[R.dom]?" "+TAG_TEMPS[R.dom]:""):"#meteo #provence #bouchesdurhone #marseille "+(al?"#vigilance":(TAG_TEMPS[R.dom]||"#aixenprovence"));
   $("caption").value=al
     ?"⚠️ "+al.titre+" sur les Bouches-du-Rhône, "+fmt(dj)+".\n\n"+al.cons.slice(0,2).join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr\n"+lien+"\n\n"+tags
-    :(R.vj?"⚠️ "+R.vj+" sur les Bouches-du-Rhône : soyez attentifs.\n\n":"")+quand+" dans le 13 : "+(R.moment?R.moment.leg:R.titre.toLowerCase())+", "+chiffre+".\n\n"+motDuJour(c,m,J)+"\n\nEt chez vous, ça donne quoi ? Dites votre commune en commentaire 👇\n"+lien+"\n\n"+tags;
+    :(R.vj?"⚠️ "+R.vj+" sur les Bouches-du-Rhône : soyez attentifs.\n\n":"")+quand+" dans le 13 : "+(R.moment?R.moment.leg:R.titre.toLowerCase())+", "+chiffre+".\n\n"+motDuJour(c,m,J)+"\n\nEt chez vous, ça donne quoi ? Dites votre commune en commentaire 👇\n"+lien+"\n🔔 Abonnez-vous : la météo de demain, chaque soir."+(photoCredit()?"\n\n📸 Photo : "+photoCredit()+". Merci ! Envoyez-nous vos photos du ciel en message.":"")+"\n\n"+tags;
 }
 /* Logo en image : icône d'app (carrée) et photo de profil Instagram (ronde) */
 function drawMark(x,cx,cy,s,bg){
