@@ -205,7 +205,7 @@ async function principal() {
   for (const r of RESEAUX) {
     const deja = await dejaPublie(type, r, IG);
     log(`${r} : ${deja === true ? `${nomType} déjà publié aujourd'hui` : deja === false ? `pas encore de ${nomType} aujourd'hui` : "état inconnu"}`);
-    if (deja !== true) aFaire.push(r);
+    if (deja !== true || ((MODE === "reel" || MODE === "story") && process.env.FORCER === "oui")) aFaire.push(r);   // forcer : seulement à la demande, jamais en automatique
   }
 
   if (MODE.startsWith("controle")) {

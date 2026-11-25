@@ -33,6 +33,10 @@ on:
         type: choice
         options: [demain, aujourdhui]
         default: demain
+      forcer:
+        description: "Publier même si un Reel ou une story est déjà paru aujourd'hui (ex. : un Reel posté à la main le matin)"
+        type: boolean
+        default: false
       reseaux:
         description: "Réseaux"
         type: choice
@@ -88,3 +92,4 @@ jobs:
           TYPE_TEST: ${{ inputs.type_test }}
           RESEAUX: ${{ inputs.reseaux || 'instagram,facebook' }}
           REEL_JOUR: ${{ inputs.jour_reel || 'demain' }}
+          FORCER: ${{ inputs.forcer && 'oui' || 'non' }}
