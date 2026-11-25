@@ -219,9 +219,9 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .sortie{padding:14px}.sortie-acts{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -2px 12px;padding:0 2px}.sortie-acts::-webkit-scrollbar{display:none}
 .sortie-acts button{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 12px;font-weight:700;font-size:.88rem;cursor:pointer;white-space:nowrap}
 .sortie-acts button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--surface)}
-.sortie-res{display:flex;flex-direction:column;gap:8px}.sortie-res .cr{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--surface-2)}
+.sortie-res{display:flex;flex-direction:column;gap:8px}.sortie-res .cr{display:flex;justify-content:flex-start;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--surface-2)}
 .sortie-res .cr svg{width:38px;height:38px;flex:0 0 auto}.sortie-res .cr b{display:block}.sortie-res .cr span{color:var(--muted);font-size:.9rem}
-.sortie-res .cr.top{background:var(--brand-soft)}.sortie-res .cr .rg{display:block;font-weight:800;font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--brand);margin-bottom:2px}
+.sortie-res .cr.mieux{background:var(--brand-soft)}.sortie-res .cr .rg{display:block;font-weight:800;font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--brand);margin-bottom:2px}
 .sortie-res p{margin:0;color:var(--muted);font-size:.9rem}
 .tip{display:flex;align-items:center;gap:12px;padding:11px 0;font-size:.95rem}
 .tip+.tip{border-top:1px solid var(--line)}
@@ -1808,7 +1808,7 @@ function renderSortie(){
   $("sortieActs").innerHTML=Object.entries(ACTIVITES).map(([k,a])=>'<button type="button" data-a="'+k+'" aria-pressed="'+(k===actSortie)+'">'+a.e+" "+a.lib+'</button>').join("");
   const r=$("sortieRes");
   if(!R||!R.length){r.innerHTML="<p>Pas de bon créneau d'ici 3 jours"+(actSortie==="linge"?" pour étendre dehors : séchez plutôt à l'intérieur.":" : la pluie ou le vent seront de la partie.")+"</p>";return}
-  r.innerHTML=R.map((o,i)=>'<div class="cr'+(i===0?" top":"")+'">'+ICONS[o.ico]+'<div>'+(i===0&&R[0].sc>=60?'<small class="rg">Le meilleur moment</small>':'')+'<b>'+insec(o.titre)+'</b><span>'+insec(o.detail)+'</span></div>'+'</div>').join("")+
+  r.innerHTML=R.map((o,i)=>'<div class="cr'+(i===0?" mieux":"")+'">'+ICONS[o.ico]+'<div>'+(i===0&&R[0].sc>=60?'<small class="rg">Le meilleur moment</small>':'')+'<b>'+insec(o.titre)+'</b><span>'+insec(o.detail)+'</span></div>'+'</div>').join("")+
     (R[0].sc<50?"<p>Rien d'idéal d'ici 3 jours : c'est le moins mauvais moment.</p>":"");
 }
 /* Fête du jour : calendrier traditionnel français (un prénom par jour, comme sur le calendrier des Postes).
