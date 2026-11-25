@@ -2175,22 +2175,27 @@ $("bvX").addEventListener("click",finBienvenue);
 $("openSearch2").addEventListener("click",openSearch);
 $("openSearch3").addEventListener("click",openSearch);
 $("closeSearch").addEventListener("click",closeSearch);
-function locMsg(t){const e=$("locMsg");e.textContent=t;e.hidden=!t;if(t)setTimeout(()=>{if(e.textContent===t)e.hidden=true},t.length>80?14000:6000)}
+function locMsg(t,liste){const e=$("locMsg");e.textContent=t;e.hidden=!t;
+  // En cas d'échec : un bouton pour choisir sa commune tout de suite, sans chercher où est la recherche
+  if(t&&liste){const b=document.createElement("button");b.type="button";b.className="btn-brand";b.style.cssText="display:block;margin-top:8px;padding:8px 14px;font-size:.88rem";b.textContent="Choisir ma commune dans la liste";b.addEventListener("click",()=>{e.hidden=true;openSearch()});e.appendChild(b)}
+  const txt=e.textContent;if(t)setTimeout(()=>{if(e.textContent===txt)e.hidden=true},liste?30000:t.length>80?14000:6000)}
 $("locate").addEventListener("click",()=>{
   const iOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
-  if(!navigator.geolocation){locMsg("Localisation indisponible sur cet appareil. Choisissez votre commune avec la recherche.");return}
+  if(!navigator.geolocation){locMsg("Localisation indisponible sur cet appareil.",true);return}
+  // Les navigateurs intégrés à Facebook, Instagram ou Messenger bloquent souvent la localisation
+  if(/FBAN|FBAV|FB_IAB|Instagram|Messenger/i.test(navigator.userAgent)){locMsg("Dans Facebook ou Instagram, la localisation est souvent bloquée. Touchez « ⋮ » en haut à droite, puis « Ouvrir dans Chrome » (ou dans le navigateur).",true);return}
   $("locate").classList.add("cherche");locMsg("Recherche de votre position…");
   const fin=()=>$("locate").classList.remove("cherche");
   // 1er essai : position approximative (wifi, réseau), rapide ; si elle tarde ou échoue, 2e essai avec le GPS
   const trouve=p=>{fin();
     const {latitude:la,longitude:lo}=p.coords;let best=null,bd=1e9;
     for(const [n,[a,b]] of Object.entries(COORDS)){const d=(a-la)**2+((b-lo)*Math.cos(la*Math.PI/180))**2;if(d<bd){bd=d;best=n}}
-    if(best&&bd<0.25){st.c=idx(best);st.jour=0;render();locMsg("Vous êtes près de "+best+".")}
-    else locMsg("Vous êtes hors de la zone couverte (Bouches-du-Rhône et alentours). Choisissez une commune avec la recherche.");
+    if(best&&bd<0.25){st.c=idx(best);st.jour=0;render();locMsg("Commune trouvée : "+best+".")}
+    else locMsg("Vous êtes hors de la zone couverte (Bouches-du-Rhône et alentours).",true);
   };
   const echec=err=>{fin();
-    if(err&&err.code===1) locMsg(iOS?"Localisation bloquée. Sur iPhone : Réglages › Confidentialité et sécurité › Service de localisation › Safari › « Lorsque l'app est active ». Puis réessayez.":"Localisation bloquée pour ce site. Touchez le cadenas ou les réglages à gauche de l'adresse, puis « Autorisations » › « Position » › « Autoriser ». Puis réessayez.");
-    else locMsg(iOS?"Position introuvable. Vérifiez que le Service de localisation est activé, approchez-vous d'une fenêtre, puis réessayez. Vous pouvez aussi choisir votre commune avec la recherche.":"Position introuvable. Sur Android : Paramètres › Localisation › activez « Précision de la localisation Google » (ou « Recherche Wi-Fi »), approchez-vous d'une fenêtre, puis réessayez. Vous pouvez aussi choisir votre commune avec la recherche.");
+    if(err&&err.code===1) locMsg(iOS?"Localisation bloquée. Sur iPhone : Réglages › Confidentialité et sécurité › Service de localisation › Safari › « Lorsque l'app est active ». Puis réessayez.":"Localisation bloquée pour ce site. Touchez le cadenas ou les réglages à gauche de l'adresse, puis « Autorisations » › « Position » › « Autoriser ». Puis réessayez.",true);
+    else locMsg(iOS?"Position introuvable. Vérifiez que le Service de localisation est activé, approchez-vous d'une fenêtre, puis réessayez. Vous pouvez aussi choisir votre commune avec la recherche.":"Position introuvable. Sur Android : Paramètres › Localisation › activez « Précision de la localisation Google » (ou « Recherche Wi-Fi »), approchez-vous d'une fenêtre, puis réessayez. Vous pouvez aussi choisir votre commune avec la recherche.",true);
   };
   navigator.geolocation.getCurrentPosition(trouve,err=>{
     if(err&&err.code===1){echec(err);return}
