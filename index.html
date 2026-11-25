@@ -1313,31 +1313,67 @@ const BANQUE={
 
 /* Touches locales : remplacent parfois la phrase générale, selon le secteur et le temps */
 const SPECIAL={
- mc:{soleil:"Côte marseillaise : grand bleu. La mer fait la belle, le Vieux-Port aussi.",
-     mistral:"Côte marseillaise : mistral. Les calanques sont superbes, vues de la terre ferme.",
-     pluie:"Côte marseillaise : pluie. La mer et le ciel portent la même couleur.",
-     nuageux:"Côte marseillaise : ciel voilé. La mer reste belle, même en gris.",
-     chaleur:"Côte marseillaise : forte chaleur. La mer est là, l'ombre aussi : alternez."},
- aix:{soleil:"Pays d'Aix : Sainte-Victoire dégagée. Cézanne aurait sorti son chevalet.",
-      pluie:"Pays d'Aix : pluie. Les fontaines ne sont plus les seules à couler.",
-      mistral:"Pays d'Aix : mistral. La Sainte-Victoire n'a jamais été aussi nette.",
-      gel:"Pays d'Aix : gelée. Les fontaines réfléchissent à une pause."},
- berre:{mistral:"Étang de Berre : mistral. Les véliplanchistes sont ravis, ils sont bien les seuls.",
-        soleil:"Étang de Berre : grand soleil. L'eau fait miroir, sans supplément.",
-        pluie:"Étang de Berre : pluie. Les flamants s'en moquent, ils ont déjà les pieds dans l'eau.",
-        vent:"Étang de Berre : vent fort. Kitesurfeurs ravis, chapeaux en danger."},
- salon:{mistral:"Alpilles : mistral. Les oliviers font de l'aérobic, sans professeur.",
-        gel:"Alpilles : gelée. Les oliviers en ont vu d'autres, ils ne bronchent pas.",
-        soleil:"Alpilles : grand soleil. Les oliviers présentent leur meilleur profil.",
-        pluie:"Alpilles : pluie. Les rochers des Baux brillent comme neufs."},
- arles:{mistral:"Camargue : mistral. Rien pour l'arrêter : même les flamants marchent penchés.",
-        soleil:"Camargue : grand soleil. Les flamants roses prennent la pose.",
-        pluie:"Camargue : pluie. Les rizières adressent leurs remerciements.",
-        chaleur:"Camargue : forte chaleur. Les moustiques sont en pleine forme : protégez-vous."},
- voisins:{gel:"Chez nos voisins : gelée. Le Luberon a sorti les gants.",
-          soleil:"Chez nos voisins : grand soleil. Le Luberon est de la partie.",
-          mistral:"Chez nos voisins : mistral. Le Luberon tient bon.",
-          pluie:"Chez nos voisins : pluie. Les villages perchés ont la tête dans les nuages."}
+ mc:{soleil:["Côte marseillaise : grand bleu. La mer fait la belle, le Vieux-Port aussi.",
+       "Grand bleu sur la côte. La Bonne Mère a une vue imprenable, comme toujours.",
+       "Soleil sur Marseille et alentours. Les îles du Frioul semblent à portée de main.",
+       "Ciel limpide sur la côte. Les calanques sortent leurs plus belles couleurs."],
+     mistral:["Côte marseillaise : mistral. Les calanques sont superbes, vues de la terre ferme.",
+       "Mistral sur la côte. La mer blanchit au large : les petits bateaux restent au port.",
+       "Mistral sur Marseille. Sur la Corniche, on marche penché et on tient son chapeau."],
+     pluie:["Côte marseillaise : pluie. La mer et le ciel portent la même couleur.",
+       "Pluie sur la côte. Les ruelles du Panier brillent comme si on les avait cirées.",
+       "Pluie sur Marseille et alentours. Les escaliers de la ville deviennent glissants : prudence."],
+     nuageux:["Côte marseillaise : ciel voilé. La mer reste belle, même en gris.",
+       "Ciel gris sur la côte. La Bonne Mère veille quand même, nuages ou pas."],
+     vent:["Vent fort sur la côte. Les embruns montent jusqu'aux promenades : gare aux lunettes."],
+     orage:["Orages sur la côte. Loin de l'eau et des rochers tant que le ciel gronde."],
+     chaleur:["Côte marseillaise : forte chaleur. La mer est là, l'ombre aussi : alternez.",
+       "[e]Chaleur sur la côte. La brise de mer fait ce qu'elle peut, l'ombre fait le reste."]},
+ aix:{soleil:["Pays d'Aix : Sainte-Victoire dégagée. Cézanne aurait sorti son chevalet.",
+        "Soleil sur le Pays d'Aix. Le cours Mirabeau est à l'ombre de ses platanes, comme toujours.",
+        "Grand bleu sur le Pays d'Aix. La Sainte-Victoire se découpe nette sur le ciel.",
+        "Soleil sur le Pays d'Aix. Les fontaines chantent, les terrasses se remplissent."],
+      pluie:["Pays d'Aix : pluie. Les fontaines ne sont plus les seules à couler.",
+        "Pluie sur le Pays d'Aix. La Sainte-Victoire s'est cachée, elle reviendra.",
+        "Pluie sur le Pays d'Aix. Les vignes et les oliviers en profitent pour faire le plein."],
+      mistral:["Pays d'Aix : mistral. La Sainte-Victoire n'a jamais été aussi nette.",
+        "Mistral sur le Pays d'Aix. Les platanes du cours Mirabeau perdent leurs dernières feuilles."],
+      nuageux:["Ciel gris sur le Pays d'Aix. La Sainte-Victoire joue les timides."],
+      gel:["Pays d'Aix : gelée. Les fontaines réfléchissent à une pause.",
+        "Gelée sur le Pays d'Aix. Les vignes au petit matin ont l'air saupoudrées de sucre."],
+      brouillard:["Brouillard sur le Pays d'Aix. La Sainte-Victoire a disparu, mais elle n'est pas partie loin."]},
+ berre:{mistral:["Étang de Berre : mistral. Les véliplanchistes sont ravis, ils sont bien les seuls.",
+          "Mistral sur l'étang de Berre. L'eau se couvre de moutons blancs."],
+        soleil:["Étang de Berre : grand soleil. L'eau fait miroir, sans supplément.",
+          "Soleil sur l'étang de Berre. Belle lumière pour une balade au bord de l'eau."],
+        pluie:["Étang de Berre : pluie. Les flamants s'en moquent, ils ont déjà les pieds dans l'eau.",
+          "Pluie sur l'étang de Berre. Le ciel et l'eau se confondent dans le même gris."],
+        nuageux:["Ciel gris sur l'étang de Berre. L'eau prend des reflets d'argent."],
+        vent:["Étang de Berre : vent fort. Kitesurfeurs ravis, chapeaux en danger."]},
+ salon:{mistral:["Alpilles : mistral. Les oliviers font de l'aérobic, sans professeur.",
+          "Mistral sur Salon et les Alpilles. Les crêtes calcaires brillent sous un ciel lavé."],
+        gel:["Alpilles : gelée. Les oliviers en ont vu d'autres, ils ne bronchent pas."],
+        soleil:["Alpilles : grand soleil. Les oliviers présentent leur meilleur profil.",
+          "Soleil sur Salon et les Alpilles. Les rochers blancs renvoient la lumière comme des miroirs."],
+        nuageux:["Ciel voilé sur les Alpilles. Les oliviers prennent une teinte argentée encore plus douce."],
+        pluie:["Alpilles : pluie. Les rochers des Baux brillent comme neufs.",
+          "Pluie sur Salon et les Alpilles. Les sentiers deviennent glissants : la randonnée attendra."]},
+ arles:{mistral:["Camargue : mistral. Rien pour l'arrêter : même les flamants marchent penchés.",
+          "Mistral sur Arles et la Camargue. Les chevaux blancs tournent le dos au vent, ils ont l'habitude."],
+        soleil:["Camargue : grand soleil. Les flamants roses prennent la pose.",
+          "Soleil sur Arles. Les pierres romaines prennent une couleur de miel.",
+          "Grand ciel sur la Camargue. L'horizon est si plat qu'on voit la météo arriver."],
+        pluie:["Camargue : pluie. Les rizières adressent leurs remerciements.",
+          "Pluie sur Arles et la Camargue. Les chemins de terre se transforment vite en boue."],
+        nuageux:["Ciel gris sur la Camargue. Les marais prennent des airs de tableau."],
+        brouillard:["Brume sur la Camargue. Les chevaux blancs apparaissent et disparaissent comme dans un rêve."],
+        chaleur:["Camargue : forte chaleur. Les moustiques sont en pleine forme : protégez-vous."]},
+ voisins:{gel:["Chez nos voisins : gelée. Le Luberon a sorti les gants."],
+          soleil:["Chez nos voisins : grand soleil. Le Luberon est de la partie.",
+            "Soleil sur le Luberon. Les villages perchés sont en pleine lumière."],
+          mistral:["Chez nos voisins : mistral. Le Luberon tient bon."],
+          nuageux:["Ciel gris sur le Luberon. Les villages perchés gardent leur charme, même en demi-teinte."],
+          pluie:["Chez nos voisins : pluie. Les villages perchés ont la tête dans les nuages."]}
 };
 
 /* Phrases de saison, par mois (1 = janvier) */
@@ -1724,8 +1760,8 @@ function motBrut(c,m,jour,demain){
   // Un jour sur deux, si la situation s'y prête, un sourire qui s'appuie sur les chiffres du jour
   if(tirage%2===1){const cx=[];for(const k of CONTEXTE){let ok=false;try{ok=k.si(m,d)}catch(e){}if(ok)cx.push(...k.p.filter(valide))}
     if(cx.length) return remplir(cx[(jourN+h)%cx.length])}
-  const sp=SPECIAL[c.s]&&SPECIAL[c.s][m.type];
-  if(sp&&tirage%4===0&&valide(sp)) return remplir(sp);
+  const sp=((SPECIAL[c.s]&&SPECIAL[c.s][m.type])||[]).filter(valide);
+  if(sp.length&&tirage%4===0) return remplir(net(sp[(jourN+h)%sp.length]));
   const sa=SAISON[d.getMonth()+1];
   if(sa&&tirage%7===0&&["soleil","nuageux"].includes(m.type)){const ok=sa.filter(valide);if(ok.length) return remplir(net(ok[(jourN+h)%ok.length]))}
   let list=(BANQUE[m.type]||BANQUE.nuageux).filter(valide);
@@ -1762,6 +1798,25 @@ function creneaux(c,m){
   if(!slots.length) slots=heures(m,st.jour,st.scen).map((ic,i)=>({h:7+i*2,t:tAt(m,7+i*2),type:ic,prob:(ic==="pluie"||ic==="orage"||ic==="neige")?75:5,raf:(ic==="mistral"||ic==="vent")?m.raf:15}));
   const s=soleil(dayDate(st.jour)), lev=enMin(s.lever)/60, cou=enMin(s.coucher)/60, maint=new Date().getHours();
   return slots.filter(x=>x.h>=Math.ceil(lev)&&x.h<=Math.floor(cou)&&(st.jour>0||x.h>=maint));
+}
+/* Pourquoi ce moment est le meilleur, en quelques mots */
+function raisonSortie(c,m,b){
+  const J=creneaux(c,m), av=J.filter(x=>x.h<b.h), ap=J.filter(x=>x.h>b.h);
+  const mou=x=>["pluie","orage","neige"].includes(x.type)||x.prob>=60, vt=x=>x.type==="mistral"||x.type==="vent"||x.raf>=50;
+  const r=[];
+  if(!mou(b)){
+    if(ap.some(mou)&&!av.some(mou)) r.push("avant "+(ap.some(x=>x.type==="neige")?"la neige":"la pluie"));
+    else if(av.some(mou)&&!ap.some(mou)) r.push("une fois la pluie passée");
+    else if(av.some(mou)&&ap.some(mou)) r.push("entre deux averses");
+    else if(b.prob<20) r.push("au sec");
+  }
+  if(!vt(b)&&r.length<2){
+    if(ap.some(vt)&&!av.some(vt)) r.push("avant que le vent se lève");
+    else if(av.some(vt)&&!ap.some(vt)) r.push("quand le vent se calme");
+    else if(av.some(vt)&&ap.some(vt)) r.push("au calme");
+  }
+  if(r.length<2&&J.length>=3&&b.t>=Math.max(...J.map(x=>x.t))-1&&m.max<=16) r.push("au plus doux de la journée");
+  return r.length?", "+r.join(" et "):"";
 }
 function meilleurCreneau(c,m){
   const jour=creneaux(c,m);if(!jour.length)return null;
@@ -1898,7 +1953,7 @@ function conseils(m,c,profondeur){
   const mc=meilleurCreneau(c,m);
   if(mc&&!mc.seul){
     if(mc.toutMouille){if(!finPluie&&slots.length>=3) add("sortir",m.type==="neige"?"Neige ou pluie toute la journée : limitez les sorties, privilégiez les activités à l'abri.":st.jour===0?"Pluie jusqu'au soir : une sortie à l'abri sera plus agréable.":"Journée humide : prévoyez une activité à l'abri.")}
-    else if(m.prob>=30||m.raf>=40||(m.max<=14&&m.max-m.min>=8)){const b=mc.best;add("sortir",(st.jour===0&&b.h===hNow?"C'est maintenant le meilleur moment pour sortir":"Meilleur moment pour sortir : vers "+b.h+" h")+" ("+b.t+"°"+(b.prob<20?", au sec":"")+").")}
+    else if(m.prob>=30||m.raf>=40||(m.max<=14&&m.max-m.min>=8)){const b=mc.best;add("sortir",(st.jour===0&&b.h===hNow?"C'est maintenant le meilleur moment pour sortir":"Meilleur moment pour sortir : vers "+b.h+" h")+raisonSortie(c,m,b)+" ("+b.t+"°).")}
   }
   // Linge et jardin, seulement quand il y a quelque chose d'utile à dire
   if(!(st.jour===0&&hNow>=16)){
