@@ -606,17 +606,6 @@ details.plus[open] .tiles{margin-top:10px}
     </div>
     <div id="momentFort" hidden></div>
     <section>
-      <div class="sec-h"><h2>Fiabilité des prévisions</h2></div>
-      <div class="card kit" id="fiab"></div>
-    </section>
-    <section>
-      <div class="sec-h"><h2>Statistiques</h2></div>
-      <div class="card kit">
-        <span class="sub">Umami : visiteurs, pages vues, appareils et villes. Google Search Console : ce que les gens tapent sur Google pour trouver l'app.</span>
-        <div class="chips"><a class="chip" href="https://cloud.umami.is/websites/a3212f59-b8e9-486f-9e0f-d7256926be65" target="_blank" rel="noopener">Umami</a><a class="chip" href="https://search.google.com/search-console?resource_id=https%3A%2F%2Flameteodeleo.fr%2F" target="_blank" rel="noopener">Google Search Console</a></div>
-      </div>
-    </section>
-    <section>
       <div class="sec-h"><h2>Publier la story du jour</h2><span class="sub">Chaque matin</span></div>
       <ol class="card steps">
         <li><b>Enregistre l'image</b> ci-dessous avec «&nbsp;Enregistrer&nbsp;».</li>
@@ -637,7 +626,7 @@ details.plus[open] .tiles{margin-top:10px}
         <li><b>Sur Facebook</b> : refais la vidéo avec «&nbsp;Pour Facebook&nbsp;», et remplace «&nbsp;lien en bio&nbsp;» par lameteodeleo.fr dans la légende.</li>
       </ol>
     </section>
-    <p class="alert" id="demoAvert" style="margin:0 0 12px" hidden><span><b>Mode démonstration : ces chiffres sont inventés.</b> Pour publier, ouvre «&nbsp;Tests&nbsp;», tout en bas, et choisis «&nbsp;Prévisions réelles&nbsp;».</span></p>
+    <p class="alert" id="demoAvert" style="margin:0 0 12px" hidden><span><b>Mode démonstration : ces chiffres sont inventés.</b> Pour publier, ouvre «&nbsp;Outils et vérifications&nbsp;», tout en bas, puis «&nbsp;Tests&nbsp;», et choisis «&nbsp;Prévisions réelles&nbsp;».</span></p>
     <div class="chips" id="postJour" role="group" aria-label="Jour du post"><button class="chip" type="button" data-j="0">Aujourd'hui</button><button class="chip" type="button" data-j="1">Demain</button></div>
     <section>
       <div class="card kit">
@@ -662,10 +651,6 @@ details.plus[open] .tiles{margin-top:10px}
       <div style="margin-top:8px"><button class="sbtn" type="button" id="copyCap">Copier la légende</button></div>
     </section>
     <section>
-      <div class="sec-h"><h2>Ta semaine</h2></div>
-      <div style="display:flex;flex-direction:column;gap:12px" id="semaine"></div>
-    </section>
-    <section>
       <div class="sec-h"><h2>Présenter l'app dans un groupe Facebook</h2><span class="sub">Une fois par groupe</span></div>
       <ol class="card steps">
         <li><b>Demande d'abord l'accord</b> de l'admin du groupe.</li>
@@ -676,18 +661,38 @@ details.plus[open] .tiles{margin-top:10px}
       <textarea class="caption" id="fbTexte" aria-label="Texte de présentation pour le groupe Facebook" style="margin-top:8px;min-height:300px"></textarea>
       <div style="margin-top:8px"><button class="sbtn" type="button" id="copyFb">Copier le texte</button></div>
     </section>
-    <details class="plus">
-      <summary><span>Stories à la une</span><small>4 couvertures</small></summary>
-      <div class="slides" id="hlBox" style="margin-top:12px"></div>
-    </details>
-    <details class="plus">
-      <summary><span>Tests</span><small>situations de démonstration</small></summary>
-      <div style="margin-top:12px">
     <section>
-      <div class="sec-h"><h2>Situation de démonstration</h2></div>
-      <div class="chips" id="scen" role="group" aria-label="Situations d'exemple"></div>
-      <div class="chips" style="margin-top:8px"><button class="chip" type="button" id="staleToggle" aria-pressed="false">Simuler des données non mises à jour</button></div>
+      <div class="sec-h"><h2>Ta semaine</h2></div>
+      <div style="display:flex;flex-direction:column;gap:12px" id="semaine"></div>
     </section>
+    <section>
+      <div class="sec-h"><h2>Statistiques</h2></div>
+      <div class="card kit">
+        <span class="sub">Umami : visiteurs, pages vues, appareils et villes. Google Search Console : ce que les gens tapent sur Google pour trouver l'app.</span>
+        <div class="chips"><a class="chip" href="https://cloud.umami.is/websites/a3212f59-b8e9-486f-9e0f-d7256926be65" target="_blank" rel="noopener">Umami</a><a class="chip" href="https://search.google.com/search-console?resource_id=https%3A%2F%2Flameteodeleo.fr%2F" target="_blank" rel="noopener">Google Search Console</a></div>
+      </div>
+    </section>
+    <details class="plus">
+      <summary><span>Outils et vérifications</span><small>fiabilité, à la une, tests</small></summary>
+      <div style="margin-top:12px">
+      <section>
+        <div class="sec-h"><h2>Fiabilité des prévisions</h2></div>
+        <div class="card kit" id="fiab"></div>
+      </section>
+      <details class="plus">
+        <summary><span>Stories à la une</span><small>4 couvertures</small></summary>
+        <div class="slides" id="hlBox" style="margin-top:12px"></div>
+      </details>
+      <details class="plus">
+        <summary><span>Tests</span><small>situations de démonstration</small></summary>
+        <div style="margin-top:12px">
+      <section>
+        <div class="sec-h"><h2>Situation de démonstration</h2></div>
+        <div class="chips" id="scen" role="group" aria-label="Situations d'exemple"></div>
+        <div class="chips" style="margin-top:8px"><button class="chip" type="button" id="staleToggle" aria-pressed="false">Simuler des données non mises à jour</button></div>
+      </section>
+        </div>
+      </details>
       </div>
     </details>
   </main>
