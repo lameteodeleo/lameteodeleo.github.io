@@ -2802,7 +2802,9 @@ function route(){
   window.scrollTo(0,0);
 }
 /* Rappel « moment fort » : les groupes gardés pour un événement météo marquant (pas une 2e présentation de l'app) */
-const GROUPES_FORTS=[["Le Puy-Sainte-Réparade","le 2e groupe du Puy (« Tu es du Puy Sainte Reparade si… »)"]];
+const GROUPES_FORTS=[["Venelles","le groupe de Venelles où ta présentation a bien marché"],["Pertuis","les groupes de Pertuis (« Tu es de Pertuis si… », « PERTUIS et ses professionnels »…)"],["Meyrargues","le groupe de Meyrargues"]];
+const aC=n=>/^Le /.test(n)?n.replace(/^Le /,"au "):/^Les /.test(n)?n.replace(/^Les /,"aux "):"à "+n;
+const deC=n=>/^Le /.test(n)?n.replace(/^Le /,"du "):/^Les /.test(n)?n.replace(/^Les /,"des "):/^[AEIOUYÉÈÊaeiouy]/.test(n)?"d'"+n:"de "+n;
 function momentFort(){
   const box=$("momentFort");if(!box)return;const out=[];
   for(const [n,groupe] of GROUPES_FORTS){const i=idx(n);if(i<0)continue;const c=COMMUNES[i];
@@ -2813,7 +2815,7 @@ function momentFort(){
       else if(r.type==="neige"){quoi="Neige";det="prudence sur les routes"}
       else if(r.max>=35){quoi="Fortes chaleurs";det="jusqu'à "+r.max+"°"}
       if(!quoi)continue;
-      const txt="⚠️ "+quoi+" "+quand+" au "+n.replace(/^Le /,"")+" : "+det+".\n\nVoici la météo du Puy heure par heure, avec les horaires :\n👉 https://lameteodeleo.fr/meteo/"+norm(n).replace(/ /g,"-")+"/\n\nGratuit, sans pub, sans inscription. Prenez soin de vous !";
+      const txt="⚠️ "+quoi+" "+quand+" "+aC(n)+" : "+det+".\n\nVoici la météo "+deC(n)+" heure par heure, avec les horaires :\n👉 https://lameteodeleo.fr/meteo/"+norm(n).replace(/ /g,"-")+"/\n\nGratuit, sans pub, sans inscription. Prenez soin de vous !";
       out.push('<div class="card kit" style="border:2px solid var(--sun)"><div class="row"><h3>C\'est le moment de publier</h3></div><p class="sub" style="margin:6px 0 10px">'+quoi+" "+quand+" : publie dans "+groupe+'. Texte prêt :</p><textarea class="caption" style="min-height:170px" readonly>'+txt.replace(/</g,"&lt;")+'</textarea><div style="margin-top:8px"><button class="sbtn" type="button" data-mf>Copier le texte</button></div></div>');break}}
   box.hidden=!out.length;box.innerHTML=out.join("");
   box.querySelectorAll("[data-mf]").forEach(bt=>bt.onclick=()=>{const t=bt.closest(".card").querySelector("textarea").value;try{navigator.clipboard.writeText(t);bt.textContent="Copié !";setTimeout(()=>bt.textContent="Copier le texte",1500)}catch(e){}});
