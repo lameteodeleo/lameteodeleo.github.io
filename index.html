@@ -2139,7 +2139,7 @@ function render(){
   T.push('<div class="card tile"><span class="k">'+SMALL.rise+'Soleil</span><span class="v soleil">'+sun.lever+' <i>→</i> '+sun.coucher+'</span><span class="d">'+sun.duree+' de jour : '+dureeJourDelta(dayDate(st.jour))+'</span><span class="d">'+lune(new Date(dayDate(st.jour).getTime()+12*36e5))+'</span></div>');
   $("tiles").innerHTML=T.join("");
   const cs=conseils(m,c);$("tipsTitre").textContent=cs.titre;
-  renderSortie();
+  /* « Quand sortir ? » retiré : trop chargé, le conseil « Sortir » suffit */
   $("tips").innerHTML=cs.liste.map(x=>'<div class="tip'+(x.warn?" warn":"")+(x.orange?" orange":"")+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+insec(x.txt)+'</span></div></div>').join("");
   let maj=enReel()?new Date(DATA.maj):new Date();if(!enReel())maj.setMinutes(0,0,0);if(st.stale)maj=new Date(maj.getTime()-5*36e5);
   const age=Math.floor((Date.now()-maj)/36e5), hMaj=maj.getHours()+" h "+String(maj.getMinutes()).padStart(2,"0");
