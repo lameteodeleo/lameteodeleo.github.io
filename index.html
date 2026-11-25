@@ -1821,7 +1821,7 @@ function resumeSlots(S,auj,rafJour){
     L.push([k,i===0?(encore?"par moments, "+(auj?"jusqu'à ce soir":"toute la journée"):!fin?(auj?"jusqu'à ce soir":"toute la journée"):"jusqu'à "+fin.h+" h, puis "+(apres[fin.ico]||apres[fin.type]||"temps sec"))
       :(encore?"dès "+S[i].h+" h, par moments":fin?"de "+S[i].h+" h à "+fin.h+" h":"dès "+S[i].h+" h")])}
   const r=rafJour!=null?rafJour:Math.max(0,...S.map(x=>x.raf||0)), km=S.findIndex(x=>x.type==="mistral");
-  if(km>=0)L.push(["Mistral",(km>0?"dès "+S[km].h+" h, ":"")+(r>=30?"rafales jusqu'à "+r+" km/h":"modéré")]);
+  if(km>=0)L.push(["Mistral",(km>0?"dès "+S[km].h+" h, ":"")+(r>=30?"jusqu'à "+r+" km/h en rafales":"modéré")]);
   else if(r>=50)L.push(["Rafales","jusqu'à "+r+" km/h"]);
   return L;
 }
@@ -1879,7 +1879,7 @@ function render(){
     try{if(enReel()){
       if(prochaines){const S=prochaines.filter(x=>!x.demain);if(S.length>=3)L=resumeSlots(S,true,null);
         const d=reel(c,1);if(d){const D=[];if(["pluie","orage","neige"].includes(d.type))D.push(d.type==="orage"?"risque d'orages":d.type==="neige"?"neige":"pluie"+(d.pl>=10?" ("+Math.round(d.pl)+" mm)":""));
-          if(d.type==="mistral"||d.raf>=60)D.push((d.type==="mistral"?"mistral":"vent fort")+", rafales jusqu'à "+d.raf+" km/h");
+          if(d.type==="mistral"||d.raf>=60)D.push((d.type==="mistral"?"mistral":"vent fort")+" jusqu'à "+d.raf+" km/h en rafales");
           if(d.min<=0)D.push("gelée au réveil ("+d.min+"°)");
           const dT=d.max-m.max;if(dT<=-4)D.push("nettement plus frais ("+d.max+"°)");else if(dT>=4)D.push("nettement plus doux ("+d.max+"°)");
           if(D.length)(L=L||[]).push(["Demain",D.join(", ")])}}
