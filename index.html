@@ -1763,7 +1763,7 @@ function resumeSlots(S,auj,rafJour){
       :(encore?"dès "+S[i].h+" h, par moments":fin?"de "+S[i].h+" h à "+fin.h+" h":"dès "+S[i].h+" h")])}
   const r=rafJour!=null?rafJour:Math.max(0,...S.map(x=>x.raf||0)), km=S.findIndex(x=>x.type==="mistral");
   if(km>=0)L.push(["Mistral",(km>0?"dès "+S[km].h+" h, ":"")+(r>=30?"rafales jusqu'à "+r+" km/h":"modéré")]);
-  else if(r>=50)L.push(["Vent","rafales jusqu'à "+r+" km/h"]);
+  else if(r>=50)L.push(["Rafales","jusqu'à "+r+" km/h"]);
   return L;
 }
 /* ---------- Rendu : Ma météo ---------- */
