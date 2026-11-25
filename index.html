@@ -2170,8 +2170,13 @@ function bilanDep(j){
         hf<=11?{titre:d.dom==="orage"?"Orages le matin":"Pluie le matin",sous:"Plus calme l'après-midi.",leg:"pluie le matin, plus calme l'après-midi"}:null}
   }
   return {L,dom:d.dom,ico:d.ico,sec:d.sec,moment,titre:moment?moment.titre:(TITRE[d.ico]||TITRE[d.dom]||LIB[d.dom]),min:Math.min(...M.map(m=>m.min)),tMax:mediane(M.map(m=>m.max)),tMin:mediane(M.map(m=>m.min)),frais:T[0],chaud:T[T.length-1],vent:R[R.length-1],pluie:P[P.length-1],pl:pluies(M),
-    nbPluie:M.filter(m=>!m.plNuit&&m.pl>=1).length,al:M.map(m=>m.alert).find(Boolean)||null};
+    nbPluie:M.filter(m=>!m.plNuit&&m.pl>=1).length,al:alerte13(M),vj:enReel()?vigJaune13(j):null};
 }
+// Vigilance des Bouches-du-Rhône uniquement : les communes voisines (Var, Vaucluse…) ont leur propre bulletin
+function alerte13(M){const a=COMMUNES.map((c,i)=>c.dep==="13"?M[i].alert:null).filter(Boolean);return a.length?a.sort((x,y)=>(y.niveau||0)-(x.niveau||0))[0]:null}
+function vigJaune13(j){const c=COMMUNES[idx("Marseille")],v=vigPour(c,j);if(!v||!v.phen)return null;
+  if(v.phen.some(p=>p.c>=3&&pasFini(p)))return null;const l=v.phen.filter(p=>p.c===2&&pasFini(p));
+  return l.length?"Vigilance jaune "+etV(l.map(p=>p.nom)):null}
 function bilanSecteur(k,j){
   const M=SECTEURS[k].c.map(n=>meteo(COMMUNES[idx(n)],st.scen,j));
   const td=typeDominant(M);
@@ -2354,8 +2359,11 @@ function slideStory(){
   logoCanvas(x,230,210,70,B.white,al?B.white:B.sun);
   x.fillStyle=B.white;x.globalAlpha=.85;x.font="700 34px "+FB;x.fillText(fmt(dayDate(J)),70,330);x.globalAlpha=1;
   x.font="800 64px "+FD;{const t=al?al.titre:(RS.titre||"Le temps du jour");ajuste(x,t,940,64,"800",FD);x.fillText(t,70,420)}
+  const vj=!al&&RS.vj, y0=vj?540:480, pas=vj?112:120;
+  if(vj){x.font="800 32px "+FB;const t="⚠ "+vj,w=Math.min(940,x.measureText(t).width+56);x.fillStyle="#FFD43B";rr(x,70,450,w,62,31);x.fill();
+    x.fillStyle=B.ink;ajuste(x,t,w-56,32,"800",FB);x.fillText(t,98,492)}
   ORDRE.forEach((k,i)=>{
-    const m=bilanSecteur(k,J), y=480+i*120;
+    const m=bilanSecteur(k,J), y=y0+i*pas;
     x.fillStyle="rgba(255,255,255,.1)";rr(x,70,y,940,100,26);x.fill();
     cIcon(x,m.ico||m.type,96,y+18,64,true);
     x.fillStyle=B.white;x.font="700 36px "+FB;x.fillText(SECTEURS[k].n,184,y+63);
@@ -2370,7 +2378,7 @@ function slideStory(){
   // Sous cette phrase, la place est libre pour l'autocollant « Lien » d'Instagram.
   // Story publiée par le robot : pas d'autocollant possible, le lien est écrit sur l'image.
   x.fillStyle=B.white;x.font="800 40px "+FD;x.textAlign="center";
-  if(STORY_AUTO){x.fillText("Chaque commune, heure par heure",540,1610);x.fillStyle=al?B.white:B.sun;x.font="800 44px "+FD;x.fillText(STORY_AUTO==="facebook"?"lameteodeleo.fr":"Lien en bio",540,1680)}
+  if(STORY_AUTO){x.fillText("Chaque commune, heure par heure",540,1590);x.fillStyle=al?B.white:B.sun;x.font="800 44px "+FD;x.fillText(STORY_AUTO==="facebook"?"lameteodeleo.fr":"Lien en bio",540,1652)}
   else x.fillText("Chaque commune, heure par heure ↓",540,1610);
   x.globalAlpha=.6;x.font="700 28px "+FB;x.fillText(PSEUDO,540,1860);x.textAlign="left";x.globalAlpha=1;
   return cv;
@@ -2536,6 +2544,7 @@ async function creerReel(btn){
         if(ls.some(l=>x.measureText(l).width>W-140)){x.font="800 "+fs+"px "+FD;const t=insec(ls.join(" ")).split(" ");ls.length=0;let l="";for(const w of t){const u=l?l+" "+w:w;if(x.measureText(u).width>W-140&&l){ls.push(l);l=w}else l=u}ls.push(l)}
         const lh=Math.round(fs*1.08), y0=1170-(ls.length-1)*lh;ls.forEach((l,i)=>centre(l,y0+i*lh,"800 "+fs+"px "+FD,B.white))}
       centre(hook.lab,1250,"800 54px "+FB,B.white);
+      if(!al&&R.vj){const t="⚠ "+R.vj,fs=ajuste(x,t,W-200,38,"800",FB),w=Math.min(W-140,x.measureText(t).width+60);x.fillStyle="#FFD43B";rr(x,(W-w)/2,1305,w,72,36);x.fill();centre(t,1353,"800 "+fs+"px "+FB,B.ink)}
       const b=ease((t-1.1)/.4);if(b>0){x.globalAlpha=b;x.fillStyle=al?B.white:B.sun;rr(x,150,1330,W-300,110,55);x.fill();x.globalAlpha=1;
         {x.font="800 44px "+FB;let fs=44;while(x.measureText(phrase).width>W-360&&fs>30){fs-=2;x.font="800 "+fs+"px "+FB}centre(phrase,1402,"800 "+fs+"px "+FB,al?CA(al).texte:B.sunInk,b)}}
     }else if(sc.type==="temp"){fond();titreSc("Les températures",t);sousSc(jourTxt,t);
@@ -2656,7 +2665,7 @@ function majLegende(){if(!LEG)return;const {R,al,c,m,J,dj}=LEG, fb=RESEAU==="fac
   const tags=fb?"#meteo #provence #bouchesdurhone"+(al?" #vigilance":R.dom&&R.dom!=="soleil"&&TAG_TEMPS[R.dom]?" "+TAG_TEMPS[R.dom]:""):"#meteo #provence #bouchesdurhone #marseille "+(al?"#vigilance":(TAG_TEMPS[R.dom]||"#aixenprovence"));
   $("caption").value=al
     ?"⚠️ "+al.titre+" sur les Bouches-du-Rhône, "+fmt(dj)+".\n\n"+al.cons.slice(0,2).join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr\n"+lien+"\n\n"+tags
-    :quand+" dans le 13 : "+(R.moment?R.moment.leg:R.titre.toLowerCase())+", "+chiffre+".\n\n"+motDuJour(c,m,J)+"\n\nEt chez vous, ça donne quoi ? Dites votre commune en commentaire 👇\n"+lien+"\n\n"+tags;
+    :(R.vj?"⚠️ "+R.vj+" sur les Bouches-du-Rhône : soyez attentifs.\n\n":"")+quand+" dans le 13 : "+(R.moment?R.moment.leg:R.titre.toLowerCase())+", "+chiffre+".\n\n"+motDuJour(c,m,J)+"\n\nEt chez vous, ça donne quoi ? Dites votre commune en commentaire 👇\n"+lien+"\n\n"+tags;
 }
 /* Logo en image : icône d'app (carrée) et photo de profil Instagram (ronde) */
 function drawMark(x,cx,cy,s,bg){
