@@ -2718,7 +2718,7 @@ async function creerReel(btn){
   let hook;
   if(al) hook={k:al.titre.replace(/^(Vigilance \S+) /,"$1\n"),n:null,lab:"sur les Bouches-du-Rhône",ico:R.ico||R.dom};
   else if(R.pl.jour>=10) hook={n:Math.round(R.pl.jour),u:" mm",lab:"de pluie attendus dans le 13",ico:"pluieForte"};
-  else if(R.vent.m.raf>=60||(R.dom==="mistral"&&R.vent.m.raf>=40)) hook={n:R.vent.m.raf,u:" km/h",lab:R.dom==="mistral"?"de mistral en rafales dans le 13":"de rafales dans le 13",ico:R.dom==="mistral"?"mistral":"vent"};
+  else if(R.vent.m.raf>=60||(R.dom==="mistral"&&R.vent.m.raf>=40)) hook={n:R.vent.m.raf,u:" km/h",lab:R.dom==="mistral"?"de rafales de mistral dans le 13":"de rafales dans le 13",ico:R.dom==="mistral"?"mistral":"vent"};
   else if(R.chaud.m.max>=32) hook={n:R.chaud.m.max,u:"°",lab:"au plus chaud dans le 13",ico:"chaleur"};
   else if(R.min<=0) hook={n:R.min,u:"°",lab:"au petit matin dans le 13",ico:"gel"};
   else if(R.pl.jour>=2) hook={n:Math.round(R.pl.jour),u:" mm",lab:"de pluie attendus dans le 13",ico:R.ico||"pluie"};
