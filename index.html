@@ -2746,7 +2746,7 @@ async function creerReel(btn){
   else if(R.dom==="mistral"||R.vent.m.raf>=50){const mx=Math.max(...creneaux.map(o=>o.raf));if(mx>=40){pic=creneaux.findIndex(o=>o.raf===mx);picLab="LE PLUS VENTÉ"}}
   // Des communes que tout le monde connaît
   const PROCHES=["Marseille","Aix-en-Provence","Martigues","Salon-de-Provence","Arles","Pertuis"].filter(n=>idx(n)>=0).map(n=>{const m=meteo(COMMUNES[idx(n)],st.scen,J);
-    return {n,ico:m.ico||m.type,max:m.max,info:(!m.plNuit&&m.pl>=1)?"Pluie "+mm(m.pl):m.raf>=50?"Rafales "+m.raf+" km/h":"Min "+m.min+"°"}});
+    return {n,ico:m.ico||m.type,max:m.max,info:(!m.plNuit&&m.pl>=1)?"Pluie "+mm(m.pl):(m.raf>=40||m.type==="mistral"||m.type==="vent")?"Rafales "+m.raf+" km/h":"Min "+m.min+"°"}});
   // La question de la 1re image : elle promet la suite (elle change selon le temps et le jour)
   const nJ=Math.floor(dj.getTime()/864e5), choix=L=>L[nJ%L.length];
   const phrase=al?"Ce qu'il faut savoir ⚠":R.pl.jour>=2?choix(["Chez vous, ça tombe quand ?","À quelle heure chez vous ?"])
