@@ -1901,7 +1901,7 @@ function conseils(m,c,profondeur){
     }
     // Le vent qui forcit dans la journée (prévision heure par heure)
     if(st.jour===0){const ph=prochainesHeures(c);if(ph){const auj=ph.filter(x=>!x.demain&&x.h<=20);const fort=auj.findIndex(x=>x.raf>=50);
-      if(fort>1&&auj[0].raf<35){const mouilleAvant=auj.slice(0,fort).some(x=>["pluie","orage","neige"].includes(x.type));add("change","Le vent forcit vers "+auj[fort].h+" h (rafales à "+auj[fort].raf+" km/h) : "+(mouilleAvant?"avant "+auj[fort].h+" h, rentrez ce qui peut s'envoler (pots, coussins, poubelles).":"profitez du calme d'ici là."))}}}
+      if(fort>1&&auj[0].raf<35){const mouilleAvant=auj.slice(0,fort).some(x=>["pluie","orage","neige"].includes(x.type));add("change","Plus de vent dès "+auj[fort].h+" h (rafales à "+auj[fort].raf+" km/h) : "+(mouilleAvant?"avant "+auj[fort].h+" h, rentrez ce qui peut s'envoler (pots, coussins, poubelles).":"profitez du calme d'ici là."))}}}
   }
   // Tenue : le matin et l'après-midi, d'après les températures ressenties
   // Les seuils changent avec la saison : à 20° en novembre, le soleil est bas, il se couche tôt et les soirées sont fraîches
