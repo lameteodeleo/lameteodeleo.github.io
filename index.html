@@ -1622,7 +1622,10 @@ function conseils(m,c,profondeur){
       if(st.jour===0&&dT<=-5) add("change","Demain, "+(-dT)+"° de moins au plus chaud ("+ref.max+"°) : ressortez une couche de plus.");
       else if(st.jour===0&&dT>=5) add("change","Demain, "+dT+"° de plus au plus chaud ("+ref.max+"°) : vous pourrez alléger la tenue.");
       else if(st.jour>0&&Math.abs(dT)>=5) add("change",quand+" "+(dT>0?dT+"° de plus":(-dT)+"° de moins")+" au plus chaud.");
-      if(st.jour===0&&ref.type==="mistral"&&m.type!=="mistral") add("change","Le mistral se lève demain (rafales jusqu'à "+ref.raf+" km/h) : rangez dès ce soir ce qui craint le vent.");
+      if(st.jour===0&&ref.type==="mistral"&&m.type!=="mistral"){
+        // S'il arrive déjà ce soir (prévision heure par heure), on le dit : pas « demain » alors qu'il souffle dans 3 heures
+        const ph=prochainesHeures(c), soir=ph?ph.filter(x=>!x.demain&&x.h>hNow).find(x=>x.type==="mistral"):null;
+        add("change",(soir?"Le mistral se lève ce soir vers "+soir.h+" h":"Le mistral se lève demain")+" (rafales jusqu'à "+ref.raf+" km/h) : rentrez dès ce soir ce qui peut s'envoler (pots, coussins, poubelles).")}
       else if(st.jour===0&&["pluie","orage"].includes(ref.type)&&!["pluie","orage"].includes(m.type)&&ref.prob>=60) add("change","Pluie attendue demain"+(ref.pl>=1?" ("+fr(ref.pl)+" mm)":"")+(hNow<14?" : le linge, c'est plutôt aujourd'hui.":" : rentrez le linge ce soir."));
     }
     // Le vent qui forcit dans la journée (prévision heure par heure)
@@ -1754,11 +1757,13 @@ function resumeSlots(S,auj,rafJour){
   const i=S.findIndex(pl);let t;
   if(i<0)t=auj?"Pas de pluie prévue d'ici ce soir":"Journée sèche";
   else{let j=i;while(j+1<S.length&&pl(S[j+1]))j++;const N=nom(S[i]),C=N.charAt(0).toUpperCase()+N.slice(1),fin=S[j+1];
-    if(i===0)t=!fin?C+(auj?" jusqu'à ce soir":" toute la journée"):C+" jusqu'à "+fin.h+" h, puis "+(apres[fin.ico]||apres[fin.type]||"temps sec");
-    else t="Au sec jusqu'à "+S[i].h+" h, puis "+N+(fin?" jusqu'à "+fin.h+" h":"");
-    if(fin&&S.slice(j+1).some(pl))t+=", et encore quelques passages ensuite"}
+    const encore=fin&&S.slice(j+1).some(pl);   // pluie en plusieurs fois : on dit « par moments », plus simple qu'une liste d'heures
+    if(i===0)t=encore?C+" par moments"+(auj?" jusqu'à ce soir":" toute la journée"):!fin?C+(auj?" jusqu'à ce soir":" toute la journée"):C+" jusqu'à "+fin.h+" h, puis "+(apres[fin.ico]||apres[fin.type]||"temps sec");
+    else t="Au sec jusqu'à "+S[i].h+" h, puis "+N+(encore?" par moments":fin?" jusqu'à "+fin.h+" h":"")}
   const r=rafJour!=null?rafJour:Math.max(0,...S.map(x=>x.raf||0)), mis=S.some(x=>x.type==="mistral");
-  if(mis)t+=". Mistral"+(r>=30?" jusqu'à "+r+" km/h":"");else if(r>=50)t+=". Rafales jusqu'à "+r+" km/h";
+  // Le mistral : on dit à partir de quand il souffle, s'il n'est pas déjà là
+  const km=S.findIndex(x=>x.type==="mistral");
+  if(mis)t+=". Mistral"+(km>0?" à partir de "+S[km].h+" h":"")+(r>=30?" (rafales jusqu'à "+r+" km/h)":"");else if(r>=50)t+=". Rafales jusqu'à "+r+" km/h";
   return t+".";
 }
 /* ---------- Rendu : Ma météo ---------- */
