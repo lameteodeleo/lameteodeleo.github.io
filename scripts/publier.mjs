@@ -16,14 +16,17 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 const SITE = process.env.SITE_URL || "https://lameteodeleo.fr/";
 const GV = "v27.0", G = `https://graph.facebook.com/${GV}`;
 const PAGE_ID = "1389664764238207";
-const TOKEN = process.env.META_PAGE_TOKEN || "";
+// La clé : une clé de Page, ou la clé d'un « utilisateur système » du portefeuille business (qui n'expire pas).
+// Dans ce second cas, le robot en tire la clé de la Page au démarrage (voir cleDePage).
+const CLE_SECRET = process.env.META_PAGE_TOKEN || "";
+let TOKEN = CLE_SECRET;
 const MODE = (process.env.MODE || "auto").trim();
 const RESEAUX = (process.env.RESEAUX || "instagram,facebook").split(",").map(s => s.trim()).filter(Boolean);
 const OUT = "publication";
 const AGE_MAX_H = +(process.env.AGE_MAX_H || 3);
 
 const log = (...a) => console.log(...a);
-const masque = s => TOKEN ? String(s).split(TOKEN).join("***") : String(s);
+const masque = s => { let t = String(s); for (const k of [CLE_SECRET, TOKEN]) if (k) t = t.split(k).join("***"); return t; };
 const dodo = ms => new Promise(r => setTimeout(r, ms));
 
 // ---------- Heure de Paris ----------
@@ -186,6 +189,9 @@ async function principal() {
   else if (MODE === "controle-story") type = "story";
   if (!type) { log("Hors des créneaux de publication (story 6 h 45 – 10 h 30, Reel 17 h – 21 h) : rien à faire."); return; }
 
+  // Clé d'utilisateur système : on demande la clé de la Page (les publications Facebook exigent une clé de Page)
+  try { const r = await api(`/${PAGE_ID}`, { params: { fields: "access_token" } }); if (r && r.access_token && r.access_token !== TOKEN) { TOKEN = r.access_token; log("Clé de la Page obtenue à partir de la clé du robot."); } }
+  catch (e) { /* déjà une clé de Page : rien à faire */ }
   // La clé fonctionne-t-elle ? Quel est le compte Instagram de la Page ?
   const pg = await api(`/${PAGE_ID}`, { params: { fields: "name,instagram_business_account{id,username}" } });
   const IG = pg.instagram_business_account && pg.instagram_business_account.id;
