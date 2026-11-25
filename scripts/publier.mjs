@@ -189,6 +189,8 @@ async function principal() {
   else if (MODE === "controle-story") type = "story";
   if (!type) { log("Hors des créneaux de publication (story 6 h 45 – 10 h 30, Reel 17 h – 21 h) : rien à faire."); return; }
 
+  // Qui est derrière la clé ? (le robot du portefeuille, ou directement la Page)
+  try { const me = await api(`/me`, { params: { fields: "name" } }); log(`Clé utilisée : ${me.name}`); } catch (e) { log("Clé utilisée : inconnue"); }
   // Clé d'utilisateur système : on demande la clé de la Page (les publications Facebook exigent une clé de Page)
   try { const r = await api(`/${PAGE_ID}`, { params: { fields: "access_token" } }); if (r && r.access_token && r.access_token !== TOKEN) { TOKEN = r.access_token; log("Clé de la Page obtenue à partir de la clé du robot."); } }
   catch (e) { /* déjà une clé de Page : rien à faire */ }
