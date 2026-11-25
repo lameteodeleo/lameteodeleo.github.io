@@ -2865,12 +2865,11 @@ async function creerReel(btn){
       const hTxt=n*(fs+4)*1.25;lignesC(sourire,960-hTxt/2+fs,"800 "+(fs+4)+"px "+FD,B.ink,W-200,(fs+4)*1.25,ease((t-.2)/.4));
       centre("😄",1460,"120px "+FB,B.ink,ease((t-.6)/.4));
     }else{fond(B.brand);
-      // La fin pose une question simple : écrire sa commune en commentaire (c'est ce qui fait réagir), puis le lien et l'abonnement
+      // La fin pose une question simple : dire en commentaire le temps qu'il fait chez soi (sans promesse de réponse) (c'est ce qui fait réagir), puis le lien et l'abonnement
       drawMark(x,W/2,470,190,true);
       centre("Et chez vous ?",730,"800 108px "+FD,B.white,ease(t/.35));
-      centre("Écrivez votre commune",850,"800 60px "+FB,B.sun,ease((t-.2)/.35));
-      centre("en commentaire 💬",925,"800 60px "+FB,B.sun,ease((t-.2)/.35));
-      centre("On vous répond avec sa météo",1010,"700 42px "+FB,B.white,ease((t-.45)/.35));
+      centre("Dites-nous quel temps",850,"800 60px "+FB,B.sun,ease((t-.2)/.35));
+      centre("il fait en commentaire 💬",925,"800 60px "+FB,B.sun,ease((t-.2)/.35));
       const b=ease((t-.8)/.4);x.globalAlpha=b;x.fillStyle=B.white;rr(x,240,1080,W-480,110,55);x.fill();x.globalAlpha=1;
       centre(RESEAU==="facebook"?"lameteodeleo.fr":"Lien en bio",1152,"800 52px "+FB,B.brand,b);
       centre("🔔 Abonnez-vous",1300,"800 56px "+FB,B.sun,ease((t-1.1)/.4));
@@ -2957,7 +2956,7 @@ function majLegende(){if(!LEG)return;const {R,al,c,m,J,dj}=LEG, fb=RESEAU==="fac
   const tags=fb?"#meteo #provence #bouchesdurhone"+(al?" #vigilance":R.dom&&R.dom!=="soleil"&&TAG_TEMPS[R.dom]?" "+TAG_TEMPS[R.dom]:""):"#meteo #provence #bouchesdurhone #marseille "+(al?"#vigilance":(TAG_TEMPS[R.dom]||"#aixenprovence"));
   $("caption").value=al
     ?"⚠️ "+al.titre+" sur les Bouches-du-Rhône, "+fmt(dj)+".\n\n"+al.cons.slice(0,2).join("\n")+"\n\nConsignes officielles : vigilance.meteofrance.fr\n"+lien+"\n\n"+tags
-    :(R.vj?"⚠️ "+R.vj+" sur les Bouches-du-Rhône : soyez attentifs.\n\n":"")+quand+" dans le 13 : "+(R.moment?R.moment.leg:R.titre.toLowerCase())+", "+chiffre+".\n\n"+motDuJour(c,m,J)+"\n\nEt chez vous, ça donne quoi ? Dites votre commune en commentaire 👇\n"+lien+"\n🔔 Abonnez-vous : chaque soir, la météo de demain."+(photoCredit()?"\n\n📸 Photo : "+photoCredit()+". Merci ! Envoyez-nous vos photos du ciel en message.":"")+"\n\n"+tags;
+    :(R.vj?"⚠️ "+R.vj+" sur les Bouches-du-Rhône : soyez attentifs.\n\n":"")+quand+" dans le 13 : "+(R.moment?R.moment.leg:R.titre.toLowerCase())+", "+chiffre+".\n\n"+motDuJour(c,m,J)+"\n\nEt chez vous, quel temps fait-il ? Dites-le en commentaire 👇\n"+lien+"\n🔔 Abonnez-vous : chaque soir, la météo de demain."+(photoCredit()?"\n\n📸 Photo : "+photoCredit()+". Merci ! Envoyez-nous vos photos du ciel en message.":"")+"\n\n"+tags;
 }
 /* Logo en image : icône d'app (carrée) et photo de profil Instagram (ronde) */
 function drawMark(x,cx,cy,s,bg){
