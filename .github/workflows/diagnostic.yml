@@ -14,6 +14,13 @@ jobs:
         with:
           node-version: 20
       - run: npm install --no-save --no-audit --no-fund playwright-core@1.49.1
+      - name: Mesures en temps réel de Météo-France (paquet d'observations)
+        env:
+          K: ${{ secrets.MF_VIGILANCE_KEY }}
+        run: |
+          for u in "DPPaquetObs/v1/paquet/stations/horaire?id-departement=13&format=json" "DPPaquetObs/v2/paquet/stations/horaire?id-departement=13&format=json" "DPObs/v1/station/horaire?id_station=13054001&format=json"; do
+            code=$(curl -s -o r.txt -w '%{http_code}' -H "apikey: $K" -H "accept: application/json" "https://public-api.meteofrance.fr/public/$u")
+            echo "$code  $u  →  $(head -c 400 r.txt | tr '\n' ' ')"; done
       - name: Fichiers en ligne
         run: |
           for u in googlec345ccc8f9d6353e.html robots.txt sitemap.xml manifest.webmanifest sw.js icons/icon-192.png icons/partage-v2.png data/meteo.json meteo/ meteo/rognes/ meteo/marseille/; do

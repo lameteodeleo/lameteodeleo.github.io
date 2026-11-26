@@ -224,6 +224,22 @@ async function controleGeneral(IG, complet) {
     }
   } catch (e) { G.push("l'appli ne s'ouvre pas : " + e.message); }
   finally { await nav.close(); }
+  if (complet) {
+    // Sécurité : aucune clé, aucune adresse privée, aucun nom d'outil dans ce qui est public (site en ligne et fichiers du dépôt)
+    const MOTIFS = [[/EAA[A-Za-z0-9]{30,}/, "une clé Meta"], [/eyJ[A-Za-z0-9_-]{40,}\.[A-Za-z0-9_-]{20,}/, "un jeton d'accès"], [/@orange\.fr/i, "une adresse e-mail privée"], [new RegExp(["cl", "aude|an", "thropic"].join(""), "i"), "un nom d'outil"]];
+    const fouiller = (nom, txt) => { for (const [re, quoi] of MOTIFS) if (re.test(txt)) G.push(`sécurité : ${quoi} apparaît dans ${nom}`); };
+    for (const u of ["", "data/meteo.json", "meteo/aix-en-provence/", "sw.js", "manifest.webmanifest"]) { try { fouiller(SITE + u, await (await fetch(SITE + u)).text()); } catch (e) {} }
+    try { for (const f of execFileSync("git", ["ls-files"]).toString().split("\n").filter(f => f && !/\.(png|jpg|ico|woff2?)$/.test(f) && !f.startsWith("scripts/") && !f.startsWith(".github/"))) fouiller(f, await readFile(f, "utf8")); } catch (e) { log("Fichiers du dépôt : vérification impossible"); }
+    // Le nom de domaine (payé chez OVH) et le certificat https : ne jamais les laisser expirer
+    try {
+      const w = execFileSync("whois", ["lameteodeleo.fr"], { timeout: 30000 }).toString(), m = w.match(/Expiry Date:\s*(\S+)/i);
+      if (m) { const j = (new Date(m[1]) - Date.now()) / 864e5; log(`Nom de domaine : expire dans ${Math.round(j)} jours`); if (j < 15) G.push(`le nom de domaine expire dans ${Math.round(j)} jours : renouvelle-le chez OVH`); else if (j < 45) A.push(`le nom de domaine expire dans ${Math.round(j)} jours (vérifie le renouvellement automatique chez OVH)`); }
+    } catch (e) { log("Nom de domaine : vérification impossible"); }
+    try {
+      const c = execFileSync("sh", ["-c", "echo | openssl s_client -servername lameteodeleo.fr -connect lameteodeleo.fr:443 2>/dev/null | openssl x509 -noout -enddate"], { timeout: 30000 }).toString(), m = c.match(/notAfter=(.+)/);
+      if (m) { const j = (new Date(m[1]) - Date.now()) / 864e5; log(`Certificat https : valable encore ${Math.round(j)} jours`); if (j < 7) G.push(`le certificat https expire dans ${Math.round(j)} jours`); }
+    } catch (e) { log("Certificat https : vérification impossible"); }
+  }
   // Le lien de la bio Instagram et le site de la Page Facebook
   if (complet && TOKEN) {
     try { const ig = IG ? await api(`/${IG}`, { params: { fields: "website" } }) : null; if (ig && !/lameteodeleo\.fr/.test(ig.website || "")) A.push("le lien de la bio Instagram ne pointe pas vers lameteodeleo.fr"); } catch (e) { log("Lien de la bio Instagram : vérification impossible"); }
