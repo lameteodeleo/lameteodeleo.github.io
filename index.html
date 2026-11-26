@@ -2236,7 +2236,7 @@ const MAPPTS=[["Avignon","d"],["Saint-Rémy-de-Provence","d"],["Arles","d"],["Sa
 const SHORT={"Saint-Rémy-de-Provence":"St-Rémy","Saintes-Maries-de-la-Mer":"Stes-Maries","Salon-de-Provence":"Salon","Aix-en-Provence":"Aix","Saint-Maximin-la-Sainte-Baume":"St-Maximin"};
 let mapJour=0;
 /* Carte « Maintenant » : la température de chaque commune à la dernière mise à jour (toutes les 2 heures) */
-const nowDispo=()=>mapJour===0&&enReel()&&DATA&&DATA.par&&Object.values(DATA.par).some(r=>r&&r.cur);
+const nowDispo=()=>mapJour===0&&enReel()&&DATA&&DATA.par&&Date.now()-DATA.maj<3*36e5&&Object.values(DATA.par).some(r=>r&&r.cur);   // pas de « Maintenant » avec des chiffres de plus de 3 heures
 const tempLike=()=>mapMode==="temp"||mapMode==="now";
 function mCarte(c){
   const m=meteo(c,st.scen,mapJour);if(mapMode!=="now")return m;
@@ -2245,7 +2245,8 @@ function mCarte(c){
   const cu=r.cur, h=DATA.maj, nuit=estNuit(h,h.getHours()*60+h.getMinutes());let t=classer(cu[2],cu[3],cu[4],cu[0],cu[0]);if(nuit)t=versNuit(t);
   return Object.assign({},m,{max:Math.round(cu[0]),type:t,ico:variante(cu[2],t,nuit)});
 }
-const heureNow=()=>"vers "+DATA.maj.getHours()+"\u00a0h";
+// Heure exacte des températures affichées : celle de la dernière mise à jour, au quart d'heure (pas des prévisions)
+const heureNow=()=>{const d=new Date(DATA.maj);d.setMinutes(Math.floor(d.getMinutes()/15)*15,0,0);return "à "+heureV(d)};
 function renderMap(){
   const mer=tracer(COTE)+"L"+MX(5.95).toFixed(1)+" 260L"+MX(4.2).toFixed(1)+" 260Z";
   let g='<rect x="-4" y="-4" width="368" height="252" class="terre"/>'+
