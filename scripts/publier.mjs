@@ -8,7 +8,15 @@
 //  - la clé (META_PAGE_TOKEN) n'est jamais affichée dans le journal.
 //
 // MODE : "auto" (après la mise à jour météo), "reel", "story" (forcer), "test" (tout préparer, sans publier),
-//        "controle-reel", "controle-story" (vérifier en fin de créneau, et alerter par e-mail si rien n'est paru).
+//        "controle-reel", "controle-story" (vérifier en fin de créneau, et alerter par e-mail si rien n'est paru),
+//        "test-alerte" (préparer une alerte vigilance simulée, sans rien publier).
+//
+// Alerte vigilance orange ou rouge (Bouches-du-Rhône), à chaque mise à jour en mode auto :
+//  - seulement orange (3) ou rouge (4), jamais jaune ; seulement entre 7 h et 22 h (heure de Paris) ;
+//  - double vérification : le bulletin brut de Météo-France publié sur le site ET l'appli doivent l'afficher ;
+//  - une seule fois par épisode : jamais deux fois la même alerte (même niveau, mêmes phénomènes, même jour),
+//    et au plus une alerte par 20 heures, sauf si le niveau monte (orange → rouge) ;
+//  - publiée en story (Instagram et Facebook) et en publication sur la Page Facebook, sans humour.
 import { chromium } from "playwright-core";
 import { execFileSync } from "node:child_process";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
@@ -70,6 +78,92 @@ async function dejaPublie(type, reseau, IG) {
     const r = await api(`/${PAGE_ID}/stories`, { params: { limit: "25" } });
     return (r.data || []).some(m => { const t = m.creation_time ? (/^\d+$/.test(String(m.creation_time)) ? +m.creation_time * 1000 : m.creation_time) : null; return t && jourParis(t) === auj; });
   } catch (e) { log(`  (vérification « déjà publié » impossible sur ${reseau} : ${e.message})`); return null; }
+}
+
+// ---------- Alerte vigilance orange ou rouge ----------
+const ALERTE_H = [7 * 60, 22 * 60];
+// Le bulletin brut de Météo-France, tel que publié sur le site (première vérification, indépendante de l'appli)
+async function vigilanceBrute() {
+  const r = await fetch(SITE + "data/meteo.json?robot=" + Date.now());
+  if (!r.ok) throw new Error(`Bulletin de vigilance illisible (HTTP ${r.status}).`);
+  const V = (await r.json()).vigilance;
+  if (!V) return { niveau: 0, detail: "aucun bulletin" };
+  let niveau = 0; const det = [];
+  for (const k of ["J", "J1"]) {
+    const P = V[k]; if (!P || !P.fin || new Date(P.fin) <= new Date()) continue;
+    const d = (P.deps || {})["13"] || {};
+    for (const p of [...(d.phen || []), ...((d.cote || {}).phen || [])]) {
+      if (p.c >= 3 && !(p.a && new Date(p.a) <= new Date())) { niveau = Math.max(niveau, p.c); det.push(`${k} ${p.nom} ${["", "vert", "jaune", "orange", "rouge"][p.c]}`); }
+    }
+  }
+  return { niveau, detail: det.join(", ") || "rien d'orange ni de rouge" };
+}
+// Les alertes déjà publiées sur la Page (on les reconnaît à leur première ligne « ⚠️ Vigilance … »)
+async function alertesPubliees() {
+  const r = await api(`/${PAGE_ID}/posts`, { params: { fields: "message,created_time", limit: "25" } });
+  return (r.data || []).filter(p => /^⚠️ Vigilance (orange|rouge)/.test(p.message || "")).map(p => {
+    const sig = p.message.split("\n")[0].trim();
+    return { sig, niveau: /^⚠️ Vigilance rouge/.test(sig) ? 4 : 3, age: (Date.now() - new Date(p.created_time).getTime()) / 36e5 };
+  });
+}
+async function ouvrirAppli(nav, simulee) {
+  const ctx = await nav.newContext({ viewport: { width: 420, height: 900 }, locale: "fr-FR", timezoneId: "Europe/Paris", serviceWorkers: "block", bypassCSP: true });
+  const page = await ctx.newPage();
+  await page.route("**/cloud.umami.is/**", r => r.abort());
+  await page.route("**/api-gateway.umami.dev/**", r => r.abort());
+  await page.goto(SITE + "?robot=" + Date.now(), { waitUntil: "load", timeout: 60000 });
+  await page.waitForFunction(() => !document.body.classList.contains("boot") && typeof alerteRobot === "function", null, { timeout: 30000 });
+  if (simulee) await page.evaluate(([niv, nom, J]) => {   // essai : une vigilance inventée, jamais publiée
+    const h = 36e5, iso = t => new Date(t).toISOString(), d0 = new Date(); d0.setHours(6, 0, 0, 0);
+    const ph = J => [{ id: 1, nom, c: niv, de: iso(+d0 + (J * 24 + 6) * h), a: iso(+d0 + (J * 24 + 18) * h) }];
+    const per = (k, J) => ({ debut: iso(+d0 + J * 24 * h), fin: iso(+d0 + (J + 1) * 24 * h), deps: { "13": { c: k ? niv : 1, phen: k ? ph(J) : [] } } });
+    DATA.vigilance = { maj: iso(Date.now()), J: per(J === 0, 0), J1: per(J === 1, 1) };
+  }, simulee);
+  return page;
+}
+async function traiterAlerte(IG) {
+  const test = MODE === "test-alerte";
+  if (!test && !(maintenant.min >= ALERTE_H[0] && maintenant.min < ALERTE_H[1])) { log("Alerte vigilance : hors de 7 h – 22 h, rien à faire."); return; }
+  const simulee = test ? (process.env.ALERTE_SIMULEE || "3|vent violent|0").split("|").map((x, i) => i === 1 ? x : +x) : null;
+  // 1re vérification : le bulletin brut
+  const brut = test ? { niveau: simulee[0], detail: "vigilance simulée (essai)" } : await vigilanceBrute();
+  log(`Alerte vigilance : bulletin Météo-France du 13 → ${brut.detail}`);
+  if (brut.niveau < 3) return;
+  await mkdir(OUT, { recursive: true });
+  const nav = await chromium.launch({ ...(process.env.CHROME_CHANNEL === "aucun" ? {} : { channel: process.env.CHROME_CHANNEL || "chrome" }) });
+  let a, leg, fichiers = {};
+  try {
+    const page = await ouvrirAppli(nav, simulee);
+    // 2e vérification : l'appli elle-même, avec les vraies prévisions
+    a = await page.evaluate(() => alerteRobot());
+    if (!a) { log("Alerte vigilance : l'appli n'affiche aucune vigilance orange ou rouge en cours → rien n'est publié."); return; }
+    if (a.niveau < 3 || a.niveau > brut.niveau) throw new Error(`Alerte vigilance : l'appli (niveau ${a.niveau}) et le bulletin (niveau ${brut.niveau}) ne concordent pas → rien n'est publié.`);
+    leg = await page.evaluate(J => legendeAlerte(J), a.J);
+    log(`Alerte vigilance : ${leg.sig}`);
+    // Jamais deux fois : même alerte déjà parue, ou une alerte de même niveau ou plus dans les 20 dernières heures
+    if (!test || TOKEN) {
+      const deja = await alertesPubliees();
+      const meme = deja.find(p => p.sig === leg.sig), recente = deja.find(p => p.age < 20 && p.niveau >= a.niveau);
+      if (meme || recente) { log(`Alerte vigilance : déjà publiée (${(meme || recente).sig}, il y a ${(meme || recente).age.toFixed(1)} h) → rien de plus.`); if (!test) return; }
+    }
+    for (const f of ["instagram", "facebook", "post"]) {
+      const b64 = await page.evaluate(([J, f]) => imageAlerte(J, f).toDataURL("image/jpeg", .92).split(",")[1], [a.J, f]);
+      fichiers[f] = `${OUT}/alerte-${f}.jpg`; await writeFile(fichiers[f], Buffer.from(b64, "base64"));
+    }
+    // Dernière vérification juste avant de publier : la vigilance est-elle toujours en cours ?
+    if (!test) { const re = await vigilanceBrute(); if (re.niveau < a.niveau) { log(`Alerte vigilance : levée ou abaissée entre-temps (${re.detail}) → rien n'est publié.`); return; } }
+  } finally { await nav.close(); }
+  const storyIG = videoDepuisImage(fichiers.instagram, `${OUT}/alerte-instagram.mp4`);
+  log(`Alerte prête : ${storyIG} (${decrire(storyIG)}), ${fichiers.facebook}, ${fichiers.post}\nLégende :\n${leg.texte}\n`);
+  if (test) { log("Essai d'alerte : rien n'est publié."); return; }
+
+  const faits = [], echecs = [];
+  const essayer = async (nom, f) => { try { const l = await f(); faits.push(`${nom} : ${l}`); log(`✔ Alerte publiée sur ${nom} : ${l}`); } catch (e) { echecs.push(`${nom} : ${masque(e.message)}`); log(`✘ Alerte ${nom} : ${masque(e.message)}`); } };
+  await essayer("Page Facebook", () => envoyerPhotoFB(fichiers.post, leg.texte));
+  if (RESEAUX.includes("facebook")) await essayer("story Facebook", () => envoyerStoryFB(fichiers.facebook));
+  if (RESEAUX.includes("instagram") && IG) await essayer("story Instagram", () => envoyerIG(IG, "STORIES", storyIG, ""));
+  await writeFile(`${OUT}/alerte.txt`, `${leg.sig}\n\nPublié automatiquement par le robot :\n${faits.map(x => "- " + x).join("\n") || "- rien"}\n${echecs.length ? "\nÉchecs :\n" + echecs.map(x => "- " + x).join("\n") + "\n" : ""}\nTexte publié :\n\n${leg.texte}\n`);
+  if (echecs.length) throw new Error(`Alerte vigilance incomplète. ${echecs.join(" ; ")}`);
 }
 
 // ---------- Fabrication des vidéos et images, avec l'appli elle-même ----------
@@ -160,6 +254,15 @@ async function envoyerReelFB(fichier, legende) {
   }
   return `https://www.facebook.com/reel/${d.video_id}`;
 }
+async function envoyerPhotoFB(image, legende) {   // publication (image + texte) sur la Page
+  const f = new FormData();
+  f.set("published", "true"); f.set("message", legende); f.set("access_token", TOKEN);
+  f.set("source", new Blob([await readFile(image)], { type: "image/jpeg" }), "alerte.jpg");
+  const r = await fetch(`${G}/${PAGE_ID}/photos`, { method: "POST", body: f });
+  const j = await r.json();
+  if (!r.ok || j.error) throw new Error(masque(`Meta ${r.status} : ${(j.error && j.error.message) || "publication impossible"}`));
+  return j.post_id ? `https://www.facebook.com/${j.post_id}` : j.id;
+}
 async function envoyerStoryFB(image) {
   const f = new FormData();
   f.set("published", "false"); f.set("access_token", TOKEN);
@@ -173,6 +276,7 @@ async function envoyerStoryFB(image) {
 
 // ---------- Programme principal ----------
 async function principal() {
+  if (MODE === "test-alerte" && !TOKEN) { await traiterAlerte(null); return; }   // essai sur ordinateur, sans Meta
   if (process.env.FABRIQUER_SEUL) {        // essai sur ordinateur, sans Meta
     const t = process.env.TYPE_TEST || "reel", m = await fabriquer(t);
     for (const [r, x] of Object.entries(m)) { const f = t === "reel" ? preparerVideo(x.video, `${OUT}/reel-${r}.mp4`) : r === "instagram" ? videoDepuisImage(x.image, `${OUT}/story-${r}.mp4`) : x.image; log(`${r} : ${f} (${decrire(f)})\n${x.legende}`); }
@@ -187,7 +291,8 @@ async function principal() {
   else if (MODE === "auto") type = dansCreneau("reel") ? "reel" : dansCreneau("story") ? "story" : null;
   else if (MODE === "controle-reel") type = "reel";
   else if (MODE === "controle-story") type = "story";
-  if (!type) { log("Hors des créneaux de publication (story 6 h 45 – 10 h 30, Reel 17 h – 21 h) : rien à faire."); return; }
+  const alerte = MODE === "auto" || MODE === "test-alerte";
+  if (!type && !alerte) return;
 
   // Qui est derrière la clé ? (le robot du portefeuille, ou directement la Page)
   try { const me = await api(`/me`, { params: { fields: "name" } }); log(`Clé utilisée : ${me.name}`); } catch (e) { log("Clé utilisée : inconnue"); }
@@ -199,6 +304,12 @@ async function principal() {
   const IG = pg.instagram_business_account && pg.instagram_business_account.id;
   log(`Page : ${pg.name}${IG ? ` · Instagram : @${pg.instagram_business_account.username}` : " · aucun Instagram relié"}`);
   if (RESEAUX.includes("instagram") && !IG) throw new Error("Le compte Instagram n'est plus relié à la Page.");
+
+  // L'alerte vigilance passe avant tout le reste ; si elle échoue, on publie quand même le reste, puis on signale l'échec
+  let erreurAlerte = null;
+  if (alerte) { try { await traiterAlerte(IG); } catch (e) { erreurAlerte = e; log("✘ " + masque(e.message)); } }
+  if (MODE === "test-alerte") { if (erreurAlerte) throw erreurAlerte; return; }
+  if (!type) { log("Hors des créneaux de publication (story 6 h 45 – 10 h 30, Reel 17 h – 21 h) : rien d'autre à faire."); if (erreurAlerte) throw erreurAlerte; return; }
 
   const nomType = type === "reel" ? "Reel" : "story";
   const aFaire = [];
@@ -212,7 +323,7 @@ async function principal() {
     if (aFaire.length) throw new Error(`ALERTE : pas de ${nomType} publié aujourd'hui sur ${aFaire.join(" et ")}. Publie-le à la main depuis l'espace créateur.`);
     log(`Tout est publié ✔`); return;
   }
-  if (!aFaire.length && MODE !== "test") { log("Rien à publier."); return; }
+  if (!aFaire.length && MODE !== "test") { log("Rien à publier."); if (erreurAlerte) throw erreurAlerte; return; }
 
   const media = await fabriquer(type);
   const prets = {};
@@ -237,6 +348,7 @@ async function principal() {
     } catch (e) { echecs.push(`${r} : ${masque(e.message)}`); log(`✘ ${r} : ${masque(e.message)}`); }
   }
   if (echecs.length) throw new Error(`Publication incomplète. ${echecs.join(" ; ")}`);
+  if (erreurAlerte) throw erreurAlerte;
 }
 
 principal().catch(e => { console.error("ÉCHEC : " + masque(e.message)); process.exit(1); });

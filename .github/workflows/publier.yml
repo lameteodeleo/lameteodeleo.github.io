@@ -5,6 +5,9 @@
 #    ou vers 18 h 35 au plus tard si les prévisions ont moins de 3 heures.
 #  - Contrôles : vers 10 h 40 et 21 h 10 (heure d'hiver), le robot vérifie que tout est paru ;
 #    sinon, ce travail échoue et GitHub envoie un e-mail d'alerte.
+#  - Vigilance orange ou rouge dans le 13 : après chaque mise à jour météo entre 7 h et 22 h, le robot publie
+#    une alerte (story + publication sur la Page), une seule fois par épisode, et ouvre un ticket GitHub
+#    (donc un e-mail) pour prévenir Léo.
 name: Publication Instagram et Facebook
 
 on:
@@ -21,7 +24,7 @@ on:
       mode:
         description: "test = tout préparer sans publier ; reel ou story = publier maintenant"
         type: choice
-        options: [test, reel, story]
+        options: [test, reel, story, test-alerte]
         default: test
       type_test:
         description: "En mode test : préparer le Reel ou la story"
@@ -37,6 +40,10 @@ on:
         description: "Publier même si un Reel ou une story est déjà paru aujourd'hui (ex. : un Reel posté à la main le matin)"
         type: boolean
         default: false
+      alerte_simulee:
+        description: "Essai d'alerte (rien n'est publié) : niveau|phénomène|jour (0 = aujourd'hui, 1 = demain)"
+        type: string
+        default: "3|vent violent|0"
       reseaux:
         description: "Réseaux"
         type: choice
@@ -45,6 +52,7 @@ on:
 
 permissions:
   contents: read
+  issues: write      # pour prévenir Léo par e-mail quand une alerte vigilance est publiée
 
 env:
   # « oui » : publication automatique chaque jour. « non » : seulement à la main (bouton « Run workflow »).
@@ -68,6 +76,26 @@ jobs:
           if [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ "$PUBLICATION_AUTO" != "oui" ]; then go=false; echo "Publication automatique en pause."; fi
           if [ "${{ github.event_name }}" = "workflow_run" ] || [ "${{ github.event.schedule }}" = "12 5,6 * * *" ] || [ "${{ github.event.schedule }}" = "32 17 * * *" ]; then
             if ! { [ $hm -ge 645 ] && [ $hm -lt 1030 ]; } && ! { [ $hm -ge 1700 ] && [ $hm -lt 2100 ]; }; then go=false; fi
+          fi
+          # Hors des créneaux : on lance quand même le robot si le 13 est en vigilance orange ou rouge (de 7 h à 22 h)
+          if [ "$go" = false ] && [ "${{ github.event_name }}" = "workflow_run" ] && [ "$PUBLICATION_AUTO" = "oui" ] && [ $hm -ge 700 ] && [ $hm -lt 2200 ]; then
+            niv=$(curl -sf --retry 3 "https://lameteodeleo.fr/data/meteo.json?t=$(date +%s)" | python3 -c '
+          import sys, json
+          from datetime import datetime, timezone
+          try:
+              V = json.load(sys.stdin).get("vigilance") or {}
+          except Exception:
+              print(0); sys.exit()
+          now = datetime.now(timezone.utc); n = 0
+          for k in ("J", "J1"):
+              P = V.get(k) or {}; d = (P.get("deps") or {}).get("13") or {}
+              for p in (d.get("phen") or []) + ((d.get("cote") or {}).get("phen") or []):
+                  fin = p.get("a")
+                  if fin and datetime.fromisoformat(fin.replace("Z", "+00:00")) <= now: continue
+                  n = max(n, p.get("c") or 0)
+          print(n)' || echo 0)
+            echo "Vigilance du 13 (orange = 3, rouge = 4) : $niv"
+            if [ "${niv:-0}" -ge 3 ]; then go=true; fi
           fi
           echo "Heure de Paris : $(TZ=Europe/Paris date '+%H h %M') ; publier : $go"
           echo "go=$go" >> "$GITHUB_OUTPUT"
@@ -93,3 +121,17 @@ jobs:
           RESEAUX: ${{ inputs.reseaux || 'instagram,facebook' }}
           REEL_JOUR: ${{ inputs.jour_reel || 'demain' }}
           FORCER: ${{ inputs.forcer && 'oui' || 'non' }}
+          ALERTE_SIMULEE: ${{ inputs.alerte_simulee }}
+      - name: Prévenir Léo de l'alerte publiée (ticket GitHub = e-mail)
+        if: always() && hashFiles('publication/alerte.txt') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue create --repo "${{ github.repository }}" --title "$(head -n 1 publication/alerte.txt)" --body-file publication/alerte.txt
+      - name: Images de l'essai d'alerte
+        if: always() && inputs.mode == 'test-alerte'
+        uses: actions/upload-artifact@v4
+        with:
+          name: essai-alerte
+          path: |
+            publication/alerte-*.jpg
+            publication/alerte-*.mp4

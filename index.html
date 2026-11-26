@@ -1461,7 +1461,7 @@ function alerteVig(c,jour){
   const v=vigPour(c,jour);if(!v||v.c<3||!v.phen)return null;
   const forts=v.phen.filter(p=>p.c>=3&&pasFini(p));if(!forts.length)return null;
   const niv=Math.max(...forts.map(p=>p.c)), max=forts.filter(p=>p.c===niv), autres=forts.filter(p=>p.c<niv);
-  const cons=forts.slice(0,3).map(p=>cap(p.nom)+" ("+COULV[p.c]+") : "+(horaireV(p,jour)||"aujourd'hui")+".");
+  const cons=forts.slice(0,3).map(p=>cap(p.nom)+" ("+COULV[p.c]+") : "+(horaireV(p,jour)||(jour?"demain":"aujourd'hui"))+".");
   for(const p of forts) for(const t of (CONSIGNES[p.nom]||[])) if(cons.length<5&&!cons.includes(t)) cons.push(t);
   return {titre:"Vigilance "+COULV[niv]+" "+etV(max.map(p=>p.nom))+(autres.length?" et orange "+etV(autres.map(p=>p.nom)):""),cons,niveau:niv,vig:true};
 }
@@ -2879,6 +2879,57 @@ function slideStory(){
   else x.fillText("Chaque commune, heure par heure ↓",540,1610);
   x.globalAlpha=.6;x.font="700 28px "+FB;x.fillText(PSEUDO,540,1860);x.textAlign="left";x.globalAlpha=1;
   return cv;
+}
+/* ---------- Alerte vigilance orange ou rouge, publiée par le robot ----------
+   Sérieux, sans humour : le niveau, les phénomènes, le jour et les consignes officielles. */
+function alerteRobot(){
+  if(!enReel())return null;
+  for(const J of [0,1]){const al=bilanDep(J).al;if(al&&al.vig&&al.niveau>=3)return {J,niveau:al.niveau,couleur:COULV[al.niveau],titre:al.titre,cons:al.cons.slice(),jour:fmt(dayDate(J))}}
+  return null;
+}
+function imageAlerte(J,format){   // format : "instagram" / "facebook" (story 1080×1920) ou "post" (1080×1350)
+  const al=bilanDep(J).al;if(!al||al.niveau<3)return null;
+  const story=format!=="post", H=story?1920:1350, cv=document.createElement("canvas");cv.width=1080;cv.height=H;
+  const x=cv.getContext("2d"), C=CA(al);
+  x.fillStyle=C.fort;x.fillRect(0,0,1080,H);
+  drawMark(x,135,story?190:150,130,true);logoCanvas(x,230,story?210:170,70,B.white,B.white);
+  let y=story?400:330;
+  x.font="800 40px "+FB;const lab="⚠ VIGILANCE "+COULV[al.niveau].toUpperCase(), lw=x.measureText(lab).width+72;
+  x.fillStyle=B.white;rr(x,70,y-54,lw,80,40);x.fill();x.fillStyle=C.texte;x.fillText(lab,106,y);
+  y+=story?120:100;
+  // « Vigilance rouge orages et orange pluie-inondation » → titre « Orages », puis « Et en orange : pluie-inondation »
+  const [prin,aussi]=al.titre.replace(/^Vigilance \S+ /,"").split(" et orange ");
+  x.fillStyle=B.white;x.font="800 "+(story?72:62)+"px "+FD;const n=wrapText(x,cap(prin),70,y,940,story?82:70,2);
+  y+=(n-1)*(story?82:70);
+  if(aussi){y+=story?62:54;x.font="700 40px "+FB;wrapText(x,"Et en orange : "+aussi,70,y,940,48,2)}
+  y+=story?72:62;
+  x.font="700 38px "+FB;x.globalAlpha=.92;x.fillText((J?"Demain · ":"Aujourd'hui · ")+fmt(dayDate(J)),70,y);
+  y+=50;x.font="700 30px "+FB;x.globalAlpha=.8;x.fillText("Bouches-du-Rhône · source Météo-France",70,y);x.globalAlpha=1;
+  // Les consignes, dans un cadre blanc
+  const fs=story?38:34, lh=Math.round(fs*1.3), cons=al.cons.slice(0,story?5:4);
+  x.font="600 "+fs+"px "+FB;
+  const nb=t=>{const w=insec(t).split(" ");let l="",k=1;for(const m of w){const u=l?l+" "+m:m;if(x.measureText(u).width>850&&l){k++;l=m}else l=u}return k};
+  const haut=72+cons.reduce((a,t)=>a+Math.min(3,nb(t))*lh+18,0)+20;
+  y+=story?60:44;
+  x.fillStyle=B.white;rr(x,70,y,940,haut,40);x.fill();
+  x.fillStyle=C.texte;x.font="800 28px "+FB;x.fillText("CONSIGNES",112,y+60);
+  let yy=y+72+fs;
+  for(const t of cons){x.fillStyle=C.texte;x.font="800 "+fs+"px "+FB;x.fillText("•",112,yy);
+    x.fillStyle=B.ink;x.font="600 "+fs+"px "+FB;const k=wrapText(x,t,150,yy,850,lh,3);yy+=k*lh+18}
+  // Pied : où trouver les consignes officielles, et l'appli
+  x.fillStyle=B.white;x.textAlign="center";x.font="700 30px "+FB;
+  const yb=story?y+haut+130:Math.max(y+haut+80,H-120);
+  x.fillText("Consignes officielles : vigilance.meteofrance.fr",540,yb);
+  x.font="800 40px "+FD;x.fillText(format==="instagram"?"La météo de votre commune : lien en bio":"La météo de votre commune : lameteodeleo.fr",540,yb+60);
+  x.textAlign="left";
+  return cv;
+}
+function legendeAlerte(J){
+  const al=bilanDep(J).al;if(!al||al.niveau<3)return null;
+  const sig="⚠️ "+al.titre+" · "+fmt(dayDate(J));
+  const t=al.titre.charAt(0).toLowerCase()+al.titre.slice(1);
+  return {sig,texte:sig+"\n\nMétéo-France place les Bouches-du-Rhône en "+t+(J?" pour demain":" aujourd'hui")+".\n\n"+
+    al.cons.map(c=>"• "+c).join("\n")+"\n\nSuivez les consignes officielles : https://vigilance.meteofrance.fr/fr\n\nLa météo de votre commune, heure par heure : https://lameteodeleo.fr\n\n#vigilance #BouchesDuRhone #meteo13"};
 }
 /* Bouton « Enregistrer » : lien de téléchargement */
 function boutonEnregistrer(cv,file,type){
