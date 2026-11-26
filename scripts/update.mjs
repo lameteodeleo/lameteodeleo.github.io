@@ -373,6 +373,48 @@ async function vigilance(deps) {
   for (const k of ["J", "J1"]) if (res[k]) console.log(`Vigilance ${k} : du ${res[k].debut} au ${res[k].fin} · 13 : ${JSON.stringify((res[k].deps["13"] || {}).phen || [])} · littoral du 13 : ${JSON.stringify(((res[k].deps["13"] || {}).cote || {}).phen || "absent")}`);
   return res;
 }
+// Jeu « Chaud ou froid ? » : la température max mesurée chaque jour par les stations du 13 (Météo-France, temps réel).
+// Clé MF_OBS_KEY : une « Clé API », ou la commande curl d'OAuth2 (on en tire alors un jeton d'une heure).
+// Le paquet horaire couvre les 24 dernières heures : on le lit à chaque mise à jour et on cumule dans site/data/jeu.json.
+async function enteteObs() {
+  const k = (process.env.MF_OBS_KEY || "").trim();
+  if (!k) return null;
+  const b = (k.match(/Basic ([A-Za-z0-9+/=]+)/) || [])[1];
+  if (!b) return { apikey: k.replace(/^Bearer\s+/i, ""), accept: "application/json" };
+  const r = await fetch("https://portail-api.meteofrance.fr/token", { method: "POST", headers: { Authorization: "Basic " + b, "Content-Type": "application/x-www-form-urlencoded" }, body: "grant_type=client_credentials" });
+  const j = await r.json(); if (!j.access_token) throw new Error("jeton OAuth2 refusé");
+  return { Authorization: "Bearer " + j.access_token, accept: "application/json" };
+}
+async function jeu(communes) {
+  const H = await enteteObs();
+  if (!H) { console.log("Jeu : pas de clé MF_OBS_KEY, étape ignorée."); return null; }
+  let prec = null; try { prec = await lireSite("/data/jeu.json", 2); } catch (e) { console.warn("Jeu : historique introuvable, on repart de zéro."); }
+  const J = { stations: (prec && prec.stations) || {}, h: (prec && prec.h) || {} };   // h[date][station] = { heure: tx }
+  let L = null;
+  for (let i = 1; i <= 3 && !L; i++) {
+    try { const r = await fetch("https://public-api.meteofrance.fr/public/DPPaquetObs/v2/paquet/horaire?id-departement=13&format=json", { headers: H }); if (!r.ok) throw new Error("HTTP " + r.status); L = await r.json(); if (!Array.isArray(L)) { L = null; throw new Error("réponse illisible"); } }
+    catch (e) { console.warn(`Jeu, essai ${i}/3 : ${e.message}`); if (i < 3) await pause(4000 * i); }
+  }
+  if (!L) throw new Error("mesures en temps réel indisponibles");
+  // Le nom affiché d'une station : la commune de l'appli la plus proche (à moins de 12 km)
+  const nomDe = (la, lo) => { let best = null, d0 = 12; for (const c of communes) { const d = distKm(la, lo, c.lat, c.lon); if (d < d0) { d0 = d; best = c.n; } } return best; };
+  let n = 0;
+  for (const o of L) {
+    const id = o.geo_id_insee, tx = o.tx != null ? o.tx : o.t; if (!id || tx == null || !o.validity_time) continue;
+    if (!J.stations[id]) { const nom = nomDe(o.lat, o.lon); if (!nom) continue; J.stations[id] = { n: nom, lat: o.lat, lon: o.lon }; }
+    const t = new Date(o.validity_time), jour = t.toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" }), hr = +t.toLocaleString("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", hour12: false }).slice(0, 2);
+    // La maximale de la journée : les heures de 7 h à 22 h (heure de Paris), en °C (les mesures arrivent en kelvins)
+    if (hr < 7 || hr > 22) continue;
+    ((J.h[jour] = J.h[jour] || {})[id] = J.h[jour][id] || {})[hr] = Math.round((tx - 273.15) * 10) / 10; n++;
+  }
+  for (const d of Object.keys(J.h).sort().slice(0, -10)) delete J.h[d];   // 10 jours suffisent
+  // Résultat du jour : la max et le nombre d'heures mesurées (complet si au moins 10 heures dont 13 h à 17 h)
+  const tx = {};
+  for (const [d, S] of Object.entries(J.h)) { tx[d] = {}; for (const [id, H2] of Object.entries(S)) { const v = Object.values(H2); const plein = v.length >= 10 && [13, 14, 15, 16, 17].every(h => H2[h] != null); tx[d][id] = [Math.max(...v), plein ? 1 : 0]; } }
+  await writeFile("site/data/jeu.json", JSON.stringify({ maj: new Date().toISOString(), stations: J.stations, h: J.h, tx }));
+  console.log(`Jeu : ${L.length} mesures lues, ${n} gardées ; ${Object.keys(J.stations).length} stations ; jours : ${Object.keys(tx).sort().join(", ")}`);
+  return true;
+}
 // Ces données sont un bonus : si elles manquent, le site est quand même publié
 async function bonus(nom, f) { try { return await f(); } catch (e) { console.warn(`${nom} indisponible : ${e.message}`); return null; } }
 
@@ -854,6 +896,7 @@ if (process.env.TEST_MESURES === "true") await bonus("Test des mesures", async (
   }
 });
 const fiabilite = await bonus("Vérification", () => verifier(ok, qualiteAir));
+await bonus("Jeu", () => jeu(ok));
 await writeFile("site/data/meteo.json", JSON.stringify({
   maj: new Date().toISOString(),
   source: "Open-Meteo (CC BY 4.0) : modèles Météo-France AROME et ARPEGE, complétés par le modèle global",
