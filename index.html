@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-GYr5VsW62pTBGLVADMc/cpH/RAfixtFg1ADqzcMi/5I=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-4P6vVDObvQ9cVtXivm7ZX8Gx4flO2Ahxol3a4GQ+r0k=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -3679,7 +3679,7 @@ async function renderSuivi(){const el=$("suiviJeu");if(!el)return;
   const jauge=(lab,v,max)=>{const k=Math.min(1,v/max), ok=v>=max;return '<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:.9rem"><span>'+lab+'</span><b>'+v+' / '+max+(ok?" ✅":"")+'</b></div><div style="height:8px;border-radius:6px;background:var(--line);margin-top:4px;overflow:hidden"><div style="height:100%;width:'+Math.round(k*100)+'%;background:'+(ok?"var(--ok)":"var(--brand)")+'"></div></div></div>'};
   const pret=reg>=30&&(tot>=300||visMoy>=100);
   el.innerHTML='<div class="sub" style="line-height:1.7">'+
-    '👥 <b>Visiteurs</b> : '+(A.vis||0)+' aujourd\'hui · '+visMoy+' par jour en moyenne (7 jours)<br>'+
+    '👥 <b>Visiteurs</b> : '+(A.vis||0)+' aujourd\'hui · '+visMoy+' par jour en moyenne ('+(nbJ>=7?"7 jours":"sur "+nbJ+" jour"+(nbJ>1?"s":"")+", le suivi vient de commencer")+')<br>'+
     '🎯 <b>Parties</b> : '+(A.tente||0)+' aujourd\'hui · '+som("tente",sept)+' sur 7 jours<br>'+
     '📤 <b>Partages de résultats</b> : '+som("partage",sept)+' sur 7 jours<br>'+
     '🔁 <b>Joueurs réguliers</b> (3 parties ou plus) : '+reg+' cette semaine<br>'+
