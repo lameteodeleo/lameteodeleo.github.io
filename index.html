@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-L56sw71d909OfJYH8K0H7a7cASxeV6P04BrshfWLvUY=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-rsafL7wWfuowyF9h86ZjtPaK6bPXxLUDu5WIrGfk7wU=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -244,6 +244,12 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .jeu .detail{text-align:center;color:var(--muted);font-size:.88rem;margin-bottom:10px}
 .jeu .attente{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:12px;text-align:center;font-size:.93rem}
 .jeu .sep{border-top:1px solid var(--line);margin:14px 0}
+.jeu .badges{display:flex;align-items:center;gap:6px;margin-top:12px;flex-wrap:wrap}
+.jeu .bdg{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.15rem;cursor:pointer;filter:grayscale(1);opacity:.35;padding:0}
+.jeu .bdg.ok{filter:none;opacity:1;border-color:var(--sun);box-shadow:0 0 0 2px var(--sun) inset}
+.jeu .mois{margin-left:auto;font-size:.85rem;color:var(--muted)}.jeu .mois b{color:var(--ink)}
+.jeu .bdgtxt{margin-top:8px;font-size:.85rem;color:var(--muted)}.jeu .bdgtxt b{color:var(--ink)}.jeu .okb{color:var(--brand);font-weight:800}
+.jeu .nbadge{margin:0 0 8px;background:var(--sun);color:var(--sun-ink);border-radius:14px;padding:10px 12px;text-align:center;font-size:.92rem}.jeu .nbadge span{font-size:.85rem}
 .jeu .lien{background:none;border:0;color:var(--brand);font-weight:800;cursor:pointer;padding:6px 0;font-size:.9rem}
 .tip+.tip{border-top:1px solid var(--line)}
 .tip span.i{flex:0 0 36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand)}
@@ -2140,6 +2146,20 @@ function serieJeu(p){const dates=Object.keys(p).sort();if(!dates.length)return 0
 function resultatJeu(date,g){const r=JEU&&JEU.tx&&JEU.tx[date]&&JEU.tx[date][g.st];if(!r)return null;if(!r[1]&&date>=jourISO(0))return null;
   const ecart=Math.round(Math.abs(g.v-r[0])*10)/10, v=VERDICTS.find(x=>ecart<=x[0]);return {mes:r[0],ecart,titre:v[1],pts:v[2],det:v[3]}}
 const escJ=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])).replace(/-/g,"\u2011");   // les noms de ville ne se coupent pas au trait d'union
+/* Les 5 badges : gagnés une fois, gardés pour toujours */
+const BADGES=[["premier","🌡️","Premier degré","Jouer sa première partie"],["chaud","🔥","Chaud devant !","Jouer 7 jours d'affilée"],["pile","🎯","Pile-poil","3 fois « Vous brûlez ! »"],
+  ["mistral","🌬️","Mistral gagnant","« Vous brûlez ! » un jour de mistral"],["thermo","🎓","Thermo-maître","10 fois « Vous brûlez ! »"]];
+// Les résultats arrivés et pas encore comptés : points du mois, « brûlez », badges
+function comptesJeu(d){
+  d.vus=d.vus||[];d.mois=d.mois||{};d.b=d.b||{};d.nb=d.nb||0;const nouveaux=[];
+  for(const x of Object.keys(d.p).sort()){if(d.vus.includes(x))continue;const r=resultatJeu(x,d.p[x]);if(!r)continue;
+    d.vus.push(x);const k=x.slice(0,7);d.mois[k]=(d.mois[k]||0)+r.pts;
+    if(r.pts===10){d.nb++;if(d.p[x].mis&&!d.b.mistral){d.b.mistral=x;nouveaux.push("mistral")}}}
+  d.vus=d.vus.slice(-60);
+  const gagne=(id,ok)=>{if(ok&&!d.b[id]){d.b[id]=jourISO(0);nouveaux.push(id)}};
+  gagne("premier",Object.keys(d.p).length>=1);gagne("chaud",(d.rec||0)>=7);gagne("pile",d.nb>=3);gagne("thermo",d.nb>=10);
+  return nouveaux;
+}
 function renderJeu(){
   const sec=$("jeuSec"), box=$("jeu");if(!sec)return;
   const c=COMMUNES[st.c], m0=c&&meteo(c,st.scen,0), m1=c&&meteo(c,st.scen,1);
@@ -2148,6 +2168,7 @@ function renderJeu(){
   if(!JEU){sec.hidden=true;chargerJeu();return}
   const id=stationProche(c);if(!id){sec.hidden=true;return}
   const d=jeuLire(), dem=jourISO(1), nomSt=JEU.stations[id].n, serie=serieJeu(d.p);
+  const nouveaux=comptesJeu(d);jeuEcrire(d);
   let h='<div class="jh"><span class="jt">🔥 Chaud ou froid&nbsp;? 🧊</span>'+(serie>=2?'<span class="serie">🔥 '+serie+' jours</span>':'')+'</div>';
   // Le dernier résultat arrivé
   const faits=Object.keys(d.p).filter(x=>x<=jourISO(0)).sort().reverse();
@@ -2156,6 +2177,9 @@ function renderJeu(){
     h+='<div class="js">Résultat du '+jl+' · '+escJ(g.n)+'</div><div class="duel"><div><small>Vous</small><b>'+g.v+'°</b></div><div><small>Mesure officielle</small><b>'+fr(res.mes)+'°</b></div></div>'+
       '<div class="verdict">'+res.titre+'</div><div class="detail">'+(res.ecart===0?"Exactement le bon chiffre !":res.ecart<=2?"À "+fr(res.ecart)+"° près. ":fr(res.ecart)+"° d'écart. ")+(res.ecart===0?"":res.det)+' · +'+res.pts+' points</div>'+
       '<div style="text-align:center"><button type="button" class="lien" id="jeuPartage">Partager mon résultat</button></div><div class="sep"></div>'}
+  // Un badge vient d'être gagné : on le fête juste après le résultat
+  for(const n of nouveaux){const b=BADGES.find(x=>x[0]===n);h+='<div class="nbadge">🎉 Nouveau badge : <b>'+b[1]+' '+escJ(b[2])+'</b><br><span>'+escJ(b[3])+'</span></div>'}
+  if(nouveaux.length)h+='<div class="sep"></div>';
   const dj=d.p[dem];
   if(dj){h+='<div class="attente">Votre réponse pour demain à <b>'+escJ(dj.n)+'</b> : <b>'+dj.v+'°</b><br><span class="sub">Résultat demain soir, vers 21&nbsp;h.</span></div>'}
   else{
@@ -2163,14 +2187,20 @@ function renderJeu(){
     h+='<div class="js">Devinez la température max de demain à <b>'+escJ(nomSt)+'</b>'+(nomSt!==c.n?' (la station officielle la plus proche)':'')+'.</div>'+
       '<div class="choix"><button type="button" id="jeuMoins" aria-label="Un degré de moins">−</button><span class="val" id="jeuVal">'+prop+'°</span><button type="button" id="jeuPlus" aria-label="Un degré de plus">+</button></div>'+
       '<button type="button" class="go" id="jeuGo">Je tente&nbsp;!</button>'}
-  if(d.pts)h+='<div class="detail" style="margin:10px 0 0">'+d.pts+' points au total'+(d.rec>=2?' · record : '+d.rec+' jours d\'affilée':'')+'</div>';
+  // Nouveau badge, puis la ligne du bas : les 5 badges et le score du mois
+  const mois=jourISO(0).slice(0,7), nomMois=cap(new Date().toLocaleDateString("fr-FR",{month:"long"}));
+  if(Object.keys(d.p).length){
+    h+='<div class="badges" role="group" aria-label="Badges">'+BADGES.map(b=>'<button type="button" class="bdg'+(d.b[b[0]]?' ok':'')+'" data-b="'+b[0]+'" aria-label="'+escJ(b[2]+(d.b[b[0]]?" (gagné)":" (à gagner)")+" : "+b[3])+'">'+b[1]+'</button>').join("")+
+      '<span class="mois">'+nomMois+' : <b>'+(d.mois&&d.mois[mois]||0)+' pts</b></span></div><div class="bdgtxt" id="jeuBdgTxt" hidden></div>'}
   box.innerHTML=h;sec.hidden=false;
-  // Les points s'ajoutent une seule fois par résultat
-  if(res&&!(d.vus||[]).includes(dres)){d.vus=(d.vus||[]).concat(dres).slice(-30);d.pts=(d.pts||0)+res.pts;jeuEcrire(d)}
+  for(const el of box.querySelectorAll(".bdg"))el.onclick=()=>{const b=BADGES.find(x=>x[0]===el.dataset.b),t=$("jeuBdgTxt");
+    t.innerHTML='<b>'+b[1]+' '+escJ(b[2])+'</b> · '+escJ(b[3])+(d.b[b[0]]?' · <span class="okb">gagné ✓</span>':'');t.hidden=false};
   let val=dj?null:Math.round(m0?m0.max:15);
   const maj=()=>{$("jeuVal").textContent=val+"°"};
   if(!dj){$("jeuMoins").onclick=()=>{if(val>-15){val--;maj()}};$("jeuPlus").onclick=()=>{if(val<45){val++;maj()}};
-    $("jeuGo").onclick=()=>{const e=jeuLire();e.p[dem]={st:id,n:nomSt,v:val};const s=serieJeu(e.p);e.rec=Math.max(e.rec||0,s);
+    // Jour de mistral prévu à la station : utile pour le badge « Mistral gagnant »
+    const cs=COMMUNES[idx(nomSt)], ms=cs?meteo(cs,st.scen,1):m1, mis=!!ms&&(ms.type==="mistral"||(ms.raf>=50&&/nord/i.test(ms.dir||"")));
+    $("jeuGo").onclick=()=>{const e=jeuLire();e.p[dem]={st:id,n:nomSt,v:val,mis};const s=serieJeu(e.p);e.rec=Math.max(e.rec||0,s);
       for(const k of Object.keys(e.p).sort().slice(0,-40))delete e.p[k];jeuEcrire(e);renderJeu()}}
   const bp=$("jeuPartage");if(bp)bp.onclick=async()=>{const g=d.p[dres],t="🔥 Chaud ou froid ? 🧊 J'avais dit "+g.v+"°, il a fait "+fr(res.mes)+"° à "+g.n+" : "+res.titre.replace(/^\S+ /,"")+" Et vous ?";
     if(navigator.share){try{await navigator.share({text:t,url:"https://lameteodeleo.fr"})}catch(e){}}else copyText(t+" https://lameteodeleo.fr",bp,"Copié !")};
