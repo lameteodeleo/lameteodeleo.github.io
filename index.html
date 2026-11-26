@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-6zJ6OiAAIC/QG285G/W8trQEovGJvlv2r52RaDaFUDY=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-GYr5VsW62pTBGLVADMc/cpH/RAfixtFg1ADqzcMi/5I=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -3671,7 +3671,7 @@ function momentFort(){
 async function renderSuivi(){const el=$("suiviJeu");if(!el)return;
   let S=null;try{const r=await fetch("data/suivi.json?"+Date.now(),{cache:"no-store"});if(r.ok)S=await r.json()}catch(e){}
   const J=(S&&S.j)||{}, jours=Object.keys(J).sort();
-  if(!jours.length){el.innerHTML='<span class="sub">Les premiers chiffres arrivent après la prochaine mise à jour du robot, une fois la clé Umami ajoutée dans les secrets GitHub (UMAMI_API_KEY).</span>';return}
+  if(!jours.length){el.innerHTML='<span class="sub">Les premiers chiffres arrivent après la prochaine mise à jour du robot, une fois le lien de partage Umami ajouté dans les secrets GitHub (UMAMI_SHARE_URL).</span>';return}
   const auj=jourISO(0), sept=jourISO(-6), lun=(()=>{const d=new Date();d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toLocaleDateString("sv-SE")})();
   const som=(k,de)=>jours.filter(d=>d>=de&&d<=auj).reduce((a,d)=>a+(J[d][k]||0),0), A=J[auj]||{};
   const nbJ=Math.max(1,jours.filter(d=>d>=sept&&d<=auj).length), visMoy=Math.round(som("vis",sept)/nbJ), reg=som("regulier",lun);

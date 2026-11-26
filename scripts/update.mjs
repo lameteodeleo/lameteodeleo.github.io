@@ -422,10 +422,20 @@ async function suiviCreateur() {
   let prec = null; try { prec = await lireSite("/data/suivi.json", 2); } catch (e) {}
   const S = { j: (prec && prec.j) || {}, abo: (prec && prec.abo) || {} };
   const jourParis = t => new Date(t).toLocaleDateString("fr-CA", { timeZone: "Europe/Paris" });
-  const cleU = (process.env.UMAMI_API_KEY || "").trim();
-  if (cleU) {
-    const W = "a3212f59-b8e9-486f-9e0f-d7256926be65", B = "https://api.umami.is/v1/websites/" + W;
-    const get = async u => { const r = await fetch(B + u, { headers: { Authorization: "Bearer " + cleU, "x-umami-api-key": cleU, accept: "application/json" } }); if (!r.ok) throw new Error("Umami HTTP " + r.status); return r.json(); };
+  // Umami gratuit : pas de clé d'API, on passe par le lien de partage (UMAMI_SHARE_URL), en lecture seule.
+  const cleU = "", part = ((process.env.UMAMI_SHARE_URL || "").trim().match(/share\/([A-Za-z0-9_-]+)/) || [])[1];
+  let get = null, W = "a3212f59-b8e9-486f-9e0f-d7256926be65";
+  if (cleU) { const B = "https://api.umami.is/v1/websites/" + W; get = async u => { const r = await fetch(B + u, { headers: { Authorization: "Bearer " + cleU, accept: "application/json" } }); if (!r.ok) throw new Error("Umami HTTP " + r.status); return r.json(); }; }
+  else if (part) {
+    for (const base of ["https://cloud.umami.is/api", "https://cloud.umami.is/analytics/eu/api", "https://cloud.umami.is/analytics/us/api"]) {
+      try { const r = await fetch(base + "/share/" + part, { headers: { accept: "application/json" } }); if (!r.ok) continue; const j = await r.json(); if (!j.token) continue;
+        W = j.websiteId || W; const B = base + "/websites/" + W;
+        get = async u => { const r2 = await fetch(B + u, { headers: { "x-umami-share-token": j.token, accept: "application/json" } }); if (!r2.ok) throw new Error("Umami HTTP " + r2.status); return r2.json(); };
+        console.log("Suivi : lien de partage Umami lu (" + base.replace("https://", "") + ")"); break; } catch (e) {}
+    }
+    if (!get) console.warn("Suivi : lien de partage Umami illisible.");
+  }
+  if (get) {
     const val = x => x == null ? 0 : typeof x === "object" ? (x.value || 0) : x;
     // aujourd'hui et hier (heure de Paris), relus à chaque passage pour avoir la journée complète
     for (const dec of [1, 0]) {
@@ -438,7 +448,7 @@ async function suiviCreateur() {
       const n = k => { const o = (ev || []).find(x => x.x === k); return o ? o.y : 0; };
       S.j[d] = { vis: val(st.visitors), vues: val(st.pageviews), tente: n("jeu-tente"), partage: n("jeu-partage"), regulier: n("jeu-regulier") };
     }
-  } else console.log("Suivi : pas de clé UMAMI_API_KEY, visiteurs et parties non relevés.");
+  } else console.log("Suivi : pas de lien Umami (UMAMI_SHARE_URL), visiteurs et parties non relevés.");
   const cleM = (process.env.META_PAGE_TOKEN || "").trim();
   if (cleM) {
     try {
