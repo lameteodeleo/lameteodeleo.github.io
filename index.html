@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-O7lwB8y51kCR/9l/syKuUsFBObX39101SiIRe4/MXS0=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-UaFKYNoJi4mHSbLcEcBvT15KIYfJVx3fYR1E48icM0c=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -661,7 +661,7 @@ details.plus[open] .tiles{margin-top:10px}
       <h3>Confidentialité</h3>
       <ul>
         <li>Aucune inscription, aucun compte, aucune publicité.</li>
-        <li>Votre commune et vos favoris restent sur votre appareil.</li>
+        <li>Votre commune, vos favoris et vos parties de « Chaud ou froid&nbsp;? » restent sur votre appareil.</li>
         <li>La localisation ne sert que si vous touchez « Me localiser », pour trouver la commune la plus proche. Elle n'est ni enregistrée ni transmise.</li>
         <li>Les visites sont comptées de façon anonyme, sans cookie.</li>
       </ul>
@@ -2117,11 +2117,11 @@ function dureeJourDelta(d){const m=x=>{const s=soleil(x);return enMin(s.coucher)
 function resumeSlots(S,auj,rafJour){
   const pl=x=>x&&["pluie","orage","neige"].includes(x.type), L=[];
   const apres={soleil:"soleil",nuageux:"éclaircies",couvert:"ciel gris",lune:"ciel dégagé",nuitNuageux:"nuages",mistral:"mistral",vent:"vent",brouillard:"brouillard"};
-  const i=S.findIndex(pl);
-  if(i<0)L.push(["Au sec",auj?"jusqu'à ce soir":"toute la journée"]);
+  const i=S.findIndex(pl), soir=auj&&new Date().getHours()>=18, fj=auj?(soir?"cette nuit":"jusqu'à ce soir"):"toute la journée";
+  if(i<0)L.push(["Au sec",fj]);
   else{let j=i;while(j+1<S.length&&pl(S[j+1]))j++;const fin=S[j+1], encore=fin&&S.slice(j+1).some(pl);
     const k=S[i].type==="orage"?"Orages":S[i].type==="neige"?"Neige":"Pluie";
-    L.push([k,i===0?(encore?"par moments, "+(auj?"jusqu'à ce soir":"toute la journée"):!fin?(auj?"jusqu'à ce soir":"toute la journée"):"jusqu'à "+fin.h+" h, puis "+(apres[fin.ico]||apres[fin.type]||"temps sec"))
+    L.push([k,i===0?(encore?"par moments, "+fj:!fin?fj:"jusqu'à "+fin.h+" h, puis "+(apres[fin.ico]||apres[fin.type]||"temps sec"))
       :(encore?"dès "+S[i].h+" h, par moments":fin?"de "+S[i].h+" h à "+fin.h+" h":"dès "+S[i].h+" h")])}
   const r=rafJour!=null?rafJour:Math.max(0,...S.map(x=>x.raf||0)), km=S.findIndex(x=>x.type==="mistral");
   if(km>=0)L.push(["Mistral",(km>0?"dès "+S[km].h+" h, ":"")+(r>=30?"jusqu'à "+r+" km/h en rafales":"modéré")]);
@@ -2319,8 +2319,8 @@ function render(){
   $("barNow").hidden=!(heroNow&&heroNow.t!=null);
   // tuiles
   const sun=soleil(dayDate(st.jour));
-  const windTxt=m.raf>=60?"Vent fort":m.raf>=40?"Vent soutenu":m.raf>=20?"Vent modéré":"Vent faible";
-  const dirDe=m.dir==="Variable"||!m.dir?"":(/^[EO]/.test(m.dir)?" d'":" de ")+m.dir.toLowerCase();
+  const windTxt=m.type==="mistral"?(m.raf>=60?"Mistral fort":"Mistral"):m.raf>=60?"Vent fort":m.raf>=40?"Vent soutenu":m.raf>=20?"Vent modéré":"Vent faible";
+  const dirDe=m.type==="mistral"||m.dir==="Variable"||!m.dir?"":(/^[EO]/.test(m.dir)?" d'":" de ")+m.dir.toLowerCase();
   // Pluie : « 0 mm » avec un risque élevé déroute ; on dit clairement qu'il s'agit de quelques gouttes
   const plV=m.pl>=0.3?fr(m.pl>=10?Math.round(m.pl):m.pl)+" mm":m.prob>=30?"Quelques gouttes":"Pas de pluie";
   const plD=m.pl>=0.3?"Risque de pluie : "+m.prob+" %":m.prob>=30?"Risque de "+m.prob+" %, quantité très faible":"Risque de pluie : "+m.prob+" %";
@@ -3744,9 +3744,10 @@ async function rafraichir(){
   const ptr=$("ptr");let y0=null,dy=0,occupe=false;
   const actif=()=>!occupe&&window.scrollY<=0&&$("sheet").hidden&&!document.body.classList.contains("boot");
   addEventListener("touchstart",e=>{y0=actif()&&e.touches.length===1?e.touches[0].clientY:null;dy=0},{passive:true});
-  addEventListener("touchmove",e=>{if(y0==null)return;dy=Math.max(0,e.touches[0].clientY-y0);if(window.scrollY>0){y0=null;return}
+  addEventListener("touchmove",e=>{if(y0==null)return;dy=Math.max(0,e.touches[0].clientY-y0);if(window.scrollY>0){y0=null;ptr.style.opacity=0;ptr.style.transform="";return}
     const k=Math.min(1,dy/80);ptr.style.opacity=k;ptr.style.transform="translateY("+(Math.min(dy,90)*.6-30)+"px) rotate("+(k*270)+"deg)"},{passive:true});
-  addEventListener("touchend",async()=>{if(y0==null)return;y0=null;
+  addEventListener("touchcancel",()=>{if(occupe)return;y0=null;ptr.style.opacity=0;ptr.style.transform=""},{passive:true});
+  addEventListener("touchend",async()=>{if(y0==null){if(!occupe){ptr.style.opacity=0;ptr.style.transform=""}return}y0=null;
     if(dy<80){ptr.style.opacity=0;ptr.style.transform="";return}
     occupe=true;ptr.classList.add("charge");ptr.style.transform="translateY(24px)";
     await Promise.all([rafraichir(),new Promise(r=>setTimeout(r,600))]);
