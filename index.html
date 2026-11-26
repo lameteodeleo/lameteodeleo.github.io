@@ -2824,9 +2824,12 @@ function slideSuite(j){
     x.fillStyle=B.muted;x.font="700 28px "+FB;x.fillText("min "+R.tMin+"°",984,y+178);x.textAlign="left"});
   return cv;
 }
+/* Le sourire des visuels parle de Marseille : on lui donne les températures du secteur « Marseille & alentours »
+   affichées sur le même visuel, pour que les chiffres concordent */
+function mSecteurMc(m,j){try{const b=bilanSecteur("mc",j);if(b&&b.max!=null){const ec=m.max-m.feel;return Object.assign({},m,{max:b.max,min:b.min,feel:b.max-ec})}}catch(e){}return m}
 /* 7. Le sourire du jour, puis le lien vers l'app */
 function slideFin(j){
-  const [cv,x]=toile(), R=bilanDep(j), al=R.al, c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,j);
+  const [cv,x]=toile(), R=bilanDep(j), al=R.al, c=COMMUNES[idx("Marseille")], m=mSecteurMc(meteo(c,st.scen,j),j);
   x.fillStyle=al?CA(al).fort:B.sun;x.fillRect(0,0,1080,1350);
   x.fillStyle=al?B.white:B.sunInk;x.font="800 30px "+FB;x.fillText(al?"VIGILANCE":"LE SOURIRE DU JOUR",70,150);
   x.font="800 28px "+FB;x.textAlign="right";x.fillText("7 / 7",1010,150);x.textAlign="left";
@@ -2864,7 +2867,7 @@ function slideStory(){
     x.textAlign="right";x.font="800 48px "+FD;x.fillText(m.max+"°",900,y+68);
     x.font="700 30px "+FB;x.globalAlpha=.7;x.fillText(m.min+"°",985,y+66);x.globalAlpha=1;x.textAlign="left";
   });
-  const c=COMMUNES[idx("Marseille")], m=meteo(c,st.scen,J);
+  const c=COMMUNES[idx("Marseille")], m=mSecteurMc(meteo(c,st.scen,J),J);
   const txt=al?al.cons.slice(0,2).join(" "):motDuJour(c,m,J);
   x.fillStyle=al?B.white:B.sun;rr(x,70,1230,940,290,40);x.fill();
   x.fillStyle=al?CA(al).texte:B.sunInk;x.font="800 28px "+FB;x.fillText(al?"CONSIGNES":"LE SOURIRE DU JOUR",112,1292);
