@@ -2,13 +2,14 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-/SnoAW8W+KtRxTUUVY167Y1KCtH/hvUHnr2O3Zpb9rs=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-XpsjXscOclL64y/673dKBZBuED/SMPOytn8/2xT9I4U=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Météo des Bouches-du-Rhône, commune par commune : Marseille, Aix-en-Provence, Arles, Salon… Prévisions heure par heure et à 7 jours, mistral, pluie dans l'heure. Gratuit et sans publicité.">
 <meta name="robots" content="index,follow,max-image-preview:large">
-<meta name="theme-color" content="#4B3BB8">
+<meta name="theme-color" content="#4B3BB8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#110F26" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Météo de Léo">
@@ -170,7 +171,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .hours{display:flex;gap:4px;overflow-x:auto;padding:14px 10px;scrollbar-width:none}
 .hours::-webkit-scrollbar{display:none}
 .hwrap{position:relative}
-.pastille{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 4px 0 8px;vertical-align:1px}.days-note .pastille:first-child{margin-left:0}
+.pastille{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 4px 0 8px;vertical-align:1px}.days-note>.pastille:first-child{margin-left:0}
 .hnav{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);color:var(--brand);box-shadow:0 2px 8px rgba(20,14,60,.18);display:grid;place-items:center;cursor:pointer;padding:0;z-index:3}
 /* Bords en fondu : on devine qu'il reste des heures à voir, sans qu'une flèche cache une colonne */
 .hwrap::before,.hwrap::after{content:"";position:absolute;top:1px;bottom:1px;width:58px;pointer-events:none;z-index:2;opacity:0;transition:opacity .2s}
@@ -3779,7 +3780,7 @@ function finIntro(){if(!INTRO)return;const reste=Math.max(0,1350-(Date.now()-INT
   setTimeout(()=>{INTRO.el.classList.add("part");barreCouleur();setTimeout(()=>INTRO.el.remove(),500)},reste)}
 // Barre du téléphone : couleur du fond de l'app une fois ouverte
 try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>setTimeout(barreCouleur,60))}catch(e){}
-function barreCouleur(){try{const mt=document.querySelector('meta[name="theme-color"]');if(mt)mt.setAttribute("content",getComputedStyle(document.body).backgroundColor)}catch(e){}}
+function barreCouleur(){try{const c=getComputedStyle(document.body).backgroundColor;document.querySelectorAll('meta[name="theme-color"]').forEach(mt=>mt.setAttribute("content",c))}catch(e){}}
 demarrer();
 </script>
 
