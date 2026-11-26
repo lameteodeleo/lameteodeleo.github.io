@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-UaFKYNoJi4mHSbLcEcBvT15KIYfJVx3fYR1E48icM0c=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-/SnoAW8W+KtRxTUUVY167Y1KCtH/hvUHnr2O3Zpb9rs=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -353,6 +353,7 @@ body.boot #demoPill{display:none}
 /* Tirer pour rafraîchir */
 .ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:35;width:40px;height:40px;margin-left:-20px;border-radius:50%;display:grid;place-items:center;background:var(--surface);color:var(--brand);box-shadow:var(--shadow);border:1px solid var(--line);opacity:0;transform:translateY(-60px);pointer-events:none}
 .ptr svg{width:20px;height:20px}
+.detJour{font-weight:400;color:var(--muted)}
 .ptr.charge svg{animation:tourne .8s linear infinite}
 @keyframes tourne{to{transform:rotate(360deg)}}
 html{overscroll-behavior-y:contain}
@@ -592,7 +593,7 @@ details.plus[open] .tiles{margin-top:10px}
     </div>
 
     <details class="plus" id="plus">
-      <summary><span>Plus de détails</span></summary>
+      <summary><span>Plus de détails<span class="detJour" id="detJour"></span></span></summary>
       <div class="tiles" id="tiles"></div>
     </details>
 
@@ -2317,7 +2318,8 @@ function render(){
   const gmin=Math.min(...days.map(d=>d.m.min)), gmax=Math.max(...days.map(d=>d.m.max)), span=Math.max(1,gmax-gmin);
   $("days").innerHTML=days.map(d=>'<button type="button" class="day" data-i="'+d.i+'" aria-pressed="'+(d.i===st.jour)+'" aria-label="'+fmt(dayDate(d.i))+', '+LIB[d.m.ico||d.m.type]+', '+d.m.min+' à '+d.m.max+' degrés'+(d.m.prob>=30?', risque de pluie '+d.m.prob+' pour cent'+(d.m.plNuit?', surtout la nuit':''):'')+'"><span class="dn">'+dayName(d.i)+'</span><span class="ic">'+ICONS[d.m.ico||d.m.type]+(d.m.prob>=30&&d.m.type!=="neige"?'<small>'+d.m.prob+' %'+(d.m.plNuit?'<em>nuit</em>':'')+'</small>':'')+'</span><span class="lo">'+d.m.min+'°</span><span class="bar" aria-hidden="true"><span style="left:'+((d.m.min-gmin)/span*100)+'%;right:'+((gmax-d.m.max)/span*100)+'%;background:linear-gradient(90deg,'+coulT(d.m.min)+','+coulT((d.m.min+d.m.max)/2)+','+coulT(d.m.max)+')"></span>'+(d.i===0&&heroNow&&heroNow.t!=null?'<i style="left:'+Math.max(0,Math.min(100,(heroNow.t-gmin)/span*100))+'%"></i>':'')+'</span><span class="hi">'+d.m.max+'°</span></button>').join("");
   $("barNow").hidden=!(heroNow&&heroNow.t!=null);
-  // tuiles
+  // tuiles : on précise le jour, car le soir les conseils passent déjà à demain
+  $("detJour").textContent=" · "+(st.jour===0?"aujourd'hui":st.jour===1?"demain":dayDate(st.jour).toLocaleDateString("fr-FR",{weekday:"long"}));
   const sun=soleil(dayDate(st.jour));
   const windTxt=m.type==="mistral"?(m.raf>=60?"Mistral fort":"Mistral"):m.raf>=60?"Vent fort":m.raf>=40?"Vent soutenu":m.raf>=20?"Vent modéré":"Vent faible";
   const dirDe=m.type==="mistral"||m.dir==="Variable"||!m.dir?"":(/^[EO]/.test(m.dir)?" d'":" de ")+m.dir.toLowerCase();
