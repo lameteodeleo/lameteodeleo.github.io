@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-/H0Tx0adn5nJXUab6n/Q47abA4L0E31T0SHMmzRNmSo=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-S/S1P8pRipDfa2Cv1FEdTKjhEd6UJHxLEH02CCcZMG8=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -2148,7 +2148,7 @@ function renderJeu(){
   if(!JEU){sec.hidden=true;chargerJeu();return}
   const id=stationProche(c);if(!id){sec.hidden=true;return}
   const d=jeuLire(), dem=jourISO(1), nomSt=JEU.stations[id].n, serie=serieJeu(d.p);
-  let h='<div class="jh"><span class="jt">🔥 Chaud ou Froid 🧊</span>'+(serie>=2?'<span class="serie">🔥 '+serie+' jours</span>':'')+'</div>';
+  let h='<div class="jh"><span class="jt">🔥 Chaud ou froid&nbsp;? 🧊</span>'+(serie>=2?'<span class="serie">🔥 '+serie+' jours</span>':'')+'</div>';
   // Le dernier résultat arrivé
   const faits=Object.keys(d.p).filter(x=>x<=jourISO(0)).sort().reverse();
   let res=null,dres=null;for(const x of faits){const r=resultatJeu(x,d.p[x]);if(r){res=r;dres=x;break}}
@@ -2172,7 +2172,7 @@ function renderJeu(){
   if(!dj){$("jeuMoins").onclick=()=>{if(val>-15){val--;maj()}};$("jeuPlus").onclick=()=>{if(val<45){val++;maj()}};
     $("jeuGo").onclick=()=>{const e=jeuLire();e.p[dem]={st:id,n:nomSt,v:val};const s=serieJeu(e.p);e.rec=Math.max(e.rec||0,s);
       for(const k of Object.keys(e.p).sort().slice(0,-40))delete e.p[k];jeuEcrire(e);renderJeu()}}
-  const bp=$("jeuPartage");if(bp)bp.onclick=async()=>{const g=d.p[dres],t="🔥 Chaud ou Froid 🧊 J'avais dit "+g.v+"°, il a fait "+fr(res.mes)+"° à "+g.n+" : "+res.titre.replace(/^\S+ /,"")+" Et vous ?";
+  const bp=$("jeuPartage");if(bp)bp.onclick=async()=>{const g=d.p[dres],t="🔥 Chaud ou froid ? 🧊 J'avais dit "+g.v+"°, il a fait "+fr(res.mes)+"° à "+g.n+" : "+res.titre.replace(/^\S+ /,"")+" Et vous ?";
     if(navigator.share){try{await navigator.share({text:t,url:"https://lameteodeleo.fr"})}catch(e){}}else copyText(t+" https://lameteodeleo.fr",bp,"Copié !")};
 }
 function render(){
