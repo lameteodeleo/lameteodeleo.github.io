@@ -430,7 +430,13 @@ async function suiviCreateur() {
     for (const base of ["https://cloud.umami.is/api", "https://cloud.umami.is/analytics/eu/api", "https://cloud.umami.is/analytics/us/api"]) {
       try { const r = await fetch(base + "/share/" + part, { headers: { accept: "application/json" } }); if (!r.ok) continue; const j = await r.json(); if (!j.token) continue;
         W = j.websiteId || W; const B = base + "/websites/" + W;
-        get = async u => { const r2 = await fetch(B + u, { headers: { "x-umami-share-token": j.token, accept: "application/json" } }); if (!r2.ok) throw new Error("Umami HTTP " + r2.status); return r2.json(); };
+        console.log("Suivi : réponse du partage, champs " + Object.keys(j).join(", "));
+        // Plusieurs façons de présenter le jeton selon la version d'Umami : on garde la première qui marche
+        const essais = [{ "x-umami-share-token": j.token }, { "x-umami-share-token": j.token, "x-umami-share-context": "1" }, { Authorization: "Bearer " + j.token }];
+        const debutT = Date.now() - 864e5; let H = null;
+        for (const [i, h] of essais.entries()) { const r2 = await fetch(B + `/stats?startAt=${debutT}&endAt=${Date.now()}`, { headers: { ...h, accept: "application/json" } }); console.log(`Suivi : essai ${i + 1} → HTTP ${r2.status}`); if (r2.ok) { H = h; break; } }
+        if (!H) continue;
+        get = async u => { const r2 = await fetch(B + u, { headers: { ...H, accept: "application/json" } }); if (!r2.ok) throw new Error("Umami HTTP " + r2.status); return r2.json(); };
         console.log("Suivi : lien de partage Umami lu (" + base.replace("https://", "") + ")"); break; } catch (e) {}
     }
     if (!get) console.warn("Suivi : lien de partage Umami illisible.");
