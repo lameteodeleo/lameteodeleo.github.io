@@ -27,6 +27,13 @@ jobs:
           for u in "DPPaquetObs/v1/paquet/stations/horaire?id-departement=13&format=json" "DPPaquetObs/v2/paquet/stations/horaire?id-departement=13&format=json" "DPPaquetObs/v2/paquet/horaire?id-departement=13&format=json" "DPObs/v1/station/horaire?id_station=13054001&format=json"; do
             code=$(curl -s -o r.txt -w '%{http_code}' -H "$H" -H "accept: application/json" "https://public-api.meteofrance.fr/public/$u")
             echo "$code  $u  →  $(head -c 400 r.txt | tr '\n' ' ')"; done
+      - name: Stations du jeu « Chaud ou froid ? »
+        run: |
+          curl -s "https://lameteodeleo.fr/data/jeu.json?t=$(date +%s)" | python3 -c '
+          import sys, json
+          d = json.load(sys.stdin); last = sorted(d["tx"])[-2:]
+          for k, s in sorted(d["stations"].items(), key=lambda x: x[1]["n"]):
+              print(k, s["n"], round(s["lat"], 3), round(s["lon"], 3), [d["tx"].get(j, {}).get(k) for j in last])'
       - name: Fichiers en ligne
         run: |
           for u in googlec345ccc8f9d6353e.html robots.txt sitemap.xml manifest.webmanifest sw.js icons/icon-192.png icons/partage-v2.png data/meteo.json meteo/ meteo/rognes/ meteo/marseille/; do
