@@ -452,7 +452,12 @@ async function suiviCreateur() {
       const st = await get("/stats?" + q);
       let ev = []; try { ev = await get("/metrics?" + q + "&type=event"); } catch (e) {}
       const n = k => { const o = (ev || []).find(x => x.x === k); return o ? o.y : 0; };
-      S.j[d] = { vis: val(st.visitors), vues: val(st.pageviews), tente: n("jeu-tente"), partage: n("jeu-partage"), regulier: n("jeu-regulier") };
+      // Visiteurs de l'appli seule (page d'accueil « / ») : le filtre s'écrit différemment selon la version d'Umami, on garde le premier qui filtre vraiment
+      let vapp = null;
+      for (const f of (S.filtre ? [S.filtre] : ["path=eq./", "path=/", "url=eq./", "url=/"])) {
+        try { const sa = await get("/stats?" + q + "&" + f), v = val(sa.visitors); if (v < val(st.visitors) || (S.filtre && v <= val(st.visitors))) { vapp = v; S.filtre = f; break; } } catch (e) {}
+      }
+      S.j[d] = { vis: val(st.visitors), vapp, vues: val(st.pageviews), tente: n("jeu-tente"), partage: n("jeu-partage"), regulier: n("jeu-regulier"), depuis: n("depuis-page") };
     }
   } else console.log("Suivi : pas de lien Umami (UMAMI_SHARE_URL), visiteurs et parties non relevés.");
   const cleM = (process.env.META_PAGE_TOKEN || "").trim();
@@ -465,6 +470,7 @@ async function suiviCreateur() {
     } catch (e) { console.warn("Suivi : abonnés non relevés (" + String(e.message).slice(0, 80) + ")"); }
   }
   for (const k of ["j", "abo"]) for (const d of Object.keys(S[k]).sort().slice(0, -90)) delete S[k][d];   // 90 jours suffisent
+  if (S.filtre) console.log("Suivi : filtre appli « " + S.filtre + " »"); else console.warn("Suivi : visiteurs de l'appli non séparés (filtre introuvable).");
   await writeFile("site/data/suivi.json", JSON.stringify({ maj: new Date().toISOString(), ...S }));
   console.log(`Suivi : ${Object.keys(S.j).length} jours, ${Object.keys(S.abo).length} relevés d'abonnés.`);
   return true;
@@ -770,6 +776,15 @@ h2{font-size:1.15rem;margin:28px 0 10px}
 .anec{background:var(--card);border-radius:18px;padding:14px 16px;margin:0 0 10px;border-left:4px solid var(--sun)}
 .liens{display:flex;flex-wrap:wrap;gap:8px}.liens a{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;text-decoration:none;font-size:.88rem}
 .suivez{text-align:center;background:var(--card);border-radius:20px;padding:18px 16px;margin-top:26px;border:1px solid var(--line)}.suivez b{font-size:1.05rem;display:block;margin-bottom:12px}.suivez p{margin:4px 0 12px;color:var(--muted);font-size:.9rem}.suivez div{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.suivez a{color:#fff;font-weight:800;text-decoration:none;padding:10px 20px;border-radius:999px}.suivez .ig{background:linear-gradient(45deg,#F58529,#DD2A7B 55%,#8134AF)}.suivez .fb{background:#1877F2}
+.plus{background:radial-gradient(circle at 90% 0%,rgba(255,194,26,.25),transparent 45%),linear-gradient(140deg,#5B4BD0,#3A2C9E);color:#fff;border-radius:22px;padding:18px 18px 20px;margin-top:14px;box-shadow:0 10px 26px rgba(59,44,158,.22)}
+.plus .pt{font-size:1.12rem;font-weight:800;display:block}.plus .ps{font-size:.86rem;opacity:.85;margin:2px 0 0}
+.plus ul{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:10px}
+.plus li{display:flex;gap:11px;align-items:center;font-size:.95rem;font-weight:700;line-height:1.3}
+.plus li i{font-style:normal;font-size:1.15rem;flex:none;width:34px;height:34px;display:grid;place-items:center;background:rgba(255,255,255,.15);border-radius:10px}
+.plus li small{display:block;font-weight:500;opacity:.82;font-size:.82rem}
+.flot{position:sticky;bottom:14px;display:flex;justify-content:center;margin-top:22px;pointer-events:none;z-index:5}
+.flot a{pointer-events:auto;display:flex;align-items:center;gap:9px;background:var(--sun);color:#1B1640;font-weight:800;text-decoration:none;padding:11px 20px 11px 12px;border-radius:999px;box-shadow:0 8px 22px rgba(0,0,0,.28)}
+.flot img{width:26px;height:26px;border-radius:7px}
 footer{color:var(--muted);font-size:.78rem;margin-top:30px;line-height:1.5}`;
 // Sécurité : chaque script écrit dans la page est autorisé par son empreinte (sha256), sans « unsafe-inline »
 function securiser(html) {
@@ -837,14 +852,20 @@ async function pagesCommunes(ok, vig) {
 <div class="hero">${(() => { const e0 = n24[0], ik0 = e0 ? heureApp(e0[2], e0[3], e0[6], e0[4], e0[5], e0[1], nuitA(e0[0])) : j0.ico, t0 = e0 ? Math.round(e0[1]) : Math.round(J[2]);
   return `<div class="q">Maintenant · ${cap(jourTxt(J[0]))}</div><div class="l1"><div class="t" id="mt">${t0}°</div><span id="mi">${iconeK(ik0, 84)}</span></div>
 <p class="lib" id="ml">${LIB_APP[ik0] || lib0}</p>`; })()}
-<a class="btn" href="/?commune=${encodeURIComponent(x.n)}">Voir la météo heure par heure</a></div>
+<a class="btn" href="/?commune=${encodeURIComponent(x.n)}&depuis=page">📱 Ouvrir dans l'appli gratuite</a></div>
 ${deuxJours}
+<div class="plus"><span class="pt">Encore plus dans l'appli</span><p class="ps">Gratuite, sans pub, sans inscription.</p><ul>
+<li><i>🌧️</i><span>La pluie dans les 2 prochaines heures<small>Pour savoir si vous pouvez sortir sans parapluie</small></span></li>
+<li><i>👕</i><span>Les conseils du jour<small>Comment s'habiller, quand sortir, le linge, le jardin</small></span></li>
+<li><i>🔥</i><span>Le jeu « Chaud ou froid ? »<small>Devinez la température de demain près de chez vous</small></span></li>
+<li><i>😊</i><span>Le sourire du jour<small>La météo racontée avec le sourire</small></span></li></ul>
+<a class="btn" href="/?commune=${encodeURIComponent(x.n)}&depuis=page">Ouvrir la météo ${deC(x.n)} →</a></div>
 ${heures ? `<h2>Les prochaines heures</h2><div class="hs">${heures}</div>` : ""}
 <h2>Prévisions sur 7 jours</h2><div class="jours"><div class="j tete"><span></span><span>Ciel</span><span>Rafales<small>km/h</small></span><span>Min · max</span></div>${lignes}</div>
-<div class="app"><img src="/icons/icon-192.png" alt=""><div><b>La météo ${deC(x.n)} dans votre poche</b><p>Température en direct, pluie dans les 2 prochaines heures, vigilances et sourire du jour. Gratuit, sans pub, sans inscription.</p><a href="/?commune=${encodeURIComponent(x.n)}">Ouvrir l'app →</a></div></div>
 ${ANEC[x.n] && ANEC[x.n].length ? `<h2>Le saviez-vous ?</h2>${ANEC[x.n].slice(0, 3).map(a => `<p class="anec">${esc(a.t)}</p>`).join("")}` : ""}
 <h2>Communes voisines</h2><div class="liens">${voisines.map(o => `<a href="/meteo/${slug(o.n)}/">${esc(o.n)}</a>`).join("")}<a href="/meteo/">Toutes les communes</a></div>
-<div class="suivez"><b>Suivez La météo de Léo</b><div><a class="ig" href="https://www.instagram.com/lameteodeleo/" rel="noopener">Instagram</a><a class="fb" href="https://www.facebook.com/share/1HXwwwERuf/" rel="noopener">Facebook</a></div></div>`;
+<div class="suivez"><b>Suivez La météo de Léo</b><div><a class="ig" href="https://www.instagram.com/lameteodeleo/" rel="noopener">Instagram</a><a class="fb" href="https://www.facebook.com/share/1HXwwwERuf/" rel="noopener">Facebook</a></div></div>
+<div class="flot"><a href="/?commune=${encodeURIComponent(x.n)}&depuis=page"><img src="/icons/icon-192.png" alt="">Ouvrir l'appli</a></div>`;
     await mkdir(`site/meteo/${sl}`, { recursive: true });
     await writeFile(`site/meteo/${sl}/index.html`, page({ titre, desc, url, corps }));
     urls.push(url);

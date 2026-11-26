@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-4P6vVDObvQ9cVtXivm7ZX8Gx4flO2Ahxol3a4GQ+r0k=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-wAO+VYlTHDrtLnHdIXCzGK843BOe4zom3kB1D59YzQY=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1652,6 +1652,7 @@ let st={c:idx("Aix-en-Provence"),scen:"mistral",jour:0,favs:[],demo:false,nom:nu
 try{const s=JSON.parse(localStorage.getItem(CLE)||"null");if(s){if(s.cn&&idx(s.cn)>=0){st.c=idx(s.cn)}st.nom=s.cn||null;if(SCEN[s.scen])st.scen=s.scen;if(Array.isArray(s.favs))st.favs=s.favs.filter(n=>idx(n)>=0)}}catch(e){}
 // Lien direct vers une commune (pages des communes, partages) : /?commune=Trets
 const PREMIERE_VISITE=(()=>{try{return !(JSON.parse(localStorage.getItem(CLE)||"null")||{}).cn&&localStorage.getItem(CLE+"-bienvenue")!=="1"}catch(e){return false}})();
+try{if(new URLSearchParams(location.search).get("depuis")==="page")setTimeout(()=>suivi("depuis-page"),300)}catch(e){}
 try{const qc=new URLSearchParams(location.search).get("commune");if(qc){if(idx(qc)>=0)st.c=idx(qc);st.nom=qc;history.replaceState(null,"",location.pathname+location.hash)}}catch(e){}
 const save=()=>{st.nom=COMMUNES[st.c]?COMMUNES[st.c].n:st.nom;try{localStorage.setItem(CLE,JSON.stringify({cn:st.nom,scen:st.scen,favs:st.favs}))}catch(e){}};
 const $=id=>document.getElementById(id);
@@ -2170,7 +2171,7 @@ function comptesJeu(d){
 }
 /* Image de score à partager (1080 × 1350, aux couleurs de l'appli) */
 /* Comptage anonyme (sans cookie) : combien de parties jouées et partagées, pour savoir si le jeu plaît */
-function suivi(n){try{if(window.umami&&umami.track)umami.track(n)}catch(e){}}
+function suivi(n,k=0){try{if(window.umami&&umami.track)umami.track(n);else if(k<20)setTimeout(()=>suivi(n,k+1),500)}catch(e){}}
 function imageJeu(g,res,serie,d){
   const W=1080,H=1350,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
   const gr=x.createLinearGradient(0,0,W*.4,H);gr.addColorStop(0,"#5B4BD0");gr.addColorStop(1,"#2B2366");x.fillStyle=gr;x.fillRect(0,0,W,H);
@@ -3674,12 +3675,13 @@ async function renderSuivi(){const el=$("suiviJeu");if(!el)return;
   if(!jours.length){el.innerHTML='<span class="sub">Les premiers chiffres arrivent après la prochaine mise à jour du robot, une fois le lien de partage Umami ajouté dans les secrets GitHub (UMAMI_SHARE_URL).</span>';return}
   const auj=jourISO(0), sept=jourISO(-6), lun=(()=>{const d=new Date();d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toLocaleDateString("sv-SE")})();
   const som=(k,de)=>jours.filter(d=>d>=de&&d<=auj).reduce((a,d)=>a+(J[d][k]||0),0), A=J[auj]||{};
-  const nbJ=Math.max(1,jours.filter(d=>d>=sept&&d<=auj).length), visMoy=Math.round(som("vis",sept)/nbJ), reg=som("regulier",lun);
+  const nbJ=Math.max(1,jours.filter(d=>d>=sept&&d<=auj).length), visMoy=Math.round(som("vis",sept)/nbJ), jA=jours.filter(d=>d>=sept&&d<=auj&&J[d].vapp!=null), appMoy=jA.length?Math.round(jA.reduce((x,d)=>x+J[d].vapp,0)/jA.length):0, reg=som("regulier",lun);
   const ab=S.abo||{}, dA=Object.keys(ab).sort().pop(), a0=dA?ab[dA]:{}, fb=a0.fb||0, ig=a0.ig||0, tot=fb+ig;
   const jauge=(lab,v,max)=>{const k=Math.min(1,v/max), ok=v>=max;return '<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:.9rem"><span>'+lab+'</span><b>'+v+' / '+max+(ok?" ✅":"")+'</b></div><div style="height:8px;border-radius:6px;background:var(--line);margin-top:4px;overflow:hidden"><div style="height:100%;width:'+Math.round(k*100)+'%;background:'+(ok?"var(--ok)":"var(--brand)")+'"></div></div></div>'};
   const pret=reg>=30&&(tot>=300||visMoy>=100);
   el.innerHTML='<div class="sub" style="line-height:1.7">'+
     '👥 <b>Visiteurs</b> : '+(A.vis||0)+' aujourd\'hui · '+visMoy+' par jour en moyenne ('+(nbJ>=7?"7 jours":"sur "+nbJ+" jour"+(nbJ>1?"s":"")+", le suivi vient de commencer")+')<br>'+
+    (A.vapp!=null||jours.some(d=>J[d].vapp!=null)?'<span style="display:block;padding-left:1.6em">📱 dont <b>appli</b> : '+(A.vapp??"–")+' aujourd\'hui · '+appMoy+' par jour<br>🔎 dont <b>pages communes seulement</b> : '+(A.vapp!=null?Math.max(0,(A.vis||0)-A.vapp):"–")+' aujourd\'hui<br>➡️ passés d\'une page commune à l\'appli : '+som("depuis",sept)+' sur 7 jours</span>':'')+
     '🎯 <b>Parties</b> : '+(A.tente||0)+' aujourd\'hui · '+som("tente",sept)+' sur 7 jours<br>'+
     '📤 <b>Partages de résultats</b> : '+som("partage",sept)+' sur 7 jours<br>'+
     '🔁 <b>Joueurs réguliers</b> (3 parties ou plus) : '+reg+' cette semaine<br>'+
