@@ -3057,8 +3057,10 @@ async function creerReel(btn){
     const ico=part>=.6&&dp?dp.ico:part>=.3?(dp&&dp.dom==="orage"?"orage":h>=cou?"pluie":"averses"):d.ico;
     const lab=part>=.6?(dp&&dp.dom==="orage"?"Orages presque partout":dp&&dp.dom==="neige"?"Neige presque partout":"Pluie presque partout"):part>=.3?"Pluie par endroits":part>=.1?"Quelques averses":(LIB[d.ico]||LIB[d.dom]||"");
     // Les jours de vent : les rafales les plus fortes du créneau
-    const raf=V.length?Math.max(...V):0, lab2=raf>=40&&!(part>=.3)?((d.dom==="mistral"?"Mistral ":"Rafales ")+raf+"\u00a0km/h"):lab;
-    return {h,ico,lab:lab2,t:mediane(T),part,raf}});
+    // Un jour de mistral, un créneau venté reste « Mistral » avec l'icône du vent, même si le soleil domine
+    const raf=V.length?Math.max(...V):0, venteux=raf>=40&&!(part>=.3), mis=d.dom==="mistral"||R.dom==="mistral";
+    const lab2=venteux?((mis?"Mistral ":"Rafales ")+raf+"\u00a0km/h"):lab, ico2=venteux?(d.dom==="mistral"||d.dom==="vent"?d.ico:mis?"mistral":"vent"):ico;
+    return {h,ico:ico2,lab:lab2,t:mediane(T),part,raf}});
   let pic=-1,picLab="";
   if(R.pl.jour>=2){const mx=Math.max(...creneaux.map(o=>o.part));if(mx>=.3){pic=creneaux.findIndex(o=>o.part===mx);picLab=R.dom==="neige"?"LE PLUS ENNEIGÉ":"LE PLUS ARROSÉ"}}
   else if(R.dom==="mistral"||R.vent.m.raf>=50){const mx=Math.max(...creneaux.map(o=>o.raf));if(mx>=40){pic=creneaux.findIndex(o=>o.raf===mx);picLab="LE PLUS VENTÉ"}}
