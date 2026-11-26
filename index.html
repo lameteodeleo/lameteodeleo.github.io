@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-ckMYBVDKXLZJ579i92kRfKpsi5tetcUm6P2MsuB7mn4=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-O7lwB8y51kCR/9l/syKuUsFBObX39101SiIRe4/MXS0=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -245,7 +245,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .jeu .attente{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:12px;text-align:center;font-size:.93rem}
 .jeu .sep{border-top:1px solid var(--line);margin:14px 0}
 .jeu .badges{display:flex;align-items:center;gap:6px;margin-top:12px;flex-wrap:wrap}
-.jeu .bdg{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.15rem;cursor:pointer;filter:grayscale(1);opacity:.35;padding:0}
+.jeu .bdg{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.15rem;cursor:pointer;filter:grayscale(1);opacity:.5;padding:0;border-style:dashed}
 .jeu .bdg.ok{filter:none;opacity:1;border-color:var(--sun);box-shadow:0 0 0 2px var(--sun) inset}
 .jeu .mois{margin-left:auto;font-size:.85rem;color:var(--muted)}.jeu .mois b{color:var(--ink)}
 .jeu .bdgtxt{margin-top:8px;font-size:.85rem;color:var(--muted)}.jeu .bdgtxt b{color:var(--ink)}.jeu .okb{color:var(--brand);font-weight:800}
@@ -2161,6 +2161,23 @@ function comptesJeu(d){
   gagne("premier",Object.keys(d.p).length>=1);gagne("chaud",(d.rec||0)>=7);gagne("pile",d.nb>=3);gagne("thermo",d.nb>=10);
   return nouveaux;
 }
+/* Image de score à partager (1080 × 1350, aux couleurs de l'appli) */
+function imageJeu(g,res,serie,d){
+  const W=1080,H=1350,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
+  const gr=x.createLinearGradient(0,0,W*.4,H);gr.addColorStop(0,"#5B4BD0");gr.addColorStop(1,"#2B2366");x.fillStyle=gr;x.fillRect(0,0,W,H);
+  drawMark(x,130,130,96,true);logoCanvas(x,200,148,52,B.white,B.sun);
+  x.textAlign="center";x.fillStyle=B.white;x.font="900 84px "+FD;x.fillText("🔥 Chaud ou froid ? 🧊",W/2,330);
+  x.fillStyle=B.sun;x.font="800 38px "+FB;x.fillText(cap(new Date(g.date+"T12:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}))+" · "+g.n,W/2,400);
+  // Les deux chiffres face à face
+  [[W/2-230,"VOUS",g.v+"°"],[W/2+230,"MESURE OFFICIELLE",fr(res.mes)+"°"]].forEach(([cx,l,v])=>{x.fillStyle="rgba(255,255,255,.12)";rr(x,cx-200,470,400,260,40);x.fill();
+    x.fillStyle="rgba(255,255,255,.8)";x.font="800 30px "+FB;x.fillText(l,cx,535);x.fillStyle=B.white;x.font="900 120px "+FD;x.fillText(v,cx,670)});
+  x.fillStyle=B.sun;rr(x,90,790,W-180,190,48);x.fill();x.fillStyle=B.sunInk;x.font="900 76px "+FD;x.fillText(res.titre,W/2,880);
+  x.font="700 38px "+FB;x.fillText(res.ecart===0?"Exactement le bon chiffre !":res.ecart<=2?"À "+fr(res.ecart)+"° près":fr(res.ecart)+"° d'écart",W/2,940);
+  const gagnes=BADGES.filter(b=>d.b&&d.b[b[0]]).map(b=>b[1]).join("  ");
+  x.fillStyle=B.white;x.font="800 42px "+FB;x.fillText((serie>=2?"🔥 Série : "+serie+" jours":"")+(serie>=2&&gagnes?"   ·   ":"")+gagnes,W/2,1080);
+  x.font="800 44px "+FD;x.fillStyle=B.white;x.fillText("Et vous, chaud ou froid ?",W/2,1190);x.fillStyle=B.sun;x.fillText("lameteodeleo.fr",W/2,1260);
+  x.textAlign="left";return cv;
+}
 function renderJeu(){
   const sec=$("jeuSec"), box=$("jeu");if(!sec)return;
   const c=COMMUNES[st.c], m0=c&&meteo(c,st.scen,0), m1=c&&meteo(c,st.scen,1);
@@ -2203,8 +2220,12 @@ function renderJeu(){
     const cs=COMMUNES[idx(nomSt)], ms=cs?meteo(cs,st.scen,1):m1, mis=!!ms&&(ms.type==="mistral"||(ms.raf>=50&&/nord/i.test(ms.dir||"")));
     $("jeuGo").onclick=()=>{const e=jeuLire();e.p[dem]={st:id,n:nomSt,v:val,mis};const s=serieJeu(e.p);e.rec=Math.max(e.rec||0,s);
       for(const k of Object.keys(e.p).sort().slice(0,-40))delete e.p[k];jeuEcrire(e);renderJeu()}}
-  const bp=$("jeuPartage");if(bp)bp.onclick=async()=>{const g=d.p[dres],t="🔥 Chaud ou froid ? 🧊 J'avais dit "+g.v+"°, il a fait "+fr(res.mes)+"° à "+g.n+" : "+res.titre.replace(/^\S+ /,"")+" Et vous ?";
-    if(navigator.share){try{await navigator.share({text:t,url:"https://lameteodeleo.fr"})}catch(e){}}else copyText(t+" https://lameteodeleo.fr",bp,"Copié !")};
+  const bp=$("jeuPartage");if(bp)bp.onclick=async()=>{const g=d.p[dres],t="🔥 Chaud ou froid ? 🧊 J'avais dit "+g.v+"°, il a fait "+fr(res.mes)+"° à "+g.n+" : "+res.titre.replace(/^\S+ /,"")+" Et vous ?",u="https://lameteodeleo.fr";
+    // D'abord l'image (story, message), sinon le texte, sinon une copie
+    try{try{await document.fonts.ready}catch(e){}const blob=await new Promise(r=>imageJeu(Object.assign({date:dres},g),res,serieJeu(d.p),d).toBlob(r,"image/png"));
+      const f=new File([blob],"chaud-ou-froid.png",{type:"image/png"});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:t+" "+u});return}}catch(e){if(e&&e.name==="AbortError")return}
+    if(navigator.share){try{await navigator.share({text:t,url:u});return}catch(e){if(e&&e.name==="AbortError")return}}
+    copyText(t+" "+u,bp,"Copié !")};
 }
 function render(){
   const c=COMMUNES[st.c];let m=meteo(c,st.scen,st.jour);
