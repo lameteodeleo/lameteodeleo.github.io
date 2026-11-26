@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-XpsjXscOclL64y/673dKBZBuED/SMPOytn8/2xT9I4U=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-LZWczShTc4Sp4l88/5HjKC047PgXv2FUELjMtWIqqGY=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -45,7 +45,7 @@
 :root{
   --bg:#F3F1FA; --surface:#FFFFFF; --surface-2:#F7F5FD; --ink:#1D1838; --muted:#655F86; --line:#E4E0F2;
   --brand:#4B3BB8; --brand-soft:#ECE9FB; --sun:#FFC21A; --sun-ink:#433100;
-  --alert:#B3261E; --alert-soft:#FCEBE9; --orange:#9A4F0E; --orange-soft:#FDF0E3; --jaune-soft:#FFF8D6; --jaune-line:#E3C200; --cool:#4A6FD1; --warm:#D9822B; --ok:#2F7D5B;
+  --alert:#B3261E; --alert-soft:#FCEBE9; --orange:#9A4F0E; --orange-soft:#FDF0E3; --jaune-soft:#FFF8D6; --jaune-line:#E3C200; --cool:#4A6FD1; --warm:#D9822B; --ok:#2F7D5B; --tenue:#2F62C4; --tenue-soft:#E6EEFB; --sortir:#9A6400; --sortir-soft:#FFF3D1; --jardin:#2F7D5B; --jardin-soft:#E3F4EA; --linge:#0E7480; --linge-soft:#DFF4F5;
   --shadow:0 1px 2px rgba(19,38,57,.05),0 6px 20px rgba(19,38,57,.06);
   --f-display:"Chiffres","Bricolage Grotesque","Arial Rounded MT Bold",system-ui,sans-serif;
   --f-body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -53,12 +53,12 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#110F26; --surface:#1A1736; --surface-2:#211D42; --ink:#EEEBFF; --muted:#A7A1CC; --line:#2D2952;
   --brand:#A99FF5; --brand-soft:#2A2557; --sun:#F5C433; --sun-ink:#2A1F00;
-  --alert:#FF8C82; --alert-soft:#3A1D1C; --orange:#F5A55E; --orange-soft:#3A2614; --jaune-soft:#332C0E; --jaune-line:#C9AA1F; --cool:#8FB0F5; --warm:#F0A55A; --ok:#6FD3A4;
+  --alert:#FF8C82; --alert-soft:#3A1D1C; --orange:#F5A55E; --orange-soft:#3A2614; --jaune-soft:#332C0E; --jaune-line:#C9AA1F; --cool:#8FB0F5; --warm:#F0A55A; --ok:#6FD3A4; --tenue:#8FB0F5; --tenue-soft:#1E2A4D; --sortir:#F5C433; --sortir-soft:#33290E; --jardin:#6FD3A4; --jardin-soft:#16352A; --linge:#5FD0D8; --linge-soft:#12343A;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#110F26; --surface:#1A1736; --surface-2:#211D42; --ink:#EEEBFF; --muted:#A7A1CC; --line:#2D2952;
   --brand:#A99FF5; --brand-soft:#2A2557; --sun:#F5C433; --sun-ink:#2A1F00;
-  --alert:#FF8C82; --alert-soft:#3A1D1C; --orange:#F5A55E; --orange-soft:#3A2614; --jaune-soft:#332C0E; --jaune-line:#C9AA1F; --cool:#8FB0F5; --warm:#F0A55A; --ok:#6FD3A4;
+  --alert:#FF8C82; --alert-soft:#3A1D1C; --orange:#F5A55E; --orange-soft:#3A2614; --jaune-soft:#332C0E; --jaune-line:#C9AA1F; --cool:#8FB0F5; --warm:#F0A55A; --ok:#6FD3A4; --tenue:#8FB0F5; --tenue-soft:#1E2A4D; --sortir:#F5C433; --sortir-soft:#33290E; --jardin:#6FD3A4; --jardin-soft:#16352A; --linge:#5FD0D8; --linge-soft:#12343A;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}
 *{box-sizing:border-box}
 body.boot main.view{visibility:hidden}
@@ -258,6 +258,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .tip .tx{display:flex;flex-direction:column;gap:1px;min-width:0}
 .tip .tx small{font-size:.68rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 .tip .tx span{line-height:1.4;color:color-mix(in srgb,var(--ink) 80%,transparent)}.tip .tx span b{font-weight:800;color:var(--ink,inherit)}
+.tip[data-c="tenue"] span.i{background:var(--tenue-soft);color:var(--tenue)}.tip[data-c="sortir"] span.i{background:var(--sortir-soft);color:var(--sortir)}.tip[data-c="jardin"] span.i{background:var(--jardin-soft);color:var(--jardin)}.tip[data-c="linge"] span.i{background:var(--linge-soft);color:var(--linge)}
 .tip.warn span.i{background:var(--alert-soft);color:var(--alert)}.tip.warn.orange span.i{background:var(--orange-soft);color:var(--orange)}
 footer{font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:4px;padding:4px 2px}
 footer a{color:var(--brand);font-weight:800;display:inline-block;padding:9px 0}
@@ -2338,7 +2339,7 @@ function render(){
   $("tiles").innerHTML=T.join("");
   const cs=conseils(m,c);$("tipsTitre").textContent=cs.titre;
   /* « Quand sortir ? » retiré : trop chargé, le conseil « Sortir » suffit */
-  $("tips").innerHTML=cs.liste.map(x=>'<div class="tip'+(x.warn?" warn":"")+(x.orange?" orange":"")+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+essentiel(x.txt)+'</span></div></div>').join("");
+  $("tips").innerHTML=cs.liste.map(x=>'<div class="tip'+(x.warn?" warn":"")+(x.orange?" orange":"")+'" data-c="'+x.cat+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+essentiel(x.txt)+'</span></div></div>').join("");
   let maj=enReel()?new Date(DATA.maj):new Date();if(!enReel())maj.setMinutes(0,0,0);if(st.stale)maj=new Date(maj.getTime()-5*36e5);
   const age=Math.floor((Date.now()-maj)/36e5), hMaj=maj.getHours()+" h "+String(maj.getMinutes()).padStart(2,"0");
   $("foot").textContent="Mis à jour à "+hMaj+" · "+COMMUNES.length+" communes couvertes";
