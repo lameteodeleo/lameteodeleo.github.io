@@ -2015,7 +2015,7 @@ function renderPluie(c){
   // Pas de pluie dans les 2 heures : on n'affiche rien, l'encadré n'apparaît que quand il a quelque chose à dire
   if(premier<0){box.hidden=true;return}
   if(premier===0){const fin=n.findIndex(x=>x===0);titre="Pluie "+mots[n[0]]+" en ce moment"+(maxN>n[0]?", "+mots[maxN]+" par moments":"");sous=fin>0?"Fin prévue vers "+hm(P[fin].t):"Elle devrait durer au moins 2 heures"}
-  else{const dans=Math.max(5,Math.round((P[premier].t-Date.now())/6e4/5)*5);titre="Pluie vers "+hm(P[premier].t)+(maxN>=2?", "+mots[maxN]+" par moments":"");sous="Dans "+(dans<60?dans+" min":"environ "+(dans/60).toFixed(0).replace(".",",")+" h")+" · prévision Météo-France"}
+  else{const dans=Math.max(5,Math.round((P[premier].t-Date.now())/6e4/5)*5);titre="Pluie vers "+hm(P[premier].t)+(maxN>=2?", "+mots[maxN]+" par moments":"");sous="Dans "+(dans<60?dans+" min":"environ "+(dans/60).toFixed(0).replace(".",",")+" h")+" · au quart d'heure près"}
   $("pdhTitre").textContent=titre;$("pdhSous").textContent=sous;
   $("pdhBars").innerHTML=n.map(x=>'<i class="l'+x+'"></i>').join("");
   box.classList.toggle("sec",premier<0);box.hidden=false;
