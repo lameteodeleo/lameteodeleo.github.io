@@ -167,7 +167,23 @@ async function traiterAlerte(IG) {
 }
 
 // ---------- Contrôle général : le site en ligne et toute l'appli, à chaque mise à jour ----------
-async function controleGeneral() {
+// Mots que le dictionnaire ne connaît pas mais qui sont justes (noms de lieux, mots provençaux, mots de l'appli)
+const MOTS_OK = new Set(("lameteodeleo meteo mistral cigales santons calanques pastis boulistes platanes rafales km mm ressenti appli apps app " +
+  "arome arpege vigilance submersion inondation reels reel story stories hashtag hashtags insta instagram facebook tiktok " +
+  "camargue alpilles luberon durance sainte victoire mirabeau frioul panier corniche baux rhône berre vaccarès crau garlaban " +
+  "aixois marseillais provençal provençale provençaux etalab ok wifi").split(" "));
+function verifierOrthographe(textes) {
+  let sortie = "";
+  try { sortie = execFileSync("hunspell", ["-d", "fr_FR", "-l", "-i", "UTF-8"], { input: textes.join("\n"), maxBuffer: 1 << 24 }).toString(); }
+  catch (e) { return { erreur: "dictionnaire indisponible (" + e.message.split("\n")[0] + ")" }; }
+  const compte = {};
+  for (const m of sortie.split(/\n/).map(x => x.trim()).filter(Boolean)) {
+    if (/\d|^[A-ZÉÈÀ]|^#|https?|\.(fr|com)$|_/.test(m) || m.length < 3 || MOTS_OK.has(m.toLowerCase())) continue;   // nombres, noms propres, liens
+    compte[m] = (compte[m] || 0) + 1;
+  }
+  return { inconnus: Object.entries(compte).sort((a, b) => b[1] - a[1]).map(([m, n]) => n > 1 ? `${m} (×${n})` : m) };
+}
+async function controleGeneral(IG, complet) {
   const G = [], A = [];
   // Le site en ligne : les prévisions sont fraîches, les pages des communes et le plan du site répondent
   try {
@@ -188,8 +204,30 @@ async function controleGeneral() {
     const r = await page.evaluate(() => typeof controleAppli === "function" ? controleAppli() : { graves: ["contrôle absent de l'appli"], avert: [] });
     G.push(...r.graves); A.push(...r.avert);
     if (erreurs.length) G.push("erreurs dans l'appli : " + [...new Set(erreurs)].slice(0, 3).join(" | "));
+    if (complet) {
+      // Petit écran (320 px de large, un vieux téléphone) : rien ne doit dépasser sur le côté
+      await page.setViewportSize({ width: 320, height: 740 });
+      const larges = await page.evaluate(() => { const out = []; for (const n of ["Marseille", "Saint-Rémy-de-Provence", "Saintes-Maries-de-la-Mer", "Le Puy-Sainte-Réparade"]) { const i = idx(n); if (i < 0) continue; st.c = i; for (const j of [0, 1]) { st.jour = j; render(); const w = document.documentElement.scrollWidth; if (w > innerWidth + 1) out.push(`${n} (J+${j}) : ${w} px pour ${innerWidth}`) } } return out; });
+      for (const l of larges) A.push("petit écran, la page dépasse sur le côté : " + l);
+      // Les liens de l'appli mènent bien quelque part
+      const liens = await page.evaluate(() => [...new Set([...document.querySelectorAll("a[href^='http']")].map(a => a.href.split("#")[0]))]);
+      for (const u of liens.slice(0, 25)) {
+        try { const r = await fetch(u, { method: "GET", redirect: "follow", headers: { "user-agent": "Mozilla/5.0 (verification des liens)" } }); if (r.status >= 400 && ![401, 403, 429].includes(r.status)) A.push(`lien cassé (${r.status}) : ${u}`); }
+        catch (e) { A.push(`lien injoignable : ${u}`); }
+      }
+      log(`Liens vérifiés : ${Math.min(liens.length, 25)}`);
+      // Orthographe de tous les textes de l'appli (phrases du sourire, conseils, consignes, anecdotes, écrans)
+      const orth = verifierOrthographe(await page.evaluate(() => textesAppli()));
+      if (orth.erreur) A.push("orthographe : " + orth.erreur);
+      else { log(`Orthographe : ${orth.inconnus.length} mot(s) inconnu(s) du dictionnaire`); if (orth.inconnus.length) A.push("orthographe, mots à vérifier : " + orth.inconnus.slice(0, 40).join(", ")); }
+    }
   } catch (e) { G.push("l'appli ne s'ouvre pas : " + e.message); }
   finally { await nav.close(); }
+  // Le lien de la bio Instagram et le site de la Page Facebook
+  if (complet && TOKEN) {
+    try { const ig = IG ? await api(`/${IG}`, { params: { fields: "website" } }) : null; if (ig && !/lameteodeleo\.fr/.test(ig.website || "")) A.push("le lien de la bio Instagram ne pointe pas vers lameteodeleo.fr"); } catch (e) { log("Lien de la bio Instagram : vérification impossible"); }
+    try { const fb = await api(`/${PAGE_ID}`, { params: { fields: "website" } }); if (!/lameteodeleo\.fr/.test(fb.website || "")) A.push("le site indiqué sur la Page Facebook n'est pas lameteodeleo.fr"); } catch (e) { log("Site de la Page Facebook : vérification impossible"); }
+  }
   for (const a of A) log(`⚠️ Contrôle : ${a}`);
   for (const g of G) log(`❌ Contrôle : ${g}`);
   log(`Contrôle général : ${G.length ? G.length + " défaut(s) grave(s)" : "tout est bon"}${A.length ? `, ${A.length} point(s) à surveiller` : ""}`);
@@ -344,7 +382,8 @@ async function principal() {
   let erreurAlerte = null;
   if (alerte) { try { await traiterAlerte(IG); } catch (e) { erreurAlerte = e; log("✘ " + masque(e.message)); } }
   // Contrôle général de l'appli et du site (n'empêche pas les publications ; signalé par e-mail s'il y a un défaut grave)
-  if (MODE === "auto" || MODE === "test") { try { const e = await controleGeneral(); if (e && !erreurAlerte) erreurAlerte = e; } catch (e) { log("Contrôle général impossible : " + masque(e.message)); } }
+  // Contrôle complet (petit écran, liens, orthographe, bio) une fois par jour, au moment du Reel, et en mode essai
+  if (MODE === "auto" || MODE === "test") { try { const e = await controleGeneral(IG, MODE === "test" || type === "reel"); if (e && !erreurAlerte) erreurAlerte = e; } catch (e) { log("Contrôle général impossible : " + masque(e.message)); } }
   if (MODE === "test-alerte") { if (erreurAlerte) throw erreurAlerte; return; }
   if (!type) { log("Hors des créneaux de publication (story 6 h 45 – 10 h 30, Reel 17 h – 21 h) : rien d'autre à faire."); if (erreurAlerte) throw erreurAlerte; return; }
 

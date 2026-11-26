@@ -2641,7 +2641,7 @@ function wrapText(ctx,text,x,y,maxW,lh,maxLines){
   const words=insec(text).split(" ");let line="",lines=[];
   for(const w of words){const t=line?line+" "+w:w;if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w}else line=t}
   if(line)lines.push(line);
-  if(maxLines&&lines.length>maxLines){lines=lines.slice(0,maxLines);lines[maxLines-1]=lines[maxLines-1].replace(/\s*\S*$/,"…")}
+  if(maxLines&&lines.length>maxLines){DEBORDE.push("texte coupé (…) : « "+String(text).slice(0,60)+" »");lines=lines.slice(0,maxLines);lines[maxLines-1]=lines[maxLines-1].replace(/\s*\S*$/,"…")}
   lines.forEach((l,i)=>ctx.fillText(l,x,y+i*lh));
   return lines.length;
 }
@@ -2704,7 +2704,8 @@ function bilanSecteur(k,j){
 }
 const mm=v=>fr(v>=10?Math.round(v):v)+" mm";
 function toile(){const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;return [cv,cv.getContext("2d")]}
-function ajuste(x,txt,maxW,taille,graisse,police){let fs=taille;x.font=graisse+" "+fs+"px "+police;while(x.measureText(txt).width>maxW&&fs>20){fs-=2;x.font=graisse+" "+fs+"px "+police}return fs}
+function ajuste(x,txt,maxW,taille,graisse,police){let fs=taille;x.font=graisse+" "+fs+"px "+police;while(x.measureText(txt).width>maxW&&fs>20){fs-=2;x.font=graisse+" "+fs+"px "+police}
+  if(x.measureText(txt).width>maxW+2)DEBORDE.push("texte trop long : « "+String(txt).slice(0,60)+" »");else if(fs<taille*.6)DEBORDE.push("texte très réduit ("+fs+" px au lieu de "+taille+") : « "+String(txt).slice(0,60)+" »");return fs}
 /* En-tête et pied communs aux images 2 à 6 */
 function entete(x,n,titre,j,al){
   x.fillStyle=al?CA(al).doux:B.bg;x.fillRect(0,0,1080,1350);
@@ -2908,7 +2909,7 @@ function slideStory(){
 }
 /* ---------- Contrôles automatiques (le robot les lance avant chaque publication et à chaque mise à jour) ----------
    graves : on ne publie pas ; avertissements : on publie, mais on le signale. */
-let REEL_PLAN=null;
+var REEL_PLAN=null, DEBORDE=[];
 const TEXTE_CASSE=/undefined|NaN|Infinity|\bnull\b|\[object|\{[a-z]+\}/;
 const ICO_VENT=["mistral","vent"], ICO_EAU=["pluie","pluieForte","bruine","averses","orage","neige","pluieNeige"];
 function controleReel(legende){
@@ -2933,7 +2934,19 @@ function controleReel(legende){
     if((legende.match(/#\w/g)||[]).length>30)G.push("trop de hashtags");
     if(!P.niveau&&P.hook.u===" km/h"&&!legende.includes(String(P.hook.n)))A.push("l'accroche dit "+P.hook.n+" km/h, la légende ne reprend pas ce chiffre")}
   if(P.sourire&&P.sourire.length>170)A.push("sourire long ("+P.sourire.length+" caractères)");
+  for(const d of [...new Set(DEBORDE)].slice(0,8))A.push("Reel : "+d);
+  // Cohérence : le sourire parle du même temps que le Reel
+  if(P.sourire&&P.dom){const mots={mistral:/mistral|vent|souffl|rafale/i,vent:/vent|souffl|rafale/i,pluie:/pluie|pleu|parapluie|averse|flaque|mm/i,orage:/orage|tonnerre|éclair/i,neige:/neige|flocon/i,gel:/gel|givr|froid|°/i,brouillard:/brouillard|brume/i,chaleur:/chaud|chaleur|canicule|°/i};
+    const r=mots[P.dom];if(r&&!r.test(P.sourire))A.push("le sourire ne parle pas du temps du jour ("+P.dom+") : « "+P.sourire.slice(0,70)+" »")}
   return {graves:G,avert:A};
+}
+function textesAppli(){
+  const T=[], ajoute=v=>{if(typeof v==="string")T.push(v);else if(Array.isArray(v))v.forEach(ajoute);else if(v&&typeof v==="object")Object.values(v).forEach(ajoute)};
+  ajoute(BANQUE);ajoute(SPECIAL);ajoute(SAISON);ajoute(CONSIGNES);ajoute(CALENDRIER);ajoute(RARES);ajoute(SAVIEZ.map(x=>x.t));ajoute(SAVIEZ_COMMUNE);
+  for(const k of CONTEXTE)ajoute(k.p);
+  ajoute([...document.querySelectorAll("#v-meteo,#v-secteurs,#v-apropos")].map(e=>e.innerText));
+  if(REEL_PLAN)ajoute([REEL_PLAN.hook.lab,REEL_PLAN.phrase,REEL_PLAN.sourire,REEL_PLAN.cons]);
+  return T.map(t=>t.replace(/^\[\w+\]/,"").replace(/\{\w+\}/g," "));
 }
 // Toute l'appli, commune par commune, pour aujourd'hui, demain et après-demain : rien d'abîmé, rien d'impossible
 function controleAppli(){
@@ -2960,7 +2973,8 @@ function controleAppli(){
       }
     }
     // Les visuels de la story et du carrousel se fabriquent sans erreur
-    const pj=postJour;for(const j of [0,1]){try{postJour=j;slideStory();slideFin(j)}catch(e){note(G,"visuels du jour J+"+j+" : "+e.message)}}postJour=pj;
+    const pj=postJour;DEBORDE=[];for(const j of [0,1]){try{postJour=j;slideStory();slideFin(j)}catch(e){note(G,"visuels du jour J+"+j+" : "+e.message)}}postJour=pj;
+    for(const d of [...new Set(DEBORDE)].slice(0,6))note(A,"visuels : "+d);
     // La carte « Le 13 » : chaque mode
     try{const mm=mapMode;for(const k of ["temp","pluie","vent"].concat(nowDispo()?["now"]:[])){mapMode=k;majCarte()}mapMode=mm;majCarte()}catch(e){note(G,"carte du 13 : "+e.message)}
   }finally{st.c=sauve.c;st.jour=sauve.jour;try{render()}catch(e){}}
@@ -3096,6 +3110,7 @@ function assemblerMP4(W,H,fps,images,avcC){
   return cat([ftyp,moov(off),mdat]);
 }
 async function creerReel(btn){
+  DEBORDE=[];
   const out=$("reelOut");if(!SLIDES.length){flash(btn,"Pas d'images");return}
   if(PHOTO_JOUR&&!photoCredit()){flash(btn,"Ajoute le prénom et la commune");$("photoCredit").focus();return}
   const W=1080,H=1920,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
@@ -3144,10 +3159,13 @@ async function creerReel(btn){
     :R.min<=3?"Le plus froid, c'est où ?":R.chaud.m.max>=30?"Le plus chaud, c'est où ?":choix(["Et chez vous, ça donne quoi ?","Votre journée en 15 secondes"]);
   // Le sourire (jamais en vigilance orange ou rouge) ; la consigne ou le conseil important passent avant
   // Espaces insécables : un nombre et son unité restent sur la même ligne
-  const sourire=(!al||al.niveau<3)?motDuJour(ville,meteo(ville,st.scen,J),J).replace(/(\d) (?=km\/h|mm|%)/g,"$1 "):null;
+  // Le sourire parle du même temps que le Reel : Marseille si elle a le temps du jour, sinon une commune connue qui l'a
+  const villeS=[ville,...["Aix-en-Provence","Salon-de-Provence","Arles","Martigues","Aubagne","Istres","La Ciotat","Pertuis"].filter(n=>idx(n)>=0).map(n=>COMMUNES[idx(n)])]
+    .find(c=>{const m=meteo(c,st.scen,J);return m.type===R.dom||(R.dom==="mistral"&&m.raf>=50)})||ville;
+  const sourire=(!al||al.niveau<3)?motDuJour(villeS,meteo(villeS,st.scen,J),J).replace(/(\d) (?=km\/h|mm|%)/g,"$1 "):null;
   const extra=(al||(cons&&cons.warn)||!sourire)?"cons":"sourire";
   const SC=[{type:"hook",d:2.4},{type:"heures",d:3.6},{type:"communes",d:3.4},{type:extra,d:2.8},{type:"fin",d:3.2}];
-  REEL_PLAN={J,niveau:al?al.niveau:0,hook,phrase,creneaux,pic,picLab,communes:PROCHES,sourire,extra,cons:cons?cons.txt:null,rafMax:R.vent.m.raf};
+  REEL_PLAN={J,dom:R.dom,niveau:al?al.niveau:0,hook,phrase,creneaux,pic,picLab,communes:PROCHES,sourire,extra,cons:cons?cons.txt:null,rafMax:R.vent.m.raf};
   // Pluie ou vent qui bougent en fond, sur tous les écrans sombres : l'image n'est jamais figée
   // Un effet animé pour chaque type de temps (discret : il ne doit jamais gêner la lecture)
   const animType=R.dom==="orage"?"orage":R.dom==="neige"?"neige":(R.pl.jour>=2||R.dom==="pluie")?"pluie":(R.dom==="mistral"||R.vent.m.raf>=50)?"vent":
