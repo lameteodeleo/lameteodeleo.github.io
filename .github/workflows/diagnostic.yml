@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  pages: read
 jobs:
   diag:
     runs-on: ubuntu-latest
@@ -27,6 +28,17 @@ jobs:
           for u in "DPPaquetObs/v1/paquet/stations/horaire?id-departement=13&format=json" "DPPaquetObs/v2/paquet/stations/horaire?id-departement=13&format=json" "DPPaquetObs/v2/paquet/horaire?id-departement=13&format=json" "DPObs/v1/station/horaire?id_station=13054001&format=json"; do
             code=$(curl -s -o r.txt -w '%{http_code}' -H "$H" -H "accept: application/json" "https://public-api.meteofrance.fr/public/$u")
             echo "$code  $u  →  $(head -c 400 r.txt | tr '\n' ' ')"; done
+      - name: DNS du domaine (doit pointer vers GitHub Pages)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for t in A AAAA CNAME CAA NS DS; do echo "lameteodeleo.fr $t : $(dig +short lameteodeleo.fr $t | tr '\n' ' ')"; done
+          echo "www.lameteodeleo.fr CNAME : $(dig +short www.lameteodeleo.fr CNAME | tr '\n' ' ')  A : $(dig +short www.lameteodeleo.fr A | tr '\n' ' ')"
+          echo "Adresses attendues (GitHub Pages) : 185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153"
+          echo "http → $(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' http://lameteodeleo.fr/)"
+          echo "www  → $(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' https://www.lameteodeleo.fr/)"
+          echo | openssl s_client -servername lameteodeleo.fr -connect lameteodeleo.fr:443 2>/dev/null | openssl x509 -noout -issuer -enddate -ext subjectAltName 2>/dev/null
+          gh api repos/${{ github.repository }}/pages --jq '"Pages : domaine=\(.cname) https forcé=\(.https_enforced) certificat=\(.https_certificate.state // "?") statut=\(.status // "?")"' || echo "Pages : lecture impossible"
       - name: Stations du jeu « Chaud ou froid ? »
         run: |
           curl -s "https://lameteodeleo.fr/data/jeu.json?t=$(date +%s)" | python3 -c '
