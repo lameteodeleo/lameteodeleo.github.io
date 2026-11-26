@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-rsafL7wWfuowyF9h86ZjtPaK6bPXxLUDu5WIrGfk7wU=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-ckMYBVDKXLZJ579i92kRfKpsi5tetcUm6P2MsuB7mn4=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -2143,7 +2143,8 @@ function stationProche(c){if(!JEU||!JEU.stations||!c)return null;let b=null,d0=1
   for(const [id,s] of Object.entries(JEU.stations)){if(!actives.has(id))continue;const d=(s.lat-c.lat)**2+((s.lon-c.lon)*.73)**2;if(d<d0){d0=d;b=id}}return b}
 function serieJeu(p){const dates=Object.keys(p).sort();if(!dates.length)return 0;let n=1;for(let i=dates.length-1;i>0;i--){const a=new Date(dates[i]),b=new Date(dates[i-1]);if(Math.round((a-b)/864e5)===1)n++;else break}
   const dern=dates[dates.length-1];return dern>=jourISO(0)?n:0}
-function resultatJeu(date,g){const r=JEU&&JEU.tx&&JEU.tx[date]&&JEU.tx[date][g.st];if(!r)return null;if(!r[1]&&date>=jourISO(0))return null;
+// Le résultat du jour n'est donné qu'une fois la journée mesurée jusqu'à 20 h : il ne peut plus changer ensuite
+function resultatJeu(date,g){const r=JEU&&JEU.tx&&JEU.tx[date]&&JEU.tx[date][g.st];if(!r)return null;if(date>=jourISO(0)&&(!r[1]||new Date().getHours()<20))return null;
   const ecart=Math.round(Math.abs(g.v-r[0])*10)/10, v=VERDICTS.find(x=>ecart<=x[0]);return {mes:r[0],ecart,titre:v[1],pts:v[2],det:v[3]}}
 const escJ=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])).replace(/-/g,"\u2011");   // les noms de ville ne se coupent pas au trait d'union
 /* Les 5 badges : gagnés une fois, gardés pour toujours */

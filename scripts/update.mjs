@@ -408,9 +408,9 @@ async function jeu(communes) {
     ((J.h[jour] = J.h[jour] || {})[id] = J.h[jour][id] || {})[hr] = Math.round((tx - 273.15) * 10) / 10; n++;
   }
   for (const d of Object.keys(J.h).sort().slice(0, -10)) delete J.h[d];   // 10 jours suffisent
-  // Résultat du jour : la max et le nombre d'heures mesurées (complet si au moins 10 heures dont 13 h à 17 h)
+  // Résultat du jour : la max, et « complet » seulement quand les heures de 13 h à 20 h sont mesurées (rien ne peut plus changer)
   const tx = {};
-  for (const [d, S] of Object.entries(J.h)) { tx[d] = {}; for (const [id, H2] of Object.entries(S)) { const v = Object.values(H2); const plein = v.length >= 10 && [13, 14, 15, 16, 17].every(h => H2[h] != null); tx[d][id] = [Math.max(...v), plein ? 1 : 0]; } }
+  for (const [d, S] of Object.entries(J.h)) { tx[d] = {}; for (const [id, H2] of Object.entries(S)) { const v = Object.values(H2); const plein = v.length >= 12 && [13, 14, 15, 16, 17, 18, 19, 20].every(h => H2[h] != null);   // la journée est jouée jusqu'à 20 h tx[d][id] = [Math.max(...v), plein ? 1 : 0]; } }
   await writeFile("site/data/jeu.json", JSON.stringify({ maj: new Date().toISOString(), stations: J.stations, h: J.h, tx }));
   console.log(`Jeu : ${L.length} mesures lues, ${n} gardées ; ${Object.keys(J.stations).length} stations ; jours : ${Object.keys(tx).sort().join(", ")}`);
   return true;
