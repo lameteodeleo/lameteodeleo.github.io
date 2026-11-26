@@ -5,6 +5,8 @@
 #    ou vers 18 h 35 au plus tard si les prévisions ont moins de 3 heures.
 #  - Contrôles : vers 10 h 40 et 21 h 10 (heure d'hiver), le robot vérifie que tout est paru ;
 #    sinon, ce travail échoue et GitHub envoie un e-mail d'alerte.
+#  - Contrôle : de 7 h à 22 h, après chaque mise à jour, le robot vérifie le site et toute l'appli (chaque commune, 3 jours,
+#    visuels, carte) ; avant chaque Reel, il vérifie le Reel lui-même. Un défaut grave = pas de publication + e-mail.
 #  - Vigilance orange ou rouge dans le 13 : après chaque mise à jour météo entre 7 h et 22 h, le robot publie
 #    une alerte (story + publication sur la Page), une seule fois par épisode, et ouvre un ticket GitHub
 #    (donc un e-mail) pour prévenir Léo.
@@ -77,8 +79,10 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_run" ] || [ "${{ github.event.schedule }}" = "12 5,6 * * *" ] || [ "${{ github.event.schedule }}" = "32 17 * * *" ]; then
             if ! { [ $hm -ge 645 ] && [ $hm -lt 1030 ]; } && ! { [ $hm -ge 1700 ] && [ $hm -lt 2100 ]; }; then go=false; fi
           fi
-          # Hors des créneaux : on lance quand même le robot si le 13 est en vigilance orange ou rouge (de 7 h à 22 h)
-          if [ "$go" = false ] && [ "${{ github.event_name }}" = "workflow_run" ] && [ "$PUBLICATION_AUTO" = "oui" ] && [ $hm -ge 700 ] && [ $hm -lt 2200 ]; then
+          # De 7 h à 22 h, le robot passe à chaque mise à jour, même hors des créneaux : contrôle de l'appli et du site,
+          # et alerte si le 13 est en vigilance orange ou rouge (il ne publie un Reel ou une story que dans leurs créneaux)
+          if [ "$go" = false ] && [ "${{ github.event_name }}" = "workflow_run" ] && [ "$PUBLICATION_AUTO" = "oui" ] && [ $hm -ge 700 ] && [ $hm -lt 2200 ]; then go=true; fi
+          if false; then
             niv=$(curl -sf --retry 3 "https://lameteodeleo.fr/data/meteo.json?t=$(date +%s)" | python3 -c '
           import sys, json
           from datetime import datetime, timezone

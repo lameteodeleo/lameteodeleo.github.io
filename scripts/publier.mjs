@@ -166,6 +166,36 @@ async function traiterAlerte(IG) {
   if (echecs.length) throw new Error(`Alerte vigilance incomplète. ${echecs.join(" ; ")}`);
 }
 
+// ---------- Contrôle général : le site en ligne et toute l'appli, à chaque mise à jour ----------
+async function controleGeneral() {
+  const G = [], A = [];
+  // Le site en ligne : les prévisions sont fraîches, les pages des communes et le plan du site répondent
+  try {
+    const r = await fetch(SITE + "data/meteo.json?robot=" + Date.now()); const d = await r.json();
+    const age = (Date.now() - new Date(d.maj).getTime()) / 36e5, n = (d.communes || []).length;
+    if (age > 5) G.push(`prévisions en ligne vieilles de ${age.toFixed(1)} h`); else if (age > 3.5) A.push(`prévisions en ligne vieilles de ${age.toFixed(1)} h`);
+    if (n < 110) G.push(`seulement ${n} communes dans les prévisions en ligne`);
+    if (!d.vigilance) A.push("bulletin de vigilance absent de la dernière mise à jour");
+  } catch (e) { G.push("prévisions en ligne illisibles : " + e.message); }
+  for (const u of ["meteo/aix-en-provence/", "meteo/", "sitemap.xml", "manifest.webmanifest"]) {
+    try { const r = await fetch(SITE + u, { method: "GET" }); if (!r.ok) G.push(`${SITE}${u} répond ${r.status}`); } catch (e) { G.push(`${SITE}${u} injoignable`); }
+  }
+  // L'appli elle-même, commune par commune, sur 3 jours
+  const nav = await chromium.launch({ ...(process.env.CHROME_CHANNEL === "aucun" ? {} : { channel: process.env.CHROME_CHANNEL || "chrome" }) });
+  try {
+    const page = await ouvrirAppli(nav, null), erreurs = [];
+    page.on("pageerror", e => erreurs.push(e.message));
+    const r = await page.evaluate(() => typeof controleAppli === "function" ? controleAppli() : { graves: ["contrôle absent de l'appli"], avert: [] });
+    G.push(...r.graves); A.push(...r.avert);
+    if (erreurs.length) G.push("erreurs dans l'appli : " + [...new Set(erreurs)].slice(0, 3).join(" | "));
+  } catch (e) { G.push("l'appli ne s'ouvre pas : " + e.message); }
+  finally { await nav.close(); }
+  for (const a of A) log(`⚠️ Contrôle : ${a}`);
+  for (const g of G) log(`❌ Contrôle : ${g}`);
+  log(`Contrôle général : ${G.length ? G.length + " défaut(s) grave(s)" : "tout est bon"}${A.length ? `, ${A.length} point(s) à surveiller` : ""}`);
+  return G.length ? new Error(`Contrôle de l'appli : ${G.slice(0, 5).join(" ; ")}`) : null;
+}
+
 // ---------- Fabrication des vidéos et images, avec l'appli elle-même ----------
 async function fabriquer(type) {
   await mkdir(OUT, { recursive: true });
@@ -196,6 +226,11 @@ async function fabriquer(type) {
         const legende = await page.$eval("#caption", e => e.value);
         await page.click("#reelGo");
         await page.waitForFunction(() => document.querySelector("#reelOut video"), null, { timeout: 240000 });
+        // Contrôle du Reel avant publication : un défaut grave bloque tout (et GitHub envoie un e-mail)
+        const ctl = await page.evaluate(l => controleReel(l), legende);
+        for (const a of ctl.avert) log(`⚠️ Reel ${reseau} : ${a}`);
+        if (ctl.graves.length) throw new Error(`Reel bloqué par le contrôle (${reseau}) : ${ctl.graves.join(" ; ")}`);
+        log(`Contrôle du Reel ${reseau} : ${ctl.avert.length ? ctl.avert.length + " point(s) à surveiller" : "tout est bon"} ✔`);
         const info = await page.evaluate(async () => { const v = document.querySelector("#reelOut video"); const b = await (await fetch(v.src)).blob(); const ab = new Uint8Array(await b.arrayBuffer()); let s = ""; for (let i = 0; i < ab.length; i += 32768) s += String.fromCharCode.apply(null, ab.subarray(i, i + 32768)); return { type: b.type, b64: btoa(s) }; });
         if (!/mp4/.test(info.type)) throw new Error(`La vidéo n'est pas au format MP4 (${info.type}).`);
         const brut = `${OUT}/reel-${reseau}-brut.mp4`; await writeFile(brut, Buffer.from(info.b64, "base64"));
@@ -308,6 +343,8 @@ async function principal() {
   // L'alerte vigilance passe avant tout le reste ; si elle échoue, on publie quand même le reste, puis on signale l'échec
   let erreurAlerte = null;
   if (alerte) { try { await traiterAlerte(IG); } catch (e) { erreurAlerte = e; log("✘ " + masque(e.message)); } }
+  // Contrôle général de l'appli et du site (n'empêche pas les publications ; signalé par e-mail s'il y a un défaut grave)
+  if (MODE === "auto" || MODE === "test") { try { const e = await controleGeneral(); if (e && !erreurAlerte) erreurAlerte = e; } catch (e) { log("Contrôle général impossible : " + masque(e.message)); } }
   if (MODE === "test-alerte") { if (erreurAlerte) throw erreurAlerte; return; }
   if (!type) { log("Hors des créneaux de publication (story 6 h 45 – 10 h 30, Reel 17 h – 21 h) : rien d'autre à faire."); if (erreurAlerte) throw erreurAlerte; return; }
 

@@ -723,6 +723,12 @@ details.plus[open] .tiles{margin-top:10px}
       <summary><span>Outils et vérifications</span><small>fiabilité, à la une, tests</small></summary>
       <div style="margin-top:12px">
       <section>
+        <div class="sec-h"><h2>Contrôle de l'appli</h2></div>
+        <div class="card kit"><span class="sub">Le robot fait ce contrôle tout seul à chaque mise à jour et avant chaque publication. Tu peux aussi le lancer ici : toutes les communes, aujourd'hui, demain et après-demain, plus les visuels et la carte.</span>
+          <div class="chips" style="margin-top:10px"><button class="chip" type="button" id="ctrlGo">Tout vérifier maintenant</button></div>
+          <div id="ctrlOut" class="sub" style="margin-top:10px"></div></div>
+      </section>
+      <section>
         <div class="sec-h"><h2>Fiabilité des prévisions</h2></div>
         <div class="card kit" id="fiab"></div>
       </section>
@@ -2448,6 +2454,10 @@ async function renderCarte(){
 }
 $("mapJ0").addEventListener("click",()=>{mapJour=0;majCarte()});
 $("mapJ1").addEventListener("click",()=>{mapJour=1;majCarte()});
+$("ctrlGo").addEventListener("click",()=>{const o=$("ctrlOut");o.textContent="Vérification en cours…";
+  setTimeout(()=>{const r=controleAppli(),esc=t=>String(t).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+    o.innerHTML=(!r.graves.length&&!r.avert.length)?"✅ Tout est bon : "+COMMUNES.length+" communes vérifiées, sur 3 jours.":
+      (r.graves.length?"<b>❌ À corriger</b><br>"+r.graves.map(esc).join("<br>")+"<br>":"")+(r.avert.length?"<b>⚠️ À surveiller</b><br>"+r.avert.map(esc).join("<br>"):"")},30)});
 $("mapMode").addEventListener("click",e=>{const b=e.target.closest("button[data-m]");if(!b)return;mapMode=b.dataset.m;majCarte()});
 const goTo=n=>{st.c=idx(n);st.jour=mapJour;location.hash="#meteo"};
 $("map").addEventListener("click",e=>{const g=e.target.closest(".mk");if(g)goTo(g.dataset.n)});
@@ -2896,6 +2906,66 @@ function slideStory(){
   x.globalAlpha=.6;x.font="700 28px "+FB;x.fillText(PSEUDO,540,1860);x.textAlign="left";x.globalAlpha=1;
   return cv;
 }
+/* ---------- Contrôles automatiques (le robot les lance avant chaque publication et à chaque mise à jour) ----------
+   graves : on ne publie pas ; avertissements : on publie, mais on le signale. */
+let REEL_PLAN=null;
+const TEXTE_CASSE=/undefined|NaN|Infinity|\bnull\b|\[object|\{[a-z]+\}/;
+const ICO_VENT=["mistral","vent"], ICO_EAU=["pluie","pluieForte","bruine","averses","orage","neige","pluieNeige"];
+function controleReel(legende){
+  const P=REEL_PLAN, G=[], A=[];
+  if(!P)return {graves:["le Reel n'a pas été préparé"],avert:[]};
+  const textes=[P.hook.lab,P.hook.k,P.phrase,P.sourire,P.cons,legende,...P.creneaux.map(c=>c.lab),...P.communes.map(c=>c.n+" "+c.info)].filter(t=>t!=null);
+  for(const t of textes)if(TEXTE_CASSE.test(String(t)))G.push("texte abîmé : « "+String(t).slice(0,80)+" »");
+  if(!P.niveau&&!(P.hook.n!=null&&isFinite(P.hook.n)))G.push("le chiffre de l'accroche est vide");
+  if(P.niveau>=3&&P.extra==="sourire")G.push("un sourire est prévu en vigilance "+(P.niveau>=4?"rouge":"orange"));
+  if(P.niveau>=3&&P.sourire&&legende&&legende.includes(P.sourire.slice(0,30)))G.push("la légende contient de l'humour en vigilance");
+  if(P.creneaux.length!==7)G.push("heure par heure : "+P.creneaux.length+" créneaux au lieu de 7");
+  for(const c of P.creneaux){
+    if(!isFinite(c.t)||c.t<-20||c.t>48)G.push(c.h+" h : température impossible ("+c.t+")");
+    if(/^(Mistral|Rafales)/.test(c.lab)&&!ICO_VENT.includes(c.ico))A.push(c.h+" h : « "+c.lab+" » avec l'icône « "+c.ico+" »");
+    if(/Pluie|averses|Orages|Neige/.test(c.lab)&&!ICO_EAU.includes(c.ico))A.push(c.h+" h : « "+c.lab+" » avec l'icône « "+c.ico+" »");
+  }
+  if(P.picLab&&P.pic<0)A.push("« "+P.picLab+" » sans créneau marqué");
+  if(P.communes.length<4)G.push("seulement "+P.communes.length+" communes dans le Reel");
+  for(const c of P.communes)if(!isFinite(c.max)||c.max<-20||c.max>48)G.push(c.n+" : température impossible ("+c.max+")");
+  if(!legende||legende.length<40)G.push("légende vide ou trop courte");
+  else{if(legende.length>2200)G.push("légende trop longue pour Instagram ("+legende.length+" caractères)");
+    if((legende.match(/#\w/g)||[]).length>30)G.push("trop de hashtags");
+    if(!P.niveau&&P.hook.u===" km/h"&&!legende.includes(String(P.hook.n)))A.push("l'accroche dit "+P.hook.n+" km/h, la légende ne reprend pas ce chiffre")}
+  if(P.sourire&&P.sourire.length>170)A.push("sourire long ("+P.sourire.length+" caractères)");
+  return {graves:G,avert:A};
+}
+// Toute l'appli, commune par commune, pour aujourd'hui, demain et après-demain : rien d'abîmé, rien d'impossible
+function controleAppli(){
+  const G=[], A=[], sauve={c:st.c,jour:st.jour}, vus=new Set();
+  const note=(L,t)=>{if(!vus.has(t)&&L.length<25){vus.add(t);L.push(t)}};
+  try{
+    if(!enReel())return {graves:["l'appli n'a pas chargé les vraies prévisions"],avert:[]};
+    for(let i=0;i<COMMUNES.length;i++){const c=COMMUNES[i];
+      for(const j of [0,1,2]){
+        let m;try{m=meteo(c,st.scen,j)}catch(e){note(G,c.n+" (J+"+j+") : calcul impossible ("+e.message+")");continue}
+        for(const k of ["max","min","raf","pl"])if(m[k]==null||!isFinite(m[k]))note(G,c.n+" (J+"+j+") : "+k+" vide");
+        if(m.max<-20||m.max>48||m.min<-25||m.min>40)note(G,c.n+" (J+"+j+") : températures impossibles ("+m.min+" / "+m.max+")");
+        if(m.min>m.max)note(A,c.n+" (J+"+j+") : min "+m.min+" au-dessus du max "+m.max);
+        if(m.raf<0||m.raf>220)note(G,c.n+" (J+"+j+") : rafales impossibles ("+m.raf+")");
+        if(m.pl<0||m.pl>400)note(G,c.n+" (J+"+j+") : pluie impossible ("+m.pl+")");
+        // L'écran tel que le voit le visiteur
+        st.c=i;st.jour=j;
+        try{render()}catch(e){note(G,c.n+" (J+"+j+") : l'écran plante ("+e.message+")");continue}
+        const txt=$("v-meteo").innerText;
+        const mt=txt.match(TEXTE_CASSE);if(mt)note(G,c.n+" (J+"+j+") : texte abîmé à l'écran (« "+txt.slice(Math.max(0,mt.index-40),mt.index+30).replace(/\s+/g," ")+" »)");
+        const al=m.alert&&m.alert.niveau>=3;
+        if(al&&!$("motBox").hidden)note(G,c.n+" (J+"+j+") : sourire affiché en vigilance orange ou rouge");
+        if(!al&&j<2&&$("motBox").hidden)note(A,c.n+" (J+"+j+") : pas de sourire du jour");
+      }
+    }
+    // Les visuels de la story et du carrousel se fabriquent sans erreur
+    const pj=postJour;for(const j of [0,1]){try{postJour=j;slideStory();slideFin(j)}catch(e){note(G,"visuels du jour J+"+j+" : "+e.message)}}postJour=pj;
+    // La carte « Le 13 » : chaque mode
+    try{const mm=mapMode;for(const k of ["temp","pluie","vent"].concat(nowDispo()?["now"]:[])){mapMode=k;majCarte()}mapMode=mm;majCarte()}catch(e){note(G,"carte du 13 : "+e.message)}
+  }finally{st.c=sauve.c;st.jour=sauve.jour;try{render()}catch(e){}}
+  return {graves:G,avert:A};
+}
 /* ---------- Alerte vigilance orange ou rouge, publiée par le robot ----------
    Sérieux, sans humour : le niveau, les phénomènes, le jour et les consignes officielles. */
 function alerteRobot(){
@@ -3077,6 +3147,7 @@ async function creerReel(btn){
   const sourire=(!al||al.niveau<3)?motDuJour(ville,meteo(ville,st.scen,J),J).replace(/(\d) (?=km\/h|mm|%)/g,"$1 "):null;
   const extra=(al||(cons&&cons.warn)||!sourire)?"cons":"sourire";
   const SC=[{type:"hook",d:2.4},{type:"heures",d:3.6},{type:"communes",d:3.4},{type:extra,d:2.8},{type:"fin",d:3.2}];
+  REEL_PLAN={J,niveau:al?al.niveau:0,hook,phrase,creneaux,pic,picLab,communes:PROCHES,sourire,extra,cons:cons?cons.txt:null,rafMax:R.vent.m.raf};
   // Pluie ou vent qui bougent en fond, sur tous les écrans sombres : l'image n'est jamais figée
   // Un effet animé pour chaque type de temps (discret : il ne doit jamais gêner la lecture)
   const animType=R.dom==="orage"?"orage":R.dom==="neige"?"neige":(R.pl.jour>=2||R.dom==="pluie")?"pluie":(R.dom==="mistral"||R.vent.m.raf>=50)?"vent":
