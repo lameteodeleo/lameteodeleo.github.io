@@ -415,6 +415,44 @@ async function jeu(communes) {
   console.log(`Jeu : ${L.length} mesures lues, ${n} gardées ; ${Object.keys(J.stations).length} stations ; jours : ${Object.keys(tx).sort().join(", ")}`);
   return true;
 }
+
+// Suivi pour l'espace créateur : visiteurs, parties du jeu (comptage anonyme Umami) et abonnés.
+// Rien de personnel : seulement des totaux par jour. Les clés restent dans les secrets GitHub.
+async function suiviCreateur() {
+  let prec = null; try { prec = await lireSite("/data/suivi.json", 2); } catch (e) {}
+  const S = { j: (prec && prec.j) || {}, abo: (prec && prec.abo) || {} };
+  const jourParis = t => new Date(t).toLocaleDateString("fr-CA", { timeZone: "Europe/Paris" });
+  const cleU = (process.env.UMAMI_API_KEY || "").trim();
+  if (cleU) {
+    const W = "a3212f59-b8e9-486f-9e0f-d7256926be65", B = "https://api.umami.is/v1/websites/" + W;
+    const get = async u => { const r = await fetch(B + u, { headers: { "x-umami-api-key": cleU, accept: "application/json" } }); if (!r.ok) throw new Error("Umami HTTP " + r.status); return r.json(); };
+    const val = x => x == null ? 0 : typeof x === "object" ? (x.value || 0) : x;
+    // aujourd'hui et hier (heure de Paris), relus à chaque passage pour avoir la journée complète
+    for (const dec of [1, 0]) {
+      const d = jourParis(Date.now() - dec * 864e5);
+      const dec0 = Number((new Intl.DateTimeFormat("en", { timeZone: "Europe/Paris", timeZoneName: "shortOffset" }).formatToParts(Date.parse(d + "T12:00:00Z")).find(x => x.type === "timeZoneName").value.match(/[+-]\d+/) || ["1"])[0]);
+      const debut = Date.parse(d + "T00:00:00Z") - dec0 * 36e5, fin = Math.min(Date.now(), debut + 864e5 - 1);
+      const q = `startAt=${debut}&endAt=${fin}`;
+      const st = await get("/stats?" + q);
+      let ev = []; try { ev = await get("/metrics?" + q + "&type=event"); } catch (e) {}
+      const n = k => { const o = (ev || []).find(x => x.x === k); return o ? o.y : 0; };
+      S.j[d] = { vis: val(st.visitors), vues: val(st.pageviews), tente: n("jeu-tente"), partage: n("jeu-partage"), regulier: n("jeu-regulier") };
+    }
+  } else console.log("Suivi : pas de clé UMAMI_API_KEY, visiteurs et parties non relevés.");
+  const cleM = (process.env.META_PAGE_TOKEN || "").trim();
+  if (cleM) {
+    try {
+      const u = "https://graph.facebook.com/v27.0/1389664764238207?fields=followers_count,fan_count,instagram_business_account%7Bfollowers_count%7D&access_token=" + encodeURIComponent(cleM);
+      const r = await fetch(u); const g = await r.json();
+      if (g.error) throw new Error(g.error.message);
+      S.abo[jourParis(Date.now())] = { fb: g.followers_count ?? g.fan_count ?? null, ig: (g.instagram_business_account && g.instagram_business_account.followers_count) ?? null };
+    } catch (e) { console.warn("Suivi : abonnés non relevés (" + String(e.message).slice(0, 80) + ")"); }
+  }
+  for (const k of ["j", "abo"]) for (const d of Object.keys(S[k]).sort().slice(0, -90)) delete S[k][d];   // 90 jours suffisent
+  await writeFile("site/data/suivi.json", JSON.stringify({ maj: new Date().toISOString(), ...S }));
+  console.log(`Suivi : ${Object.keys(S.j).length} jours, ${Object.keys(S.abo).length} relevés d'abonnés.`);
+  return true;
+}
 // Ces données sont un bonus : si elles manquent, le site est quand même publié
 async function bonus(nom, f) { try { return await f(); } catch (e) { console.warn(`${nom} indisponible : ${e.message}`); return null; } }
 
@@ -897,6 +935,7 @@ if (process.env.TEST_MESURES === "true") await bonus("Test des mesures", async (
 });
 const fiabilite = await bonus("Vérification", () => verifier(ok, qualiteAir));
 await bonus("Jeu", () => jeu(ok));
+await bonus("Suivi", suiviCreateur);
 await writeFile("site/data/meteo.json", JSON.stringify({
   maj: new Date().toISOString(),
   source: "Open-Meteo (CC BY 4.0) : modèles Météo-France AROME et ARPEGE, complétés par le modèle global",

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-LZWczShTc4Sp4l88/5HjKC047PgXv2FUELjMtWIqqGY=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-6zJ6OiAAIC/QG285G/W8trQEovGJvlv2r52RaDaFUDY=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -666,7 +666,7 @@ details.plus[open] .tiles{margin-top:10px}
         <li>Aucune inscription, aucun compte, aucune publicité.</li>
         <li>Votre commune, vos favoris et vos parties de « Chaud ou froid&nbsp;? » restent sur votre appareil.</li>
         <li>La localisation ne sert que si vous touchez « Me localiser », pour trouver la commune la plus proche. Elle n'est ni enregistrée ni transmise.</li>
-        <li>Les visites sont comptées de façon anonyme, sans cookie.</li>
+        <li>Les visites et les parties du jeu sont comptées de façon anonyme, sans cookie.</li>
       </ul>
       <p class="sub">© La météo de Léo, tous droits réservés. Les textes, le logo et le design de l'app ne peuvent pas être réutilisés sans autorisation.</p>
     </div>
@@ -751,6 +751,10 @@ details.plus[open] .tiles{margin-top:10px}
         <span class="sub">Umami : visiteurs, pages vues, appareils et villes. Google Search Console : ce que les gens tapent sur Google pour trouver l'app.</span>
         <div class="chips"><a class="chip" href="https://cloud.umami.is/websites/a3212f59-b8e9-486f-9e0f-d7256926be65" target="_blank" rel="noopener">Umami</a><a class="chip" href="https://search.google.com/search-console?resource_id=https%3A%2F%2Flameteodeleo.fr%2F" target="_blank" rel="noopener">Google Search Console</a></div>
       </div>
+    </section>
+    <section>
+      <div class="sec-h"><h2>🔥 Chaud ou froid ? · suivi</h2></div>
+      <div class="card kit" id="suiviJeu"><span class="sub">Chargement…</span></div>
     </section>
     <details class="plus">
       <summary><span>Outils et vérifications</span><small>fiabilité, à la une, tests</small></summary>
@@ -2165,6 +2169,8 @@ function comptesJeu(d){
   return nouveaux;
 }
 /* Image de score à partager (1080 × 1350, aux couleurs de l'appli) */
+/* Comptage anonyme (sans cookie) : combien de parties jouées et partagées, pour savoir si le jeu plaît */
+function suivi(n){try{if(window.umami&&umami.track)umami.track(n)}catch(e){}}
 function imageJeu(g,res,serie,d){
   const W=1080,H=1350,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");
   const gr=x.createLinearGradient(0,0,W*.4,H);gr.addColorStop(0,"#5B4BD0");gr.addColorStop(1,"#2B2366");x.fillStyle=gr;x.fillRect(0,0,W,H);
@@ -2221,9 +2227,13 @@ function renderJeu(){
   if(!dj){$("jeuMoins").onclick=()=>{if(val>-15){val--;maj()}};$("jeuPlus").onclick=()=>{if(val<45){val++;maj()}};
     // Jour de mistral prévu à la station : utile pour le badge « Mistral gagnant »
     const cs=COMMUNES[idx(nomSt)], ms=cs?meteo(cs,st.scen,1):m1, mis=!!ms&&(ms.type==="mistral"||(ms.raf>=50&&/nord/i.test(ms.dir||"")));
-    $("jeuGo").onclick=()=>{const e=jeuLire();e.p[dem]={st:id,n:nomSt,v:val,mis};const s=serieJeu(e.p);e.rec=Math.max(e.rec||0,s);
-      for(const k of Object.keys(e.p).sort().slice(0,-40))delete e.p[k];jeuEcrire(e);renderJeu()}}
-  const bp=$("jeuPartage");if(bp)bp.onclick=async()=>{const g=d.p[dres],t="🔥 Chaud ou froid ? 🧊 J'avais dit "+g.v+"°, il a fait "+fr(res.mes)+"° à "+g.n+" : "+res.titre.replace(/^\S+ /,"")+" Et vous ?",u="https://lameteodeleo.fr";
+    $("jeuGo").onclick=()=>{suivi("jeu-tente");const e=jeuLire();e.p[dem]={st:id,n:nomSt,v:val,mis};const s=serieJeu(e.p);e.rec=Math.max(e.rec||0,s);
+      for(const k of Object.keys(e.p).sort().slice(0,-40))delete e.p[k];
+      // « Joueur régulier » : 3 parties ou plus sur 7 jours, compté une seule fois par semaine (anonyme)
+      {const lun=(()=>{const x=new Date();x.setDate(x.getDate()-((x.getDay()+6)%7));return x.toLocaleDateString("sv-SE")})();
+       if(Object.keys(e.p).filter(k=>k>=jourISO(-5)).length>=3&&e.reg!==lun){e.reg=lun;suivi("jeu-regulier")}}
+      jeuEcrire(e);renderJeu()}}
+  const bp=$("jeuPartage");if(bp)bp.onclick=async()=>{suivi("jeu-partage");const g=d.p[dres],t="🔥 Chaud ou froid ? 🧊 J'avais dit "+g.v+"°, il a fait "+fr(res.mes)+"° à "+g.n+" : "+res.titre.replace(/^\S+ /,"")+" Et vous ?",u="https://lameteodeleo.fr";
     // D'abord l'image (story, message), sinon le texte, sinon une copie
     try{try{await document.fonts.ready}catch(e){}const blob=await new Promise(r=>imageJeu(Object.assign({date:dres},g),res,serieJeu(d.p),d).toBlob(r,"image/png"));
       const f=new File([blob],"chaud-ou-froid.png",{type:"image/png"});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:t+" "+u});return}}catch(e){if(e&&e.name==="AbortError")return}
@@ -3633,7 +3643,7 @@ function route(){
     const q=DATA&&DATA.qualite, ql=$("qualiteLigne");
     if(q){ql.hidden=false;ql.textContent="Contrôle qualité de la dernière mise à jour ("+DATA.maj.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}).replace(":"," h ")+") : "+q.validees+" communes validées sur "+q.total+(q.ajustees?", "+q.ajustees+" valeur"+(q.ajustees>1?"s":"")+" ajustée"+(q.ajustees>1?"s":""):"")+(q.ecartees&&q.ecartees.length?". Écartées : "+q.ecartees.join(", ")+".":".")+(DATA.vigilance?" Vigilance Météo-France lue (bulletin de "+heureV(new Date(DATA.vigilance.maj||DATA.maj))+").":" Vigilance Météo-France : non lue.")}
     else ql.hidden=true;
-    renderFiab();momentFort()}
+    renderFiab();renderSuivi();momentFort()}
   window.scrollTo(0,0);
 }
 /* Rappel « moment fort » : les groupes gardés pour un événement météo marquant (pas une 2e présentation de l'app) */
@@ -3657,6 +3667,27 @@ function momentFort(){
 }
 /* Fiabilité : la prévision faite la veille, comparée aux mesures des stations Météo-France */
 /* Fiabilité : chaque paramètre de l'app comparé aux mesures des stations Météo-France, avec les pistes de réglage */
+/* Suivi du jeu et de l'audience (espace créateur) : chiffres anonymes relevés par le robot */
+async function renderSuivi(){const el=$("suiviJeu");if(!el)return;
+  let S=null;try{const r=await fetch("data/suivi.json?"+Date.now(),{cache:"no-store"});if(r.ok)S=await r.json()}catch(e){}
+  const J=(S&&S.j)||{}, jours=Object.keys(J).sort();
+  if(!jours.length){el.innerHTML='<span class="sub">Les premiers chiffres arrivent après la prochaine mise à jour du robot, une fois la clé Umami ajoutée dans les secrets GitHub (UMAMI_API_KEY).</span>';return}
+  const auj=jourISO(0), sept=jourISO(-6), lun=(()=>{const d=new Date();d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toLocaleDateString("sv-SE")})();
+  const som=(k,de)=>jours.filter(d=>d>=de&&d<=auj).reduce((a,d)=>a+(J[d][k]||0),0), A=J[auj]||{};
+  const nbJ=Math.max(1,jours.filter(d=>d>=sept&&d<=auj).length), visMoy=Math.round(som("vis",sept)/nbJ), reg=som("regulier",lun);
+  const ab=S.abo||{}, dA=Object.keys(ab).sort().pop(), a0=dA?ab[dA]:{}, fb=a0.fb||0, ig=a0.ig||0, tot=fb+ig;
+  const jauge=(lab,v,max)=>{const k=Math.min(1,v/max), ok=v>=max;return '<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:.9rem"><span>'+lab+'</span><b>'+v+' / '+max+(ok?" ✅":"")+'</b></div><div style="height:8px;border-radius:6px;background:var(--line);margin-top:4px;overflow:hidden"><div style="height:100%;width:'+Math.round(k*100)+'%;background:'+(ok?"var(--ok)":"var(--brand)")+'"></div></div></div>'};
+  const pret=reg>=30&&(tot>=300||visMoy>=100);
+  el.innerHTML='<div class="sub" style="line-height:1.7">'+
+    '👥 <b>Visiteurs</b> : '+(A.vis||0)+' aujourd\'hui · '+visMoy+' par jour en moyenne (7 jours)<br>'+
+    '🎯 <b>Parties</b> : '+(A.tente||0)+' aujourd\'hui · '+som("tente",sept)+' sur 7 jours<br>'+
+    '📤 <b>Partages de résultats</b> : '+som("partage",sept)+' sur 7 jours<br>'+
+    '🔁 <b>Joueurs réguliers</b> (3 parties ou plus) : '+reg+' cette semaine<br>'+
+    '📣 <b>Abonnés</b> : '+(dA?fb+' Facebook · '+ig+' Instagram':"pas encore relevés")+'</div>'+
+    '<div style="margin-top:6px;font-weight:700">Seuil des partenariats</div>'+
+    jauge("Joueurs réguliers",reg,30)+jauge("Abonnés (Facebook + Instagram)",tot,300)+jauge("Visiteurs par jour",visMoy,100)+
+    '<div class="sub" style="margin-top:10px">'+(pret?"✅ C'est le moment de lancer l'annonce partenaires.":"Il faut 30 joueurs réguliers, et 300 abonnés ou 100 visiteurs par jour.")+'</div>'+
+    '<div class="sub" style="margin-top:6px;opacity:.8">Mis à jour par le robot '+new Date(S.maj).toLocaleString("fr-FR",{weekday:"long",hour:"2-digit",minute:"2-digit"}).replace(":"," h ")+'. Tes propres visites ne sont pas comptées.</div>'}
 function renderFiab(){
   const F=DATA&&DATA.fiabilite, el=$("fiab");if(!el)return;
   if(!F||!F.length){el.innerHTML='<span class="sub">Le premier score arrive environ deux jours après la mise en route : la prévision de demain est gardée ce soir, puis comparée aux mesures des stations Météo-France, publiées le lendemain.</span>';return}
