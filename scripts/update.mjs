@@ -425,7 +425,7 @@ async function suiviCreateur() {
   const cleU = (process.env.UMAMI_API_KEY || "").trim();
   if (cleU) {
     const W = "a3212f59-b8e9-486f-9e0f-d7256926be65", B = "https://api.umami.is/v1/websites/" + W;
-    const get = async u => { const r = await fetch(B + u, { headers: { "x-umami-api-key": cleU, accept: "application/json" } }); if (!r.ok) throw new Error("Umami HTTP " + r.status); return r.json(); };
+    const get = async u => { const r = await fetch(B + u, { headers: { Authorization: "Bearer " + cleU, "x-umami-api-key": cleU, accept: "application/json" } }); if (!r.ok) throw new Error("Umami HTTP " + r.status); return r.json(); };
     const val = x => x == null ? 0 : typeof x === "object" ? (x.value || 0) : x;
     // aujourd'hui et hier (heure de Paris), relus à chaque passage pour avoir la journée complète
     for (const dec of [1, 0]) {
