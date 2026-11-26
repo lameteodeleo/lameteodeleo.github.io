@@ -171,14 +171,15 @@ async function traiterAlerte(IG) {
 const MOTS_OK = new Set(("lameteodeleo meteo mistral cigales santons calanques pastis boulistes platanes rafales km mm ressenti appli apps app " +
   "arome arpege vigilance submersion inondation reels reel story stories hashtag hashtags insta instagram facebook tiktok " +
   "camargue alpilles luberon durance sainte victoire mirabeau frioul panier corniche baux rhône berre vaccarès crau garlaban " +
-  "aixois marseillais provençal provençale provençaux etalab ok wifi").split(" "));
+  "aixois marseillais provençal provençale provençaux etalab ok wifi app tanqués baou castellas castrum roumavage magistralis olivades boat").split(" "));
 function verifierOrthographe(textes) {
   let sortie = "";
   try { sortie = execFileSync("hunspell", ["-d", "fr_FR", "-l", "-i", "UTF-8"], { input: textes.join("\n"), maxBuffer: 1 << 24 }).toString(); }
   catch (e) { return { erreur: "dictionnaire indisponible (" + e.message.split("\n")[0] + ")" }; }
   const compte = {};
   for (const m of sortie.split(/\n/).map(x => x.trim()).filter(Boolean)) {
-    if (/\d|^[A-ZÉÈÀ]|^#|https?|\.(fr|com)$|_/.test(m) || m.length < 3 || MOTS_OK.has(m.toLowerCase())) continue;   // nombres, noms propres, liens
+    const w = m.replace(/^(l|d|qu|n|s|j|m|t|c|jusqu|lorsqu|puisqu)['’]/i, "").replace(/[.,;:!?»)]+$/, "");
+    if (/\d|^[A-ZÉÈÀÂÎÔ]|^#|https?|\.(fr|com)$|_/.test(w) || w.length < 3 || MOTS_OK.has(w.toLowerCase())) continue;   // nombres, noms propres, liens
     compte[m] = (compte[m] || 0) + 1;
   }
   return { inconnus: Object.entries(compte).sort((a, b) => b[1] - a[1]).map(([m, n]) => n > 1 ? `${m} (×${n})` : m) };
