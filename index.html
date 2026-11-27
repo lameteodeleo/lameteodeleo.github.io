@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-wAO+VYlTHDrtLnHdIXCzGK843BOe4zom3kB1D59YzQY=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-yltarfH/b4TkKd9ACrBnF7919yYUlNVVj6+brd8/qKI=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -2300,7 +2300,7 @@ function render(){
           if(d.type==="mistral"||d.raf>=60)D.push((d.type==="mistral"?"mistral":"vent fort")+" jusqu'à "+d.raf+" km/h en rafales");
           if(d.min<=0)D.push("gelée au réveil ("+d.min+"°)");
           const dT=d.max-m.max;if(dT<=-4)D.push("nettement plus frais ("+d.max+"°)");else if(dT>=4)D.push("nettement plus doux ("+d.max+"°)");
-          if(D.length)(L=L||[]).push(["Demain",D.join(", ")])}}
+          if(D.length)(L=L||[]).push([new Date().getHours()<6?cap(dayDate(1).toLocaleDateString("fr-FR",{weekday:"long"})):"Demain",D.join(", ")])}}  // la nuit, « demain » prête à confusion : on écrit le jour
       else if(hr){const S=hr.map((x,i)=>x&&{h:7+2*i,type:x.type,ico:variante(x.code,x.type,false)}).filter(Boolean);if(S.length>=4)L=resumeSlots(S,false,m.raf)}}}catch(e){L=null}
     el.hidden=!(L&&L.length);if(L&&L.length)el.innerHTML=L.map(([k,v])=>"<span><b>"+k+"</b> "+insec(v)+"</span>").join("")}
   $("hours").classList.toggle("trois",!!(hr&&st.jour>=1));
