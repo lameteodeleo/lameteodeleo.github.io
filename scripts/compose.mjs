@@ -54,7 +54,12 @@ export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date
         const bas = bn - (bn > 40 ? 12 : 0), tierce = S.g === MIN ? 3 : 4;
         [[0, 0], [1, 7], [2, 12], [2.5, 10], [3, tierce + 12], [3.5, 11]].forEach(([x, d], i) => { if (v !== 1 || i !== 3) note(pistes.basse, b0 + x, 0.45, bas + d, 74); });
         ac0.slice(0, 3).forEach(n => note(pistes.nappe, b0, 4, n - 12, 26));
-        if (m % 2 === 1) motif.forEach((d, e) => { if (d >= 0 && e % 2 === 0) note(pistes.sax, b0 + e * 0.5 + 0.08 * (e % 4 === 2) + hum(), 0.7, ton + 12 + (S.g === MIN ? (d === 4 ? 3 : d === 9 ? 8 : d) : d), 62); });
+        // saxophone joué comme un vrai musicien : une phrase liée toutes les 2 mesures, des notes qui se posent, une respiration
+        if (m % 2 === 1) { const deg = d => ton + 12 + (S.g === MIN ? (d === 4 ? 3 : d === 9 ? 8 : d) : d);
+          const ph = motif.filter(d => d >= 0).slice(0, 4); if (ph.length < 2) ph.push(0, 4);
+          const rythmes = [[0, 0.75, 1.5, 2], [0.5, 1, 1.75, 2.5], [0, 1, 1.5, 2.5]][v];
+          ph.forEach((d, i) => { const debut = b0 + 0.25 + rythmes[i], der = i === ph.length - 1, duree = der ? 1.6 : (rythmes[i + 1] - rythmes[i]) + 0.08;   // notes liées, la dernière tenue
+            note(pistes.sax, debut + hum(), duree, deg(d), der ? 66 : 58 + (i % 2 ? 0 : 6)); }); }
         if (!fin) {
           if (!intro0(m)) for (let q = 0; q < 4; q++) note(B, b0 + q, 0.2, 36, 70);
           [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 46));
@@ -105,9 +110,16 @@ export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date
   }
   // ---- écriture du fichier MIDI (format 1) ----
   const vlq = n => { const o = [n & 0x7f]; while ((n >>= 7)) o.unshift((n & 0x7f) | 0x80); return o; };
-  const piste = (canal, prog, vol, pan, notes, reverb = 70) => {
+  const piste = (canal, prog, vol, pan, notes, reverb = 70, expressif = false) => {
     const ev = [[0, [0xC0 | canal, prog]], [0, [0xB0 | canal, 7, vol]], [0, [0xB0 | canal, 10, pan]], [0, [0xB0 | canal, 91, reverb]], [0, [0xB0 | canal, 93, 20]]];
-    for (const [t, d, n, vel] of notes) { const tt = Math.max(0, t); ev.push([tt, [0x90 | canal, n, Math.min(127, vel)]]); ev.push([tt + d, [0x80 | canal, n, 0]]); }
+    for (const [t, d, n, vel] of notes) { const tt = Math.max(0, t); ev.push([tt, [0x90 | canal, n, Math.min(127, vel)]]); ev.push([tt + d, [0x80 | canal, n, 0]]);
+      if (expressif) {                                   // souffle qui gonfle, note attaquée un peu par en dessous, vibrato sur les notes tenues
+        const pb = v => [0xE0 | canal, v & 127, (v >> 7) & 127];
+        ev.push([tt, pb(8192 - 1100)]); for (let k = 1; k <= 4; k++) ev.push([tt + Math.round(k * 12), pb(8192 - 1100 + 275 * k)]);
+        for (let k = 0; k <= 6; k++) ev.push([tt + Math.round(d * k / 6), [0xB0 | canal, 11, Math.round(78 + 40 * Math.sin(Math.PI * Math.min(1, k / 4.5)))]]);
+        if (d >= 480 * 0.9) for (let k = 0; k <= 4; k++) ev.push([tt + Math.round(d * (0.35 + k * 0.15)), [0xB0 | canal, 1, Math.min(70, 15 * k)]]);
+        ev.push([tt + d, [0xB0 | canal, 1, 0]]);
+      } }
     ev.sort((a, b) => a[0] - b[0] || (a[1][0] & 0xf0) - (b[1][0] & 0xf0));
     const o = []; let last = 0; for (const [t, d] of ev) { o.push(...vlq(t - last), ...d); last = t; } o.push(0, 0xFF, 0x2F, 0);
     return Buffer.concat([Buffer.from("MTrk"), Buffer.from([o.length >>> 24, (o.length >> 16) & 255, (o.length >> 8) & 255, o.length & 255]), Buffer.from(o)]);
@@ -116,7 +128,7 @@ export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date
   const basseG = G === "chillhop" || G === "jazzhouse" ? 32 : G === "house" ? 38 : S.basse;
   const leadG = G === "house" ? 5 : S.lead, nappeG = G === "house" ? 89 : S.nappe;
   const tr = [tempo, piste(0, leadG, 100, 54, pistes.lead), piste(1, nappeG, G === "house" ? 80 : 72, 74, pistes.nappe, 90), piste(2, basseG, G === "house" ? 88 : 100, 64, pistes.basse, 30)];
-  if (pistes.sax.length) tr.push(piste(3, 65, 82, 70, pistes.sax, 60));
+  if (pistes.sax.length) tr.push(piste(3, 65, 82, 70, pistes.sax, 75, true));
   if (pistes.bat.length) tr.push(piste(9, 0, 82, 64, pistes.bat, 40));
   const head = Buffer.from([0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 1, 0, tr.length, TPQ >> 8, TPQ & 255]);
   return { midi: Buffer.concat([head, ...tr]), resume: `${G} · ${nom}, ${bpm} bpm, tonique ${ton}, suite ${suite.join("-")}, variante ${v + 1}` };
