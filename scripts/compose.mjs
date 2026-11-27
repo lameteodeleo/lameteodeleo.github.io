@@ -11,12 +11,13 @@ const accord = (g, deg, n = 4) => Array.from({ length: n }, (_, k) => { const d 
 
 // Instruments General MIDI : 0 piano, 4 piano électrique, 24 guitare nylon, 25 guitare folk, 32 basse acoustique, 33 basse au doigt,
 // 48 cordes, 89 nappe chaude, 73 flûte ; batterie sur le canal 10
+// Une seule famille de son, celle que Léo aime : lo-fi au piano électrique feutré. Le temps change la gamme, le tempo et l'énergie.
 const STYLES = {
-  soleil: { g: MAJ, bpm: [88, 98],  suites: [[0, 5, 3, 4], [0, 4, 5, 3], [3, 0, 4, 5], [0, 3, 5, 4]], toniques: [55, 57, 53, 52, 50], lead: 25, nappe: 48, basse: 33, batterie: "pop" },
-  vent:   { g: MIN, bpm: [92, 104], suites: [[0, 5, 6, 4], [0, 3, 6, 5], [0, 6, 5, 6], [5, 6, 0, 0]], toniques: [50, 52, 53, 55, 48], lead: 24, nappe: 89, basse: 33, batterie: "avance" },
-  pluie:  { g: MIN, bpm: [70, 80],  suites: [[0, 3, 6, 2], [5, 3, 0, 4], [0, 5, 3, 4], [3, 4, 0, 0]], toniques: [50, 52, 53, 48, 55], lead: 4,  nappe: 89, basse: 32, batterie: "lofi" },
-  froid:  { g: MAJ, bpm: [68, 78],  suites: [[0, 4, 5, 3], [3, 0, 4, 1], [0, 5, 1, 4], [5, 3, 0, 4]], toniques: [55, 57, 53, 52, 50], lead: 0,  nappe: 48, basse: 32, batterie: "rien" },
-  alerte: { g: MIN, bpm: [64, 70],  suites: [[0, 0, 5, 4], [0, 5, 0, 6]], toniques: [50, 48], lead: 0, nappe: 48, basse: 32, batterie: "rien" },
+  soleil: { g: MAJ, bpm: [80, 88], suites: [[0, 5, 3, 4], [0, 4, 5, 3], [3, 0, 4, 5], [0, 3, 5, 4]], toniques: [53, 55, 50, 52, 57], lead: 4, nappe: 89, basse: 32, batterie: "lofi", melodie: 2 },
+  vent:   { g: MIN, bpm: [84, 92], suites: [[0, 5, 6, 4], [0, 3, 6, 5], [0, 6, 5, 6], [5, 6, 0, 0]], toniques: [50, 52, 53, 55, 48], lead: 4, nappe: 89, basse: 33, batterie: "lofiPlus", melodie: 1 },
+  pluie:  { g: MIN, bpm: [70, 80], suites: [[0, 3, 6, 2], [5, 3, 0, 4], [0, 5, 3, 4], [3, 4, 0, 0]], toniques: [50, 52, 53, 48, 55], lead: 4, nappe: 89, basse: 32, batterie: "lofi", melodie: 1 },
+  froid:  { g: MAJ, bpm: [64, 72], suites: [[0, 4, 5, 3], [3, 0, 4, 1], [0, 5, 1, 4], [5, 3, 0, 4]], toniques: [53, 55, 50, 52, 57], lead: 4, nappe: 89, basse: 32, batterie: "doux", melodie: 1 },
+  alerte: { g: MIN, bpm: [64, 70], suites: [[0, 0, 5, 4], [0, 5, 0, 6]], toniques: [50, 48], lead: 4, nappe: 89, basse: 32, batterie: "rien", melodie: 0 },
 };
 
 export function composer({ ambiance = "soleil", duree = 16, date = "", intensite = 0.5 } = {}) {
@@ -32,30 +33,22 @@ export function composer({ ambiance = "soleil", duree = 16, date = "", intensite
   for (let m = 0; m < mesures; m++) {
     const k = m % 4, ac = accord(S.g, suite[k], 4).map(n => n + ton), b0 = m * 4, fin = m === mesures - 1;
     // nappe / accords tenus
-    if (nom !== "soleil" || m % 2 === 0) ac.slice(0, 3).forEach(n => note(pistes.nappe, b0, nom === "soleil" ? 8 : 4, n, 38 + (nom === "alerte" ? 10 : 0)));
+    ac.slice(0, 3).forEach(n => note(pistes.nappe, b0, 4, n, 34 + (nom === "alerte" ? 10 : 0)));
     // basse
     const bn = ac[0] - 12 - (ac[0] - 12 > 45 ? 12 : 0);
-    if (nom === "vent") [0, 0.5, 1.5, 2, 3, 3.5].forEach((x, i) => note(pistes.basse, b0 + x, 0.45, bn + (i === 4 ? 7 : 0), 70 + 15 * I));
-    else if (nom === "soleil") [[0, 2.5], [0, 1.5, 2], [0, 2, 3.5]][v].forEach((x, i) => note(pistes.basse, b0 + x, 1.2, bn + (i === 1 ? 7 : 0), 72));
+    if (nom === "vent") [0, 1.5, 2, 3.5].forEach((x, i) => note(pistes.basse, b0 + x, 0.9, bn + (i === 2 ? 7 : 0), 70 + 12 * I));
+    else if (nom === "soleil") [0, 2.5].forEach((x, i) => note(pistes.basse, b0 + x, 1.4, bn + (i ? 7 : 0), 70));
     else note(pistes.basse, b0, 3.8, bn, 66);
-    // instrument principal
-    if (nom === "soleil" || nom === "vent") {                                   // guitare en arpège
-      const ordre = [[0, 1, 2, 3, 2, 1, 2, 3], [0, 2, 1, 3, 0, 2, 1, 3], [0, 1, 2, 1, 3, 2, 1, 2]][v];
-      ordre.forEach((j, e) => note(pistes.lead, b0 + e * 0.5 + hum(), 0.9, ac[j], 58 + (e % 2 ? 0 : 10)));
-    } else if (nom === "pluie") {                                               // piano électrique : accord feutré + petite mélodie
-      ac.forEach((n, j) => note(pistes.lead, b0 + j * 0.04, 3.5, n, 48));
-      if (m % 2) motif.forEach((d, e) => { if (d >= 0 && e % 2 === 0) note(pistes.lead, b0 + e * 0.5 + hum(), 0.9, ton + 12 + (d === 4 ? 3 : d === 9 ? 8 : d), 52); });
-    } else if (nom === "froid") {                                               // piano lent et clair
-      [0, 1.5, 3].forEach((x, i) => note(pistes.lead, b0 + x + hum(), 2.5, ac[(i + m) % 4] + 12, 46));
-    } else {
-      note(pistes.lead, b0, 4, ac[0], 40);
-    }
+    // instrument principal : accord feutré au piano électrique + petite mélodie (plus fréquente quand il fait beau)
+    ac.forEach((n, j) => note(pistes.lead, b0 + j * 0.04 + (nom === "froid" ? 0.2 : 0), nom === "froid" ? 3.8 : 3.5, n, nom === "alerte" ? 40 : 48));
+    if (S.melodie && (S.melodie === 2 || m % 2)) motif.forEach((d, e) => { if (d >= 0 && (e % 2 === 0 || nom === "soleil")) note(pistes.lead, b0 + e * 0.5 + hum(), 0.9, ton + 12 + (S.g === MIN ? (d === 4 ? 3 : d === 9 ? 8 : d) : d), nom === "soleil" ? 54 : 50); });
     // batterie douce (canal 10) : 36 grosse caisse, 37 baguette sur le bord, 42 charleston fermé, 70 maracas
     if (!fin && S.batterie !== "rien") {
       const B = pistes.bat;
-      if (S.batterie === "pop") { [[0, 2.5], [0, 1.5, 2.5], [0, 2]][v].forEach(x => note(B, b0 + x, 0.2, 36, 70)); [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 55)); for (let e = 0; e < 8; e++) note(B, b0 + e * 0.5, 0.1, 70, e % 2 ? 40 : 28); }
-      if (S.batterie === "avance") { for (let q = 0; q < 4; q++) note(B, b0 + q, 0.2, 36, 72 + 12 * I); [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 60)); for (let e = 0; e < 8; e++) note(B, b0 + e * 0.5, 0.1, 42, e % 2 ? 42 : 30); }
-      if (S.batterie === "lofi") { [[0, 1.75, 2.5], [0, 2.5], [0, 0.75, 2.5]][v].forEach(x => note(B, b0 + x, 0.2, 36, 68)); [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 50)); for (let e = 0; e < 8; e++) note(B, b0 + e * 0.5 + (e % 2 ? 0.08 : 0), 0.1, 42, 26); }
+      const motifs = [[0, 1.75, 2.5], [0, 2.5], [0, 0.75, 2.5]];
+      if (S.batterie === "lofi" || S.batterie === "lofiPlus") { motifs[v].forEach(x => note(B, b0 + x, 0.2, 36, 66)); [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 48));
+        for (let e = 0; e < 8; e++) note(B, b0 + e * 0.5 + (e % 2 ? 0.08 : 0), 0.1, 42, S.batterie === "lofiPlus" ? (e % 2 ? 34 : 26) + 8 * I : 24); }
+      if (S.batterie === "doux") { note(B, b0, 0.2, 36, 52); note(B, b0 + 2.5, 0.2, 36, 44); }
     }
   }
   // ---- écriture du fichier MIDI (format 1) ----
