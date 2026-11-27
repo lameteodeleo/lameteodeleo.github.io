@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-OmxgRfc0o+YNr4DFTnA2a79dfcjIuQtLM/c8FwRqY/A=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-Co4nLyCOt1hliEWaRLhQGGZ4krDy11Is+B0djbCaiDM=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -264,7 +264,7 @@ p,li,small,.sub,.tip{text-wrap:pretty}h1,h2,h3,summary{text-wrap:balance}
 .tip.warn span.i{background:var(--alert-soft);color:var(--alert)}.tip.warn.orange span.i{background:var(--orange-soft);color:var(--orange)}
 footer{font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:4px;padding:4px 2px}
 footer a{color:var(--brand);font-weight:800;display:inline-block;padding:9px 0}
-footer{line-height:1.35}
+footer{line-height:1.35;text-wrap:pretty}footer span{text-wrap:pretty}
 /* le 13 */
 .sgrid{display:flex;flex-direction:column;gap:12px}
 .scard{padding:14px 14px 8px}
@@ -668,7 +668,7 @@ details.plus[open] .tiles{margin-top:10px}
         <li>La localisation ne sert que si vous touchez « Me localiser ». Elle n'est ni enregistrée ni transmise.</li>
         <li>Les visites et les parties sont comptées de façon anonyme, sans cookie.</li>
       </ul>
-      <p class="sub">© La météo de Léo</p>
+      <p class="sub" style="margin-top:6px">© La météo de Léo</p>
     </details>
     <details class="cadenas"><summary aria-label="Accès éditeur">🔒</summary>
     <form class="code-acces" id="codeForm" autocomplete="off">
@@ -2332,7 +2332,7 @@ function render(){
   $("tips").innerHTML=cs.liste.map(x=>'<div class="tip'+(x.warn?" warn":"")+(x.orange?" orange":"")+'" data-c="'+x.cat+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+essentiel(x.txt)+'</span></div></div>').join("");
   let maj=enReel()?new Date(DATA.maj):new Date();if(!enReel())maj.setMinutes(0,0,0);if(st.stale)maj=new Date(maj.getTime()-5*36e5);
   const age=Math.floor((Date.now()-maj)/36e5), hMaj=maj.getHours()+" h "+String(maj.getMinutes()).padStart(2,"0");
-  $("foot").textContent="Prévisions Météo-France · mises à jour à "+hMaj+" · "+COMMUNES.length+" communes";
+  $("foot").textContent="Prévisions Météo‑France · mises à jour à\u00a0"+String(hMaj).replace(/ /g,"\u00a0")+" · "+COMMUNES.length+"\u00a0communes";
   $("demoPill").hidden=enReel();
   if(!DATA&&!st.demo){$("stale").hidden=false;$("stale").textContent="Prévisions momentanément indisponibles : les chiffres affichés sont des exemples. Consultez meteofrance.com en attendant."}
   else if(age>=3){$("stale").hidden=false;$("stale").textContent="Dernière mise à jour il y a "+age+" h. Pour une décision importante, consultez meteofrance.com."}
