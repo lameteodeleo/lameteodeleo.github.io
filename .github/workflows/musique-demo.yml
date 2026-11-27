@@ -13,7 +13,7 @@ jobs:
       - name: Composer et jouer
         run: |
           mkdir -p demos/musique && rm -f demos/musique/*
-          for x in "soleil:house 2026-11-28 0.5" "soleil:house 2026-11-29 0.5"; do
+          for x in "soleil:jazzhouse 2026-11-28 0.5" "soleil:jazzhouse 2026-11-29 0.5" "soleil:jazzhouse 2026-11-30 0.5" "vent:jazzhouse 2026-11-28 0.6"; do
             set -- $x
             node scripts/compose.mjs $1 16 /tmp/m.mid $2 $3
             fluidsynth -ni -g 0.7 -r 44100 -F /tmp/m.wav /usr/share/sounds/sf2/FluidR3_GM.sf2 /tmp/m.mid >/dev/null
