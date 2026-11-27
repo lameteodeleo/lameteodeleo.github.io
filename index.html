@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-yltarfH/b4TkKd9ACrBnF7919yYUlNVVj6+brd8/qKI=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-JX6jqqUKfnFp+e9z7JJq822ImXeHcwQdIyIR1OJ7kQA=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -159,6 +159,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 .mot .k{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
 .mot p{margin:0;font-family:var(--f-display);font-weight:600;font-size:1.12rem;line-height:1.38;text-wrap:pretty}
 .mot .acts{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mot .suivre a{color:inherit;font-weight:800;text-decoration:underline;text-underline-offset:2px}
 .mot small{font-size:.75rem;opacity:.7}
 .saviez{padding:14px 16px;display:flex;flex-direction:column;gap:6px}
 .saviez .k{display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--brand)}
@@ -545,7 +546,7 @@ details.plus[open] .tiles{margin-top:10px}
       <span class="k" id="motK">Le sourire du jour</span>
       <p id="mot"></p>
       <div class="acts">
-        <small>Le sourire, avec des chiffres sérieux.</small>
+        <small class="suivre">📲 Le sourire chaque matin sur <a href="https://www.instagram.com/lameteodeleo/" target="_blank" rel="noopener">Instagram</a> et <a href="https://www.facebook.com/share/1HXwwwERuf/" target="_blank" rel="noopener">Facebook</a></small>
         <button class="btn-ink" type="button" id="share">Partager</button>
       </div>
     </div>
@@ -1964,7 +1965,7 @@ function conseils(m,c,profondeur){
   const vent=reelOK?(tAprem<=18?(rafAprem>=70?4:rafAprem>=55?3:rafAprem>=40?2:0):0):Math.max(0,m.max-m.feel), aprem=tAprem-vent, apresMidiPasse=st.jour===0&&hNow>=15;
   // Ce soir : la température la plus basse jusqu'à 22 h, et le ressenti si le vent souffle encore à ces heures-là
   let soirT=null,soirTh=null,soirRaf=null;if(apresMidiPasse){const ph=prochainesHeures(c);if(ph){const s2=ph.filter(x=>!x.demain&&x.h<=22);if(s2.length){soirTh=Math.min(...s2.map(x=>x.t));const rs=Math.max(...s2.map(x=>x.raf||0));soirRaf=rs;soirT=soirTh-(soirTh<=18?(rs>=70?4:rs>=55?3:rs>=40?2:0):0)}}}
-  let tenue=apresMidiPasse?"D'ici ce soir"+(soirT!=null?" ("+soirTh+"°"+(soirT<soirTh?", ressenti "+soirT+"°":"")+")":"")+" : "+habit(soirT!=null?soirT:Math.min(aprem,matin+3))+".":
+  let tenue=apresMidiPasse?(()=>{const hb=habit(soirT!=null?soirT:Math.min(aprem,matin+3));return hb.charAt(0).toUpperCase()+hb.slice(1)+(soirT!=null?" ("+soirTh+"° ce soir"+(soirT<soirTh?", ressenti "+soirT+"°":"")+")":" pour ce soir")+"."})():
     (aprem-matin>=7&&habit(matin)!==habit(aprem))?"Le matin ("+matin+"°) : "+habit(matin)+". L'après-midi ("+aprem+"°) : "+habit(aprem)+(/ et /.test(habit(aprem))?" suffisent.":" suffit."):
     (()=>{const hb=habit(Math.min(aprem,matin+4));return hb.charAt(0).toUpperCase()+hb.slice(1)+" ("+matin+"° le matin, "+tAprem+"° l'après-midi)."})();
   // Le ressenti avec le vent : le mistral fait paraître bien plus froid que le thermomètre
@@ -2000,7 +2001,7 @@ function conseils(m,c,profondeur){
   const mc=meilleurCreneau(c,m);
   if(mc&&!mc.seul){
     if(mc.toutMouille){if(!finPluie&&slots.length>=3) add("sortir",m.type==="neige"?"Neige ou pluie toute la journée : limitez les sorties, privilégiez les activités à l'abri.":st.jour===0?"Pluie jusqu'au soir : une sortie à l'abri sera plus agréable.":"Journée humide : prévoyez une activité à l'abri.")}
-    else if(m.prob>=30||m.raf>=40||(m.max<=14&&m.max-m.min>=8)){const b=mc.best;add("sortir",(()=>{const r=raisonSortie(c,m,b);return (st.jour===0&&b.h===hNow?"Maintenant":"Vers "+b.h+" h")+(r||" ("+b.t+"°)")+"."})())}
+    else if(m.prob>=30||m.raf>=40||(m.max<=14&&m.max-m.min>=8)){const b=mc.best;add("sortir",(()=>{const r=raisonSortie(c,m,b);const sn0=soleil(dayDate(0)), avNuit=st.jour===0&&b.h===hNow&&(enMin(sn0.coucher)-(hNow*60+maintenant.getMinutes()))>0&&(enMin(sn0.coucher)-(hNow*60+maintenant.getMinutes()))<=90?", avant la nuit ("+sn0.coucher+")":"";return (st.jour===0&&b.h===hNow?"Maintenant":"Vers "+b.h+" h")+(r||" ("+b.t+"°)")+avNuit+"."})())}
   }
   // Linge et jardin, seulement quand il y a quelque chose d'utile à dire
   if(!(st.jour===0&&hNow>=16)){
