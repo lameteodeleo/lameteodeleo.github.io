@@ -20,6 +20,8 @@
 import { chromium } from "playwright-core";
 import { execFileSync } from "node:child_process";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { musique, ambianceDe } from "./musique.mjs";
+import { writeFileSync } from "node:fs";
 
 const SITE = process.env.SITE_URL || "https://lameteodeleo.fr/";
 const GV = "v27.0", G = `https://graph.facebook.com/${GV}`;
@@ -289,7 +291,9 @@ async function fabriquer(type) {
         const info = await page.evaluate(async () => { const v = document.querySelector("#reelOut video"); const b = await (await fetch(v.src)).blob(); const ab = new Uint8Array(await b.arrayBuffer()); let s = ""; for (let i = 0; i < ab.length; i += 32768) s += String.fromCharCode.apply(null, ab.subarray(i, i + 32768)); return { type: b.type, b64: btoa(s) }; });
         if (!/mp4/.test(info.type)) throw new Error(`La vidéo n'est pas au format MP4 (${info.type}).`);
         const brut = `${OUT}/reel-${reseau}-brut.mp4`; await writeFile(brut, Buffer.from(info.b64, "base64"));
-        res[reseau] = { video: brut, legende };
+        // De quoi composer la musique du jour : le type d'accroche, son chiffre, la vigilance et la date
+        const plan = await page.evaluate(() => { try { return { t: REEL_PLAN.hook.t, n: REEL_PLAN.hook.n, niveau: REEL_PLAN.niveau, date: dayDate(REEL_PLAN.J).toLocaleDateString("sv-SE") }; } catch (e) { return null; } });
+        res[reseau] = { video: brut, legende, plan };
       }
     }
     if (erreurs.length) log("Avertissements de la page : " + erreurs.slice(0, 3).join(" | "));
@@ -299,7 +303,16 @@ async function fabriquer(type) {
 
 // ---------- Mise au format exact demandé par Meta (piste son muette, index au début) ----------
 function ffmpeg(args) { execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args], { stdio: "inherit" }); }
-function preparerVideo(brut, sortie) {
+function preparerVideo(brut, sortie, plan) {
+  // Une musique originale composée pour le jour (style selon le temps, unique selon la date) ; en cas de souci, piste muette comme avant
+  if (plan) try {
+    const duree = parseFloat(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", brut]).toString()) || 16;
+    const { ambiance, intensite } = ambianceDe(plan), m = musique({ ambiance, duree: duree + 0.5, date: plan.date, intensite });
+    const wav = sortie.replace(/\.mp4$/, ".wav"); writeFileSync(wav, m.wav);
+    ffmpeg(["-i", brut, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-shortest", "-movflags", "+faststart", sortie]);
+    log(`Musique du jour : ${m.resume}`);
+    return sortie;
+  } catch (e) { log(`⚠️ Musique impossible (${String(e.message).slice(0, 80)}) : piste muette.`); }
   ffmpeg(["-i", brut, "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", sortie]);
   return sortie;
 }
@@ -369,7 +382,7 @@ async function principal() {
   if (MODE === "test-alerte" && !TOKEN) { await traiterAlerte(null); return; }   // essai sur ordinateur, sans Meta
   if (process.env.FABRIQUER_SEUL) {        // essai sur ordinateur, sans Meta
     const t = process.env.TYPE_TEST || "reel", m = await fabriquer(t);
-    for (const [r, x] of Object.entries(m)) { const f = t === "reel" ? preparerVideo(x.video, `${OUT}/reel-${r}.mp4`) : r === "instagram" ? videoDepuisImage(x.image, `${OUT}/story-${r}.mp4`) : x.image; log(`${r} : ${f} (${decrire(f)})\n${x.legende}`); }
+    for (const [r, x] of Object.entries(m)) { const f = t === "reel" ? preparerVideo(x.video, `${OUT}/reel-${r}.mp4`, x.plan) : r === "instagram" ? videoDepuisImage(x.image, `${OUT}/story-${r}.mp4`) : x.image; log(`${r} : ${f} (${decrire(f)})\n${x.legende}`); }
     return;
   }
   if (!TOKEN) throw new Error("La clé META_PAGE_TOKEN est absente des secrets GitHub.");
@@ -423,7 +436,7 @@ async function principal() {
   for (const r of (MODE === "test" ? RESEAUX : aFaire)) {
     const m = media[r];
     prets[r] = type === "reel"
-      ? { fichier: preparerVideo(m.video, `${OUT}/reel-${r}.mp4`), legende: m.legende }
+      ? { fichier: preparerVideo(m.video, `${OUT}/reel-${r}.mp4`, m.plan), legende: m.legende }
       : { fichier: r === "instagram" ? videoDepuisImage(m.image, `${OUT}/story-${r}.mp4`) : m.image, legende: "" };
     log(`${r} prêt : ${prets[r].fichier} (${decrire(prets[r].fichier)})`);
     if (prets[r].legende) log(`Légende ${r} :\n${prets[r].legende}\n`);
