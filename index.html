@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-4rNKGLAfrUMIVQqxF2k0iyhPK/3jCA9D8goN4QODTwE=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-wdsZEEI0O+vcPV4UYsvAxo7LAd/25wFqsYofdFzDQ4U=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -157,6 +157,7 @@ h2{font-family:var(--f-display);font-size:1.02rem;font-weight:700;margin:0;lette
 /* mot du jour */
 .mot{background:var(--sun);color:var(--sun-ink);border-radius:20px 20px 20px 6px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
 .mot .k{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+p,li,small,.sub,.tip{text-wrap:pretty}h1,h2,h3,summary{text-wrap:balance}
 .mot p{margin:0;font-family:var(--f-display);font-weight:600;font-size:1.12rem;line-height:1.38;text-wrap:pretty}
 .mot .acts{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .mot .suivre a{color:inherit;font-weight:800;text-decoration:underline;text-underline-offset:2px}
@@ -2782,8 +2783,17 @@ const CA=al=>al&&al.niveau>=4?{fort:"#E0201B",fonce:"#8A0E0A",doux:"#FDE8E7",cla
 const FD='"Chiffres", "Bricolage Grotesque", Arial, sans-serif', FB='"Nunito Sans", Arial, sans-serif';
 function wrapText(ctx,text,x,y,maxW,lh,maxLines){
   const words=insec(text).split(" ");let line="",lines=[];
-  for(const w of words){const t=line?line+" "+w:w;if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w}else line=t}
+  // Coupure soignée : un petit mot (« à », « de », « un », « J'ai »…) passe à la ligne suivante avec le mot qui le suit
+  const petit=w=>/^(?:\S{1,3}|[A-Za-zÀ-ÿ][’']\S{1,3})$/.test(w);
+  for(const w of words){const t=line?line+" "+w:w;
+    if(ctx.measureText(t).width>maxW&&line){const ws=line.split(" ");let reste=w;
+      if(ws.length>2&&petit(ws[ws.length-1])&&ctx.measureText(ws[ws.length-1]+" "+w).width<=maxW){reste=ws.pop()+" "+w;line=ws.join(" ")}
+      lines.push(line);line=reste}
+    else line=t}
   if(line)lines.push(line);
+  // Mise en page soignée : pas de petit mot (« à », « de », « J'ai »…) seul en fin de ligne, pas de mot seul sur la dernière ligne
+  const fits=t=>ctx.measureText(t).width<=maxW;
+  if(lines.length>=2&&!/\s/.test(lines[lines.length-1])){const k=lines.length-2,m=lines[k].match(/^(.*\S)\s+(\S+)$/);if(m&&fits(m[2]+" "+lines[k+1])){lines[k]=m[1];lines[k+1]=m[2]+" "+lines[k+1]}}
   if(maxLines&&lines.length>maxLines){DEBORDE.push("texte coupé (…) : « "+String(text).slice(0,60)+" »");lines=lines.slice(0,maxLines);lines[maxLines-1]=lines[maxLines-1].replace(/\s*\S*$/,"…")}
   lines.forEach((l,i)=>ctx.fillText(l,x,y+i*lh));
   return lines.length;
