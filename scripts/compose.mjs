@@ -12,6 +12,7 @@ const accord = (g, deg, n = 4) => Array.from({ length: n }, (_, k) => { const d 
 // Instruments General MIDI : 0 piano, 4 piano électrique, 24 guitare nylon, 25 guitare folk, 32 basse acoustique, 33 basse au doigt,
 // 48 cordes, 89 nappe chaude, 73 flûte ; batterie sur le canal 10
 // Une seule famille de son, celle que Léo aime : lo-fi au piano électrique feutré. Le temps change la gamme, le tempo et l'énergie.
+const GENRES = { lofi: {}, chillhop: { bpm: [86, 94] }, house: { bpm: [112, 118] } };
 const STYLES = {
   soleil: { g: MAJ, bpm: [88, 95], suites: [[0, 5, 3, 4], [0, 4, 5, 3], [3, 0, 4, 5], [0, 3, 5, 4]], toniques: [53, 55, 50, 52, 57], lead: 4, nappe: 89, basse: 32, batterie: "lofi", melodie: 2 },
   vent:   { g: MIN, bpm: [90, 96], suites: [[0, 5, 6, 4], [0, 3, 6, 5], [0, 6, 5, 6], [5, 6, 0, 0]], toniques: [50, 52, 53, 55, 48], lead: 4, nappe: 89, basse: 33, batterie: "lofiPlus", melodie: 1 },
@@ -20,16 +21,42 @@ const STYLES = {
   alerte: { g: MIN, bpm: [64, 70], suites: [[0, 0, 5, 4], [0, 5, 0, 6]], toniques: [50, 48], lead: 4, nappe: 89, basse: 32, batterie: "rien", melodie: 0 },
 };
 
-export function composer({ ambiance = "soleil", duree = 16, date = "", intensite = 0.5 } = {}) {
+export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date = "", intensite = 0.5 } = {}) {
   const nom = STYLES[ambiance] ? ambiance : "soleil", S = STYLES[nom], I = Math.max(0, Math.min(1, intensite));
   graine = 7; for (const ch of nom + "|" + date) graine = (graine * 31 + ch.charCodeAt(0)) % 2147483647; if (graine <= 0) graine += 2147483646; for (let i = 0; i < 4; i++) alea();
   const ton = choix(S.toniques), suite = choix(S.suites), v = Math.floor(alea() * 3);
-  const bpm = Math.round(S.bpm[0] + (S.bpm[1] - S.bpm[0]) * (nom === "vent" ? I : alea()));
+  const G = GENRES[genre] ? genre : "lofi", BP = G === "lofi" ? S.bpm : GENRES[G].bpm;
+  const bpm = Math.round(BP[0] + (BP[1] - BP[0]) * (nom === "vent" ? I : alea()));
   const motif = Array.from({ length: 8 }, () => choix([0, 2, 4, 7, 9, 7, 4, -1, -1]));
   const TPQ = 480, temps = 60 / bpm, mesures = Math.ceil(duree / (temps * 4)) + 1;
   const pistes = { lead: [], nappe: [], basse: [], bat: [] };
   const note = (p, beat, dur, n, vel) => p.push([Math.round(beat * TPQ), Math.round(dur * TPQ), n, vel]);
   const hum = () => (alea() - 0.5) * 0.03;                                     // léger « jeu humain »
+  if (G !== "lofi") {                                   // chillhop jazzy ou chill house : mêmes accords du jour, autre groove
+    const swing = G === "chillhop" ? 0.1 : 0;
+    for (let m = 0; m < mesures; m++) {
+      const k = m % 4, ac0 = accord(S.g, suite[k], 4).map(n => n + ton), b0 = m * 4, fin = m === mesures - 1;
+      const ac = G === "chillhop" ? [...ac0, ac0[0] + 14] : ac0;                       // accords jazz : on ajoute la neuvième
+      const bn = ac0[0] - 12 - (ac0[0] - 12 > 45 ? 12 : 0), B = pistes.bat, sw = e => e % 2 ? swing : 0;
+      if (G === "chillhop") {
+        // piano électrique en accords syncopés, basse qui marche, rythme balancé avec baguette et cymbale douce
+        [[0, 1.5, 3], [0.5, 2, 3.5], [0, 2.5]][v].forEach(x => ac.forEach((n, j) => note(pistes.lead, b0 + x + j * 0.02 + hum(), 1.2, n, 50)));
+        if (m % 2) motif.forEach((d, e) => { if (d >= 0 && e % 2 === 0) note(pistes.lead, b0 + e * 0.5 + sw(e) + hum(), 0.8, ton + 12 + (S.g === MIN ? (d === 4 ? 3 : d === 9 ? 8 : d) : d), 52); });
+        [0, 1, 2, 3].forEach(q => note(pistes.basse, b0 + q, 0.9, [bn, bn + 7, bn + 12, bn + (S.g === MIN ? 3 : 4) + 7][q] - (q === 2 ? 12 : 0), 68));
+        ac0.slice(0, 3).forEach(n => note(pistes.nappe, b0, 4, n, 28));
+        if (!fin) { [0, 2.5].forEach(x => note(B, b0 + x, 0.2, 36, 70)); [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 56));
+          for (let e = 0; e < 8; e++) note(B, b0 + e * 0.5 + sw(e), 0.1, 51, e % 2 ? 30 : 42); }
+      } else {
+        // chill house : grosse caisse douce sur chaque temps, charleston ouvert entre les temps, accords piano en contretemps, basse qui rebondit
+        [0.5, 1.5, 2.5, 3.5].forEach((x, i) => { if (v !== 1 || i % 2 === 0) ac0.forEach((n, j) => note(pistes.lead, b0 + x + j * 0.01, 0.4, n, 46)); });
+        [0.5, 1.5, 2.5, 3.5].forEach((x, i) => note(pistes.basse, b0 + x, 0.4, bn + (i === 3 ? 7 : 0), 72 + 8 * I));
+        ac0.slice(0, 3).forEach(n => note(pistes.nappe, b0, 4, n, 34));
+        if (m % 2) motif.forEach((d, e) => { if (d >= 0 && e % 2 === 0) note(pistes.lead, b0 + e * 0.5, 0.8, ton + 12 + (S.g === MIN ? (d === 4 ? 3 : d === 9 ? 8 : d) : d), 50); });
+        if (!fin) { for (let q = 0; q < 4; q++) note(B, b0 + q, 0.2, 36, 74); [1, 3].forEach(x => note(B, b0 + x, 0.2, 39, 44));
+          for (let q = 0; q < 4; q++) note(B, b0 + q + 0.5, 0.2, 46, 34); for (let e = 0; e < 16; e++) note(B, b0 + e * 0.25, 0.05, 70, e % 2 ? 22 : 30); }
+      }
+    }
+  } else {
   for (let m = 0; m < mesures; m++) {
     const k = m % 4, ac = accord(S.g, suite[k], 4).map(n => n + ton), b0 = m * 4, fin = m === mesures - 1;
     // nappe / accords tenus
@@ -51,6 +78,7 @@ export function composer({ ambiance = "soleil", duree = 16, date = "", intensite
       if (S.batterie === "doux") { note(B, b0, 0.2, 36, 52); note(B, b0 + 2.5, 0.2, 36, 44); }
     }
   }
+  }
   // ---- écriture du fichier MIDI (format 1) ----
   const vlq = n => { const o = [n & 0x7f]; while ((n >>= 7)) o.unshift((n & 0x7f) | 0x80); return o; };
   const piste = (canal, prog, vol, pan, notes, reverb = 70) => {
@@ -61,10 +89,11 @@ export function composer({ ambiance = "soleil", duree = 16, date = "", intensite
     return Buffer.concat([Buffer.from("MTrk"), Buffer.from([o.length >>> 24, (o.length >> 16) & 255, (o.length >> 8) & 255, o.length & 255]), Buffer.from(o)]);
   };
   const us = Math.round(60e6 / bpm), tempo = Buffer.concat([Buffer.from("MTrk"), Buffer.from([0, 0, 0, 11, 0, 0xFF, 0x51, 3, us >> 16, (us >> 8) & 255, us & 255, 0, 0xFF, 0x2F, 0])]);
-  const tr = [tempo, piste(0, S.lead, 100, 54, pistes.lead), piste(1, S.nappe, 72, 74, pistes.nappe, 90), piste(2, S.basse, 100, 64, pistes.basse, 30)];
+  const basseG = G === "chillhop" ? 32 : G === "house" ? 38 : S.basse;
+  const tr = [tempo, piste(0, S.lead, 100, 54, pistes.lead), piste(1, S.nappe, 72, 74, pistes.nappe, 90), piste(2, basseG, G === "house" ? 88 : 100, 64, pistes.basse, 30)];
   if (pistes.bat.length) tr.push(piste(9, 0, 82, 64, pistes.bat, 40));
   const head = Buffer.from([0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 1, 0, tr.length, TPQ >> 8, TPQ & 255]);
-  return { midi: Buffer.concat([head, ...tr]), resume: `${nom}, ${bpm} bpm, tonique ${ton}, suite ${suite.join("-")}, variante ${v + 1}` };
+  return { midi: Buffer.concat([head, ...tr]), resume: `${G} · ${nom}, ${bpm} bpm, tonique ${ton}, suite ${suite.join("-")}, variante ${v + 1}` };
 }
 // L'ambiance et l'intensité selon l'accroche du Reel
 export function ambianceDe(a) {
@@ -76,6 +105,7 @@ export function ambianceDe(a) {
   return { ambiance: "soleil", intensite: 0.5 };
 }
 if (process.argv[1] && process.argv[1].endsWith("compose.mjs") && process.argv[2]) {
-  const r = composer({ ambiance: process.argv[2], duree: +(process.argv[3] || 16), date: process.argv[5] || "", intensite: process.argv[6] != null ? +process.argv[6] : 0.5 });
+  const [amb, gen] = process.argv[2].split(":");
+  const r = composer({ ambiance: amb, genre: gen || "lofi", duree: +(process.argv[3] || 16), date: process.argv[5] || "", intensite: process.argv[6] != null ? +process.argv[6] : 0.5 });
   writeFileSync(process.argv[4] || "musique.mid", r.midi); console.log(r.resume);
 }

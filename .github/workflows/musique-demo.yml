@@ -13,11 +13,11 @@ jobs:
       - name: Composer et jouer
         run: |
           mkdir -p demos/musique && rm -f demos/musique/*
-          for x in "soleil 2026-11-28 0.5" "vent 2026-11-28 0.8" "pluie 2026-11-28 0.6" "pluie 2026-11-29 0.6" "froid 2026-11-28 0.5"; do
+          for x in "soleil:house 2026-11-28 0.5" "soleil:house 2026-11-29 0.5" "soleil:chillhop 2026-11-28 0.5" "vent:chillhop 2026-11-28 0.7" "pluie:lofi 2026-11-28 0.6" "froid:lofi 2026-11-28 0.5"; do
             set -- $x
             node scripts/compose.mjs $1 16 /tmp/m.mid $2 $3
             fluidsynth -ni -g 0.7 -r 44100 -F /tmp/m.wav /usr/share/sounds/sf2/FluidR3_GM.sf2 /tmp/m.mid >/dev/null
-            ffmpeg -loglevel error -y -i /tmp/m.wav -t 16 -af "afade=t=in:d=0.4,afade=t=out:st=14.5:d=1.5,loudnorm=I=-18:TP=-2" -b:a 160k demos/musique/$1-$2.mp3
+            ffmpeg -loglevel error -y -i /tmp/m.wav -t 16 -af "afade=t=in:d=0.4,afade=t=out:st=14.5:d=1.5,loudnorm=I=-18:TP=-2" -b:a 160k demos/musique/${1/:/-}-$2.mp3
           done
           ls -la demos/musique
       - name: Enregistrer
