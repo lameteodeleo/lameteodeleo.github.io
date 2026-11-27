@@ -305,7 +305,8 @@ async function fabriquer(type) {
 function ffmpeg(args) { execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args], { stdio: "inherit" }); }
 function preparerVideo(brut, sortie, plan) {
   // Une musique originale composée pour le jour (style selon le temps, unique selon la date) ; en cas de souci, piste muette comme avant
-  if (plan) try {
+  const MUSIQUE_COMPOSEE = false;   // désactivée : remplacée bientôt par une bibliothèque de vraies musiques choisies par Léo
+  if (plan && MUSIQUE_COMPOSEE) try {
     const duree = parseFloat(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", brut]).toString()) || 16;
     const { ambiance, intensite } = ambianceDe(plan), m = musique({ ambiance, duree: duree + 0.5, date: plan.date, intensite });
     const wav = sortie.replace(/\.mp4$/, ".wav"); writeFileSync(wav, m.wav);
