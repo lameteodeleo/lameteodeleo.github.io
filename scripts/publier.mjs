@@ -277,7 +277,9 @@ async function fabriquer(type) {
       if (type === "story") {
         const b64 = await page.evaluate(async r => { STORY_AUTO = r; try { return slideStory().toDataURL("image/jpeg", .92).split(",")[1]; } finally { STORY_AUTO = null; } }, reseau);
         const img = `${OUT}/story-${reseau}.jpg`; await writeFile(img, Buffer.from(b64, "base64"));
-        res[reseau] = { image: img, legende: "" };
+        // Musique douce de la story : selon le temps du jour (jamais en vigilance)
+        const plan = await page.evaluate(() => { try { const R = bilanDep(0), h = choixAccroche(0, R, R.al); return R.al ? null : { t: h.t, n: h.n, niveau: 0, date: dayDate(0).toLocaleDateString("sv-SE") }; } catch (e) { return null; } });
+        res[reseau] = { image: img, legende: "", plan };
       } else {
         await page.click(`#reelReseau .chip[data-r="${reseau}"]`);
         const legende = await page.$eval("#caption", e => e.value);
@@ -303,11 +305,12 @@ async function fabriquer(type) {
 
 // ---------- Mise au format exact demandé par Meta (piste son muette, index au début) ----------
 function ffmpeg(args) { execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args], { stdio: "inherit" }); }
+const banqueSons = () => ["/usr/share/sounds/sf3/MuseScore_General_Full.sf3", "/usr/share/sounds/sf3/MuseScore_General.sf3", "/usr/share/sounds/sf2/FluidR3_GM.sf2"].find(f => { try { execFileSync("test", ["-f", f]); return true; } catch { return false; } });
 function preparerVideo(brut, sortie, plan) {
   // Une musique originale composée pour le jour (style selon le temps, unique selon la date) ; en cas de souci, piste muette comme avant
   // Musique du jour : composée par le robot (lo-fi au piano électrique, selon le temps et unique chaque jour), jouée avec une banque de vrais sons
   // Banque de vrais sons : MuseScore (meilleure qualité) si elle est installée, sinon FluidR3
-  const SF2 = ["/usr/share/sounds/sf3/MuseScore_General_Full.sf3", "/usr/share/sounds/sf3/MuseScore_General.sf3", "/usr/share/sounds/sf2/FluidR3_GM.sf2"].find(f => { try { execFileSync("test", ["-f", f]); return true; } catch { return false; } });
+  const SF2 = banqueSons();
   if (plan) try {
     const duree = parseFloat(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", brut]).toString()) || 16;
     const { ambiance, intensite } = ambianceDe(plan), genre = genreDe(plan), m = composer({ ambiance, genre, duree: duree + 1, date: plan.date, intensite });
@@ -321,7 +324,18 @@ function preparerVideo(brut, sortie, plan) {
   ffmpeg(["-i", brut, "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", sortie]);
   return sortie;
 }
-function videoDepuisImage(img, sortie, secondes = 7) {
+function videoDepuisImage(img, sortie, secondes = 7, plan = null) {
+  // Story du matin : la même musique du jour, en version douce (lo-fi ou chillhop, jamais la house), plus bas que le Reel
+  if (plan) try {
+    const { ambiance, intensite } = ambianceDe(plan), g = genreDe(plan), genre = g === "jazzhouse" ? "chillhop" : g;
+    const m = composer({ ambiance, genre, duree: secondes + 1, date: plan.date + "-story", intensite: Math.min(intensite, 0.5) });
+    const mid = sortie.replace(/\.mp4$/, ".mid"), wav = sortie.replace(/\.mp4$/, ".wav"); writeFileSync(mid, m.midi);
+    execFileSync("fluidsynth", ["-ni", "-g", "0.7", "-r", "48000", "-F", wav, banqueSons(), mid], { stdio: "ignore" });
+    ffmpeg(["-loop", "1", "-framerate", "30", "-i", img, "-i", wav, "-t", String(secondes), "-vf", "scale=1080:1920,format=yuv420p", "-c:v", "libx264", "-profile:v", "high", "-preset", "veryfast", "-crf", "18", "-g", "60", "-r", "30",
+      "-af", `afade=t=in:d=0.3,afade=t=out:st=${secondes - 1}:d=1,loudnorm=I=-21:TP=-3`, "-c:a", "aac", "-b:a", "128k", "-ar", "48000", "-shortest", "-movflags", "+faststart", sortie]);
+    log(`Musique de la story : ${m.resume}`);
+    return sortie;
+  } catch (e) { log(`⚠️ Musique de la story impossible (${String(e.message).slice(0, 80)}) : story muette.`); }
   ffmpeg(["-loop", "1", "-framerate", "30", "-i", img, "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", String(secondes), "-vf", "scale=1080:1920,format=yuv420p", "-c:v", "libx264", "-profile:v", "high", "-preset", "veryfast", "-crf", "18", "-g", "60", "-r", "30", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", sortie]);
   return sortie;
 }
@@ -387,7 +401,7 @@ async function principal() {
   if (MODE === "test-alerte" && !TOKEN) { await traiterAlerte(null); return; }   // essai sur ordinateur, sans Meta
   if (process.env.FABRIQUER_SEUL) {        // essai sur ordinateur, sans Meta
     const t = process.env.TYPE_TEST || "reel", m = await fabriquer(t);
-    for (const [r, x] of Object.entries(m)) { const f = t === "reel" ? preparerVideo(x.video, `${OUT}/reel-${r}.mp4`, x.plan) : r === "instagram" ? videoDepuisImage(x.image, `${OUT}/story-${r}.mp4`) : x.image; log(`${r} : ${f} (${decrire(f)})\n${x.legende}`); }
+    for (const [r, x] of Object.entries(m)) { const f = t === "reel" ? preparerVideo(x.video, `${OUT}/reel-${r}.mp4`, x.plan) : r === "instagram" ? videoDepuisImage(x.image, `${OUT}/story-${r}.mp4`, 7, x.plan) : x.image; log(`${r} : ${f} (${decrire(f)})\n${x.legende}`); }
     return;
   }
   if (!TOKEN) throw new Error("La clé META_PAGE_TOKEN est absente des secrets GitHub.");
@@ -442,7 +456,7 @@ async function principal() {
     const m = media[r];
     prets[r] = type === "reel"
       ? { fichier: preparerVideo(m.video, `${OUT}/reel-${r}.mp4`, m.plan), legende: m.legende }
-      : { fichier: r === "instagram" ? videoDepuisImage(m.image, `${OUT}/story-${r}.mp4`) : m.image, legende: "" };
+      : { fichier: r === "instagram" ? videoDepuisImage(m.image, `${OUT}/story-${r}.mp4`, 7, m.plan) : m.image, legende: "" };
     log(`${r} prêt : ${prets[r].fichier} (${decrire(prets[r].fichier)})`);
     if (prets[r].legende) log(`Légende ${r} :\n${prets[r].legende}\n`);
   }
