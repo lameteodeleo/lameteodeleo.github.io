@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-fd1wSLaiDbTNiTXprmXRlvktikvnWz84bS27BSlksFI=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-7CXIDEcpvF01MYoWlJK8XysOnzbnxZJiSjNZIy0un3o=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -687,27 +687,26 @@ details.plus[open] .tiles{margin-top:10px}
     </div>
     <div id="momentFort" hidden></div>
     <section>
-      <div class="sec-h"><h2>Publier la story du jour</h2><span class="sub">Chaque matin</span></div>
-      <ol class="card steps">
-        <li><b>Enregistre l'image</b> ci-dessous avec «&nbsp;Enregistrer&nbsp;».</li>
-        <li><b>Ouvre Instagram</b>, touche «&nbsp;+&nbsp;», puis «&nbsp;Story&nbsp;», et choisis l'image.</li>
-        <li><b>Ajoute le lien de l'app.</b> Touche l'icône des autocollants, puis «&nbsp;Lien&nbsp;», et colle : https://lameteodeleo.fr</li>
-        <li><b>Place l'autocollant</b> sous la phrase «&nbsp;Chaque commune, heure par heure&nbsp;», puis touche «&nbsp;Votre story&nbsp;».</li>
-      </ol>
-      <div class="slides" id="storyBox" style="margin-top:12px"></div>
+      <div class="sec-h"><h2>📊 Suivi</h2></div>
+      <div class="card kit" id="suiviJeu"><span class="sub">Chargement…</span></div>
+      <div class="chips" style="margin-top:8px"><a class="chip" href="https://cloud.umami.is/websites/a3212f59-b8e9-486f-9e0f-d7256926be65" target="_blank" rel="noopener">Umami</a><a class="chip" href="https://search.google.com/search-console?resource_id=https%3A%2F%2Flameteodeleo.fr%2F" target="_blank" rel="noopener">Google Search Console</a></div>
     </section>
     <section>
-      <div class="sec-h"><h2>Publier le Reel</h2><span class="sub">Chaque soir, vers 18 h</span></div>
+      <div class="sec-h"><h2>📣 Texte pour les groupes Facebook</h2><span class="sub">Une fois par groupe</span></div>
       <ol class="card steps">
-        <li><b>Choisis le jour</b> juste en dessous. Le soir, «&nbsp;Demain&nbsp;» est déjà choisi.</li>
-        <li><b>Touche «&nbsp;Créer la vidéo&nbsp;»</b> et garde l'écran allumé 15 secondes, sans quitter la page.</li>
-        <li><b>Enregistre la vidéo</b>, puis <b>copie la légende</b>.</li>
-        <li><b>Instagram</b> : «&nbsp;+&nbsp;», «&nbsp;Reel&nbsp;», choisis la vidéo, ajoute un son tendance, volume bas.</li>
-        <li><b>Couverture</b> : l'image d'accroche. <b>Colle la légende</b>, puis «&nbsp;Partager&nbsp;».</li>
-        <li><b>Sur Facebook</b> : refais la vidéo avec «&nbsp;Pour Facebook&nbsp;», et remplace «&nbsp;lien en bio&nbsp;» par lameteodeleo.fr dans la légende.</li>
+        <li><b>Choisis la commune</b> du groupe, puis <b>copie le texte</b>.</li>
+        <li><b>Publie dans le groupe</b>, en attendant que l'aperçu du lien apparaisse.</li>
       </ol>
+      <select class="caption" id="fbCommune" aria-label="Commune du groupe" style="min-height:0;margin-top:12px;font-weight:700"></select>
+      <textarea class="caption" id="fbTexte" aria-label="Texte de présentation pour le groupe Facebook" style="margin-top:8px;min-height:300px"></textarea>
+      <div style="margin-top:8px"><button class="sbtn" type="button" id="copyFb">Copier le texte</button></div>
     </section>
-    <p class="alert" id="demoAvert" style="margin:0 0 12px" hidden><span><b>Mode démonstration : ces chiffres sont inventés.</b> Pour publier, ouvre «&nbsp;Outils et vérifications&nbsp;», tout en bas, puis «&nbsp;Tests&nbsp;», et choisis «&nbsp;Prévisions réelles&nbsp;».</span></p>
+    <details class="plus">
+      <summary><span>Publier à la main</span><small>secours, si le robot a un souci</small></summary>
+      <div style="margin-top:12px">
+      <p class="sub" style="margin:0 0 10px">Le robot publie seul la story chaque matin et le Reel chaque soir. Ici, seulement en cas de besoin.</p>
+      <div class="slides" id="storyBox" style="margin-top:12px"></div>
+    <p class="alert" id="demoAvert" style="margin:0 0 12px" hidden><span><b>Mode démonstration : ces chiffres sont inventés.</b> Pour publier, ouvre «&nbsp;Outils&nbsp;», tout en bas, puis «&nbsp;Tests&nbsp;», et choisis «&nbsp;Prévisions réelles&nbsp;».</span></p>
     <div class="chips" id="postJour" role="group" aria-label="Jour du post"><button class="chip" type="button" data-j="0">Aujourd'hui</button><button class="chip" type="button" data-j="1">Demain</button></div>
     <section>
       <div class="card kit">
@@ -731,34 +730,10 @@ details.plus[open] .tiles{margin-top:10px}
       <textarea class="caption" id="caption" aria-label="Légende du post Instagram"></textarea>
       <div style="margin-top:8px"><button class="sbtn" type="button" id="copyCap">Copier la légende</button></div>
     </section>
-    <section>
-      <div class="sec-h"><h2>Présenter l'app dans un groupe Facebook</h2><span class="sub">Une fois par groupe</span></div>
-      <ol class="card steps">
-        <li><b>Demande d'abord l'accord</b> de l'admin du groupe.</li>
-        <li><b>Choisis la commune</b> du groupe, puis <b>copie le texte</b>.</li>
-        <li><b>Publie dans le groupe</b> avec une capture de l'app ouverte sur cette commune.</li>
-      </ol>
-      <select class="caption" id="fbCommune" aria-label="Commune du groupe" style="min-height:0;margin-top:12px;font-weight:700"></select>
-      <textarea class="caption" id="fbTexte" aria-label="Texte de présentation pour le groupe Facebook" style="margin-top:8px;min-height:300px"></textarea>
-      <div style="margin-top:8px"><button class="sbtn" type="button" id="copyFb">Copier le texte</button></div>
-    </section>
-    <section>
-      <div class="sec-h"><h2>Ta semaine</h2></div>
-      <div style="display:flex;flex-direction:column;gap:12px" id="semaine"></div>
-    </section>
-    <section>
-      <div class="sec-h"><h2>Statistiques</h2></div>
-      <div class="card kit">
-        <span class="sub">Umami : visiteurs, pages vues, appareils et villes. Google Search Console : ce que les gens tapent sur Google pour trouver l'app.</span>
-        <div class="chips"><a class="chip" href="https://cloud.umami.is/websites/a3212f59-b8e9-486f-9e0f-d7256926be65" target="_blank" rel="noopener">Umami</a><a class="chip" href="https://search.google.com/search-console?resource_id=https%3A%2F%2Flameteodeleo.fr%2F" target="_blank" rel="noopener">Google Search Console</a></div>
       </div>
-    </section>
-    <section>
-      <div class="sec-h"><h2>🔥 Chaud ou froid ? · suivi</h2></div>
-      <div class="card kit" id="suiviJeu"><span class="sub">Chargement…</span></div>
-    </section>
+    </details>
     <details class="plus">
-      <summary><span>Outils et vérifications</span><small>fiabilité, à la une, tests</small></summary>
+      <summary><span>Outils</span><small>contrôle, fiabilité, à la une, tests</small></summary>
       <div style="margin-top:12px">
       <section>
         <div class="sec-h"><h2>Contrôle de l'appli</h2></div>
@@ -786,6 +761,7 @@ details.plus[open] .tiles{margin-top:10px}
       </details>
       </div>
     </details>
+    <div id="semaine" hidden></div>
   </main>
 
   <footer>
@@ -3633,7 +3609,7 @@ Vous y trouvez :
 
 Les prévisions viennent des modèles de Météo-France et sont mises à jour toutes les 2 heures. Pas de pub, pas d'inscription.
 
-Astuce : touchez « Voir la météo heure par heure », puis ajoutez l'appli à votre écran d'accueil. Elle s'ouvre en plein écran, comme une appli.
+Astuce : touchez « Ouvrir dans l'appli gratuite », puis ajoutez l'appli à votre écran d'accueil. Elle s'ouvre en plein écran, comme une appli.
 ${an&&an.length?`
 💡 Le saviez-vous ? ${an[0]}
 `:""}

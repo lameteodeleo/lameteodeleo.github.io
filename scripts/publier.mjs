@@ -269,7 +269,7 @@ async function fabriquer(type) {
     log(`Prévisions du ${new Date(etat.maj).toLocaleString("fr-FR", { timeZone: "Europe/Paris" })} (il y a ${age.toFixed(1)} h)`);
     if (age > AGE_MAX_H) throw new Error(`Prévisions trop anciennes (${age.toFixed(1)} h, maximum ${AGE_MAX_H} h) : publication annulée.`);
     const J = type === "reel" ? (process.env.REEL_JOUR === "aujourdhui" ? 0 : 1) : 0;   // le Reel du soir est pour demain ; à la main, on peut faire celui du jour
-    await page.evaluate(async J => { studioOuvert = true; route(); postJour = J; postJourChoisi = Date.now(); await buildSlides(); }, J);
+    await page.evaluate(async J => { studioOuvert = true; route(); document.querySelectorAll("#v-studio details").forEach(d => d.open = true); postJour = J; postJourChoisi = Date.now(); await buildSlides(); }, J);
     const res = {};
     for (const reseau of RESEAUX) {
       if (type === "story") {
