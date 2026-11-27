@@ -21,7 +21,7 @@ const STYLES = {
   alerte: { g: MIN, bpm: [64, 70], suites: [[0, 0, 5, 4], [0, 5, 0, 6]], toniques: [50, 48], lead: 4, nappe: 89, basse: 32, batterie: "rien", melodie: 0 },
 };
 
-export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date = "", intensite = 0.5, sansSax = false } = {}) {
+export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date = "", intensite = 0.5, sansSax = true } = {}) {   // le saxophone est retiré (choix de Léo) : la mélodie est jouée au piano électrique
   const nom = STYLES[ambiance] ? ambiance : "soleil", S = STYLES[nom], I = Math.max(0, Math.min(1, intensite));
   graine = 7; for (const ch of nom + "|" + date) graine = (graine * 31 + ch.charCodeAt(0)) % 2147483647; if (graine <= 0) graine += 2147483646; for (let i = 0; i < 4; i++) alea();
   const ton = choix(S.toniques), suite = choix(S.suites), v = Math.floor(alea() * 3);
@@ -133,6 +133,17 @@ export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date
   const head = Buffer.from([0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 1, 0, tr.length, TPQ >> 8, TPQ & 255]);
   return { midi: Buffer.concat([head, ...tr]), resume: `${G} · ${nom}, ${bpm} bpm, tonique ${ton}, suite ${suite.join("-")}, variante ${v + 1}` };
 }
+// Le style du jour, choisi par le robot selon les prévisions :
+//   lo-fi pour la pluie, le froid, le gel et les vigilances (calme, feutré) ;
+//   chillhop jazzy pour le mistral et les journées ordinaires (vivant, balancé) ;
+//   house jazzy pour le beau temps, la douceur et le week-end (plus d'élan).
+export function genreDe(a) {
+  const t = a && a.t, n = a && +a.n, d = a && a.date ? new Date(a.date + "T12:00:00") : new Date(), we = [0, 6].includes(d.getDay()), pair = Math.floor(d.getTime() / 864e5) % 2 === 0;
+  if (!a || a.niveau || t === "pluie" || t === "froid") return "lofi";
+  if (t === "vent") return "chillhop";
+  if (t === "chaud" || we || n >= 18) return "jazzhouse";
+  return pair ? "jazzhouse" : "chillhop";                  // les autres jours de beau temps, on alterne
+}
 // L'ambiance et l'intensité selon l'accroche du Reel
 export function ambianceDe(a) {
   const t = a && a.t, n = a && +a.n;
@@ -144,6 +155,6 @@ export function ambianceDe(a) {
 }
 if (process.argv[1] && process.argv[1].endsWith("compose.mjs") && process.argv[2]) {
   const [amb, gen, opt] = process.argv[2].split(":");
-  const r = composer({ ambiance: amb, genre: gen || "lofi", sansSax: opt === "sanssax", duree: +(process.argv[3] || 16), date: process.argv[5] || "", intensite: process.argv[6] != null ? +process.argv[6] : 0.5 });
+  const r = composer({ ambiance: amb, genre: gen || "lofi", sansSax: opt !== "sax", duree: +(process.argv[3] || 16), date: process.argv[5] || "", intensite: process.argv[6] != null ? +process.argv[6] : 0.5 });
   writeFileSync(process.argv[4] || "musique.mid", r.midi); console.log(r.resume);
 }

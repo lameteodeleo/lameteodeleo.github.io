@@ -115,7 +115,7 @@ jobs:
           npm install --no-save --no-audit --no-fund playwright-core@1.49.1
           command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
           # Instruments pour la musique du Reel (banque de sons libre) ; en cas d'échec, le Reel part en silence
-          (sudo apt-get install -y -qq fluidsynth fluid-soundfont-gm >/dev/null 2>&1 || (sudo apt-get update -qq && sudo apt-get install -y -qq fluidsynth fluid-soundfont-gm >/dev/null 2>&1)) || echo "Instruments indisponibles"
+          (sudo apt-get install -y -qq fluidsynth fluid-soundfont-gm musescore-general-soundfont >/dev/null 2>&1 || (sudo apt-get update -qq && sudo apt-get install -y -qq fluidsynth fluid-soundfont-gm musescore-general-soundfont >/dev/null 2>&1)) || echo "Instruments indisponibles"
           # Dictionnaire français pour la vérification d'orthographe (un échec ici ne bloque rien)
           (sudo apt-get install -y -qq hunspell hunspell-fr whois >/dev/null 2>&1 || (sudo apt-get update -qq && sudo apt-get install -y -qq hunspell hunspell-fr whois >/dev/null 2>&1)) || echo "Dictionnaire indisponible"
           google-chrome --version

@@ -20,7 +20,7 @@
 import { chromium } from "playwright-core";
 import { execFileSync } from "node:child_process";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { composer, ambianceDe } from "./compose.mjs";
+import { composer, ambianceDe, genreDe } from "./compose.mjs";
 import { writeFileSync } from "node:fs";
 
 const SITE = process.env.SITE_URL || "https://lameteodeleo.fr/";
@@ -306,10 +306,11 @@ function ffmpeg(args) { execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "er
 function preparerVideo(brut, sortie, plan) {
   // Une musique originale composée pour le jour (style selon le temps, unique selon la date) ; en cas de souci, piste muette comme avant
   // Musique du jour : composée par le robot (lo-fi au piano électrique, selon le temps et unique chaque jour), jouée avec une banque de vrais sons
-  const SF2 = "/usr/share/sounds/sf2/FluidR3_GM.sf2";
+  // Banque de vrais sons : MuseScore (meilleure qualité) si elle est installée, sinon FluidR3
+  const SF2 = ["/usr/share/sounds/sf3/MuseScore_General_Full.sf3", "/usr/share/sounds/sf3/MuseScore_General.sf3", "/usr/share/sounds/sf2/FluidR3_GM.sf2"].find(f => { try { execFileSync("test", ["-f", f]); return true; } catch { return false; } });
   if (plan) try {
     const duree = parseFloat(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", brut]).toString()) || 16;
-    const { ambiance, intensite } = ambianceDe(plan), m = composer({ ambiance, duree: duree + 1, date: plan.date, intensite });
+    const { ambiance, intensite } = ambianceDe(plan), genre = genreDe(plan), m = composer({ ambiance, genre, duree: duree + 1, date: plan.date, intensite });
     const mid = sortie.replace(/\.mp4$/, ".mid"), wav = sortie.replace(/\.mp4$/, ".wav"); writeFileSync(mid, m.midi);
     execFileSync("fluidsynth", ["-ni", "-g", "0.7", "-r", "48000", "-F", wav, SF2, mid], { stdio: "ignore" });
     const fin = Math.max(0, duree - 1.2).toFixed(2);
