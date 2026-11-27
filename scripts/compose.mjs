@@ -13,10 +13,10 @@ const accord = (g, deg, n = 4) => Array.from({ length: n }, (_, k) => { const d 
 // 48 cordes, 89 nappe chaude, 73 flûte ; batterie sur le canal 10
 // Une seule famille de son, celle que Léo aime : lo-fi au piano électrique feutré. Le temps change la gamme, le tempo et l'énergie.
 const STYLES = {
-  soleil: { g: MAJ, bpm: [80, 88], suites: [[0, 5, 3, 4], [0, 4, 5, 3], [3, 0, 4, 5], [0, 3, 5, 4]], toniques: [53, 55, 50, 52, 57], lead: 4, nappe: 89, basse: 32, batterie: "lofi", melodie: 2 },
-  vent:   { g: MIN, bpm: [84, 92], suites: [[0, 5, 6, 4], [0, 3, 6, 5], [0, 6, 5, 6], [5, 6, 0, 0]], toniques: [50, 52, 53, 55, 48], lead: 4, nappe: 89, basse: 33, batterie: "lofiPlus", melodie: 1 },
-  pluie:  { g: MIN, bpm: [70, 80], suites: [[0, 3, 6, 2], [5, 3, 0, 4], [0, 5, 3, 4], [3, 4, 0, 0]], toniques: [50, 52, 53, 48, 55], lead: 4, nappe: 89, basse: 32, batterie: "lofi", melodie: 1 },
-  froid:  { g: MAJ, bpm: [64, 72], suites: [[0, 4, 5, 3], [3, 0, 4, 1], [0, 5, 1, 4], [5, 3, 0, 4]], toniques: [53, 55, 50, 52, 57], lead: 4, nappe: 89, basse: 32, batterie: "doux", melodie: 1 },
+  soleil: { g: MAJ, bpm: [88, 95], suites: [[0, 5, 3, 4], [0, 4, 5, 3], [3, 0, 4, 5], [0, 3, 5, 4]], toniques: [53, 55, 50, 52, 57], lead: 4, nappe: 89, basse: 32, batterie: "lofi", melodie: 2 },
+  vent:   { g: MIN, bpm: [90, 96], suites: [[0, 5, 6, 4], [0, 3, 6, 5], [0, 6, 5, 6], [5, 6, 0, 0]], toniques: [50, 52, 53, 55, 48], lead: 4, nappe: 89, basse: 33, batterie: "lofiPlus", melodie: 1 },
+  pluie:  { g: MIN, bpm: [85, 90], suites: [[0, 3, 6, 2], [5, 3, 0, 4], [0, 5, 3, 4], [3, 4, 0, 0]], toniques: [50, 52, 53, 48, 55], lead: 4, nappe: 89, basse: 32, batterie: "lofi", melodie: 1 },
+  froid:  { g: MAJ, bpm: [82, 86], suites: [[0, 4, 5, 3], [3, 0, 4, 1], [0, 5, 1, 4], [5, 3, 0, 4]], toniques: [53, 55, 50, 52, 57], lead: 4, nappe: 89, basse: 32, batterie: "doux", melodie: 1 },
   alerte: { g: MIN, bpm: [64, 70], suites: [[0, 0, 5, 4], [0, 5, 0, 6]], toniques: [50, 48], lead: 4, nappe: 89, basse: 32, batterie: "rien", melodie: 0 },
 };
 

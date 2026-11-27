@@ -20,7 +20,7 @@
 import { chromium } from "playwright-core";
 import { execFileSync } from "node:child_process";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { musique, ambianceDe } from "./musique.mjs";
+import { composer, ambianceDe } from "./compose.mjs";
 import { writeFileSync } from "node:fs";
 
 const SITE = process.env.SITE_URL || "https://lameteodeleo.fr/";
@@ -305,12 +305,15 @@ async function fabriquer(type) {
 function ffmpeg(args) { execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args], { stdio: "inherit" }); }
 function preparerVideo(brut, sortie, plan) {
   // Une musique originale composée pour le jour (style selon le temps, unique selon la date) ; en cas de souci, piste muette comme avant
-  const MUSIQUE_COMPOSEE = false;   // désactivée : remplacée bientôt par une bibliothèque de vraies musiques choisies par Léo
-  if (plan && MUSIQUE_COMPOSEE) try {
+  // Musique du jour : composée par le robot (lo-fi au piano électrique, selon le temps et unique chaque jour), jouée avec une banque de vrais sons
+  const SF2 = "/usr/share/sounds/sf2/FluidR3_GM.sf2";
+  if (plan) try {
     const duree = parseFloat(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", brut]).toString()) || 16;
-    const { ambiance, intensite } = ambianceDe(plan), m = musique({ ambiance, duree: duree + 0.5, date: plan.date, intensite });
-    const wav = sortie.replace(/\.mp4$/, ".wav"); writeFileSync(wav, m.wav);
-    ffmpeg(["-i", brut, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-shortest", "-movflags", "+faststart", sortie]);
+    const { ambiance, intensite } = ambianceDe(plan), m = composer({ ambiance, duree: duree + 1, date: plan.date, intensite });
+    const mid = sortie.replace(/\.mp4$/, ".mid"), wav = sortie.replace(/\.mp4$/, ".wav"); writeFileSync(mid, m.midi);
+    execFileSync("fluidsynth", ["-ni", "-g", "0.7", "-r", "48000", "-F", wav, SF2, mid], { stdio: "ignore" });
+    const fin = Math.max(0, duree - 1.2).toFixed(2);
+    ffmpeg(["-i", brut, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", `afade=t=in:d=0.15,afade=t=out:st=${fin}:d=1.2,loudnorm=I=-18:TP=-2`, "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-shortest", "-movflags", "+faststart", sortie]);
     log(`Musique du jour : ${m.resume}`);
     return sortie;
   } catch (e) { log(`⚠️ Musique impossible (${String(e.message).slice(0, 80)}) : piste muette.`); }
