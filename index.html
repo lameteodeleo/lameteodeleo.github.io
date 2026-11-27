@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-7CXIDEcpvF01MYoWlJK8XysOnzbnxZJiSjNZIy0un3o=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-obzWy860OiOWV4tnUHJDV3qBEGbYOxBKzkHM7UBsUdo=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -3241,6 +3241,25 @@ function assemblerMP4(W,H,fps,images,avcC){
   const mdat=new Uint8Array(8+total);mdat.set(u32(8+total));mdat.set(T.encode("mdat"),4);let k=8;for(const im of images){mdat.set(im.d,k);k+=im.d.length}
   return cat([ftyp,moov(off),mdat]);
 }
+/* L'accroche du Reel : le chiffre le plus marquant du jour, mais jamais le même type deux jours de suite
+   (sauf vigilance ou chiffre exceptionnel), pour que la grille Instagram reste variée */
+function choixAccroche(J,R,al){
+  const hookCand=R=>{const L=[];
+    if(R.pl.jour>=10) L.push({t:"pluie",fort:R.pl.jour>=30,n:Math.round(R.pl.jour),u:" mm",lab:"de pluie attendus dans le 13",ico:"pluieForte"});
+    if(R.vent.m.raf>=60||(R.dom==="mistral"&&R.vent.m.raf>=40)) L.push({t:"vent",fort:R.vent.m.raf>=90,n:R.vent.m.raf,u:" km/h",lab:R.dom==="mistral"?"de rafales de mistral dans le 13":"de rafales dans le 13",ico:R.dom==="mistral"?"mistral":"vent"});
+    if(R.chaud.m.max>=32) L.push({t:"chaud",fort:R.chaud.m.max>=38,n:R.chaud.m.max,u:"°",lab:"au plus chaud dans le 13",ico:"chaleur"});
+    if(R.min<=0) L.push({t:"froid",fort:R.min<=-5,n:R.min,u:"°",lab:"au petit matin dans le 13",ico:"gel"});
+    if(R.pl.jour>=2&&R.pl.jour<10) L.push({t:"pluie",n:Math.round(R.pl.jour),u:" mm",lab:"de pluie attendus dans le 13",ico:R.ico||"pluie"});
+    if(R.min>0&&R.min<=3) L.push({t:"froid",n:R.min,u:"°",lab:"au petit matin dans le 13",ico:R.ico||R.dom});
+    const venteux=R.dom==="mistral"||R.dom==="vent";   // quand on évite le vent, l'accroche température ne reparle pas de vent
+    L.push({t:"temp",n:R.chaud.m.max,u:"°",lab:venteux?"au plus chaud dans le 13":(R.titre||"").toLowerCase()+" dans le 13",ico:venteux?"soleil":(R.ico||R.dom)});
+    return L};
+  let hook;
+  if(al) hook={k:al.titre.replace(/^(Vigilance \S+) /,"$1\n"),n:null,lab:"sur les Bouches-du-Rhône",ico:R.ico||R.dom,t:"alerte"};
+  else{const L=hookCand(R);hook=L[0];
+    let hier=null;try{if(J>=1){const Rh=bilanDep(J-1);hier=Rh.al?"alerte":hookCand(Rh)[0].t}}catch(e){}
+    if(hier&&hook.t===hier&&!hook.fort){const autre=L.find(h=>h.t!==hier);if(autre)hook=autre}}
+  return hook}
 async function creerReel(btn){
   DEBORDE=[];
   const out=$("reelOut");if(!SLIDES.length){flash(btn,"Pas d'images");return}
@@ -3249,15 +3268,8 @@ async function creerReel(btn){
   // Reel pensé pour la rétention : accroche forte en 1 seconde, images courtes qui glissent, barre de progression, fin qui renvoie au lien
   const J=SLIDES_J, R=bilanDep(J), al=R.al, dj=dayDate(J);
   const jourTxt=(d=>(d.charAt(0).toUpperCase()+d.slice(1)).replace(/ 1 /," 1er "))(dj.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}));
-  // L'accroche : le chiffre le plus marquant du jour
-  let hook;
-  if(al) hook={k:al.titre.replace(/^(Vigilance \S+) /,"$1\n"),n:null,lab:"sur les Bouches-du-Rhône",ico:R.ico||R.dom};
-  else if(R.pl.jour>=10) hook={n:Math.round(R.pl.jour),u:" mm",lab:"de pluie attendus dans le 13",ico:"pluieForte"};
-  else if(R.vent.m.raf>=60||(R.dom==="mistral"&&R.vent.m.raf>=40)) hook={n:R.vent.m.raf,u:" km/h",lab:R.dom==="mistral"?"de rafales de mistral dans le 13":"de rafales dans le 13",ico:R.dom==="mistral"?"mistral":"vent"};
-  else if(R.chaud.m.max>=32) hook={n:R.chaud.m.max,u:"°",lab:"au plus chaud dans le 13",ico:"chaleur"};
-  else if(R.min<=0) hook={n:R.min,u:"°",lab:"au petit matin dans le 13",ico:"gel"};
-  else if(R.pl.jour>=2) hook={n:Math.round(R.pl.jour),u:" mm",lab:"de pluie attendus dans le 13",ico:R.ico||"pluie"};
-  else hook={n:R.chaud.m.max,u:"°",lab:R.titre.toLowerCase()+" dans le 13",ico:R.ico||R.dom};
+  // L'accroche : le chiffre le plus marquant du jour, mais jamais le même type deux jours de suite (sauf vigilance ou chiffre exceptionnel), pour une grille variée
+  const hook=choixAccroche(J,R,al);
   // Reel pensé pour la rétention : 5 écrans courts (≈ 15 s). Une question dès la 1re image (jamais de « 👇 », qui pousse à passer à la vidéo suivante),
   // l'utile au milieu (heure par heure, communes connues), une question à la fin pour faire commenter.
   const ville=COMMUNES[idx("Marseille")];
@@ -3286,9 +3298,10 @@ async function creerReel(btn){
     return {n,ico:m.ico||m.type,max:m.max,info:(!m.plNuit&&m.pl>=1)?"Pluie "+mm(m.pl):(m.raf>=40||m.type==="mistral"||m.type==="vent")?"Rafales "+m.raf+" km/h":"Min "+m.min+"°"}});
   // La question de la 1re image : elle promet la suite (elle change selon le temps et le jour)
   const nJ=Math.floor(dj.getTime()/864e5), choix=L=>L[nJ%L.length];
-  const phrase=al?"Ce qu'il faut savoir ⚠":R.pl.jour>=2?choix(["Chez vous, ça tombe quand ?","À quelle heure chez vous ?"])
-    :(R.dom==="mistral"||R.vent.m.raf>=50)?choix(["Ça souffle fort où ?","Chez vous, ça souffle à combien ?"])
-    :R.min<=3?"Le plus froid, c'est où ?":R.chaud.m.max>=30?"Le plus chaud, c'est où ?":choix(["Et chez vous, ça donne quoi ?","Votre journée en 15 secondes"]);
+  // La question suit l'accroche choisie
+  const phrase=al?"Ce qu'il faut savoir ⚠":hook.t==="pluie"?choix(["Chez vous, ça tombe quand ?","À quelle heure chez vous ?"])
+    :hook.t==="vent"?choix(["Ça souffle fort où ?","Chez vous, ça souffle à combien ?"])
+    :hook.t==="froid"?(hook.n<=0?choix(["Le plus froid, c'est où ?","Et chez vous, il a gelé ?"]):"Le plus froid, c'est où ?"):hook.t==="chaud"?"Le plus chaud, c'est où ?":choix(["Et chez vous, ça donne quoi ?","Votre journée en 15 secondes"]);
   // Le sourire (jamais en vigilance orange ou rouge) ; la consigne ou le conseil important passent avant
   // Espaces insécables : un nombre et son unité restent sur la même ligne
   // Le sourire parle du même temps que le Reel : Marseille si elle a le temps du jour, sinon une commune connue qui l'a
@@ -3490,7 +3503,10 @@ async function buildSlides(){
 let LEG=null;
 function majLegende(){if(!LEG)return;const {R,al,c,m,J,dj}=LEG, fb=RESEAU==="facebook";
   const quand=cap(fmt(dj));
-  const chiffre=R.pl.jour>=2&&R.pluie?"jusqu'à "+mm(R.pl.jour)+" de pluie à "+R.pluie.nom:R.vent.m.raf>=40?"rafales jusqu'à "+R.vent.m.raf+" km/h à "+R.vent.nom:R.chaud.m.max+"° au plus chaud à "+R.chaud.nom;
+  let H=null;try{H=choixAccroche(J,R,al)}catch(e){}
+  const chP=R.pl.jour>=2&&R.pluie?"jusqu'à "+mm(R.pl.jour)+" de pluie à "+R.pluie.nom:null, chV=R.vent.m.raf>=40?"rafales jusqu'à "+R.vent.m.raf+" km/h à "+R.vent.nom:null, chC=R.chaud.m.max+"° au plus chaud à "+R.chaud.nom;
+  // Le chiffre de la légende suit l'accroche de la vidéo
+  const chiffre=H&&H.t==="froid"?(H.n<=0?"gelée au réveil ("+H.n+"°)":H.n+"° au petit matin")+(chV?", "+chV:""):H&&H.t==="vent"?chV||chC:H&&H.t==="pluie"?chP||chC:H&&(H.t==="chaud"||H.t==="temp")?chC:(chP||chV||chC);
   const lien=fb?"Votre commune, heure par heure : https://lameteodeleo.fr":"Votre commune, heure par heure : lien en bio.";
   // Facebook : 3 hashtags, plus celui du temps seulement les jours marquants (vigilance, mistral, pluie, orage…)
   const tags=fb?"#meteo #provence #bouchesdurhone"+(al?" #vigilance":R.dom&&R.dom!=="soleil"&&TAG_TEMPS[R.dom]?" "+TAG_TEMPS[R.dom]:""):"#meteo #provence #bouchesdurhone #marseille "+(al?"#vigilance":(TAG_TEMPS[R.dom]||"#aixenprovence"));
