@@ -9,15 +9,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Instruments
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq fluidsynth fluid-soundfont-gm ffmpeg >/dev/null
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq fluidsynth fluid-soundfont-gm ffmpeg >/dev/null
+          sudo apt-get install -y -qq musescore-general-soundfont >/dev/null 2>&1 || sudo apt-get install -y -qq musescore-general-soundfont-small >/dev/null 2>&1 || echo "Banque MuseScore introuvable"
+          find /usr/share -iname "*.sf[23]" -size +1M 2>/dev/null
       - name: Composer et jouer
         run: |
           mkdir -p demos/musique && rm -f demos/musique/*
-          for x in "soleil:jazzhouse 2026-11-28 0.5" "soleil:jazzhouse 2026-11-29 0.5" "vent:jazzhouse 2026-11-28 0.6"; do
+          for x in "soleil:jazzhouse 2026-11-28 0.5" "soleil:jazzhouse:sanssax 2026-11-28 0.5" "vent:jazzhouse 2026-11-28 0.6" "vent:jazzhouse:sanssax 2026-11-28 0.6" "pluie:lofi 2026-11-28 0.6"; do
             set -- $x
             node scripts/compose.mjs $1 16 /tmp/m.mid $2 $3
-            fluidsynth -ni -g 0.7 -r 44100 -F /tmp/m.wav /usr/share/sounds/sf2/FluidR3_GM.sf2 /tmp/m.mid >/dev/null
-            ffmpeg -loglevel error -y -i /tmp/m.wav -t 16 -af "afade=t=in:d=0.4,afade=t=out:st=14.5:d=1.5,loudnorm=I=-18:TP=-2" -b:a 160k demos/musique/${1/:/-}-$2.mp3
+            SF=$(find /usr/share -iname "MuseScore_General*.sf[23]" 2>/dev/null | head -1); SF=${SF:-/usr/share/sounds/sf2/FluidR3_GM.sf2}; echo "Banque : $SF"
+            fluidsynth -ni -g 0.7 -r 44100 -F /tmp/m.wav "$SF" /tmp/m.mid >/dev/null
+            ffmpeg -loglevel error -y -i /tmp/m.wav -t 16 -af "afade=t=in:d=0.4,afade=t=out:st=14.5:d=1.5,loudnorm=I=-18:TP=-2" -b:a 160k demos/musique/${1//:/-}-$2.mp3
           done
           ls -la demos/musique
       - name: Enregistrer

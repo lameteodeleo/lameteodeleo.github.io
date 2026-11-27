@@ -21,7 +21,7 @@ const STYLES = {
   alerte: { g: MIN, bpm: [64, 70], suites: [[0, 0, 5, 4], [0, 5, 0, 6]], toniques: [50, 48], lead: 4, nappe: 89, basse: 32, batterie: "rien", melodie: 0 },
 };
 
-export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date = "", intensite = 0.5 } = {}) {
+export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date = "", intensite = 0.5, sansSax = false } = {}) {
   const nom = STYLES[ambiance] ? ambiance : "soleil", S = STYLES[nom], I = Math.max(0, Math.min(1, intensite));
   graine = 7; for (const ch of nom + "|" + date) graine = (graine * 31 + ch.charCodeAt(0)) % 2147483647; if (graine <= 0) graine += 2147483646; for (let i = 0; i < 4; i++) alea();
   const ton = choix(S.toniques), suite = choix(S.suites), v = Math.floor(alea() * 3);
@@ -59,7 +59,7 @@ export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date
           const ph = motif.filter(d => d >= 0).slice(0, 4); if (ph.length < 2) ph.push(0, 4);
           const rythmes = [[0, 0.75, 1.5, 2], [0.5, 1, 1.75, 2.5], [0, 1, 1.5, 2.5]][v];
           ph.forEach((d, i) => { const debut = b0 + 0.25 + rythmes[i], der = i === ph.length - 1, duree = der ? 1.6 : (rythmes[i + 1] - rythmes[i]) + 0.08;   // notes liées, la dernière tenue
-            note(pistes.sax, debut + hum(), duree, deg(d), der ? 66 : 58 + (i % 2 ? 0 : 6)); }); }
+            note(sansSax ? pistes.lead : pistes.sax, debut + hum(), duree, deg(d), sansSax ? 56 : der ? 66 : 58 + (i % 2 ? 0 : 6)); }); }
         if (!fin) {
           if (!intro0(m)) for (let q = 0; q < 4; q++) note(B, b0 + q, 0.2, 36, 70);
           [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 46));
@@ -143,7 +143,7 @@ export function ambianceDe(a) {
   return { ambiance: "soleil", intensite: 0.5 };
 }
 if (process.argv[1] && process.argv[1].endsWith("compose.mjs") && process.argv[2]) {
-  const [amb, gen] = process.argv[2].split(":");
-  const r = composer({ ambiance: amb, genre: gen || "lofi", duree: +(process.argv[3] || 16), date: process.argv[5] || "", intensite: process.argv[6] != null ? +process.argv[6] : 0.5 });
+  const [amb, gen, opt] = process.argv[2].split(":");
+  const r = composer({ ambiance: amb, genre: gen || "lofi", sansSax: opt === "sanssax", duree: +(process.argv[3] || 16), date: process.argv[5] || "", intensite: process.argv[6] != null ? +process.argv[6] : 0.5 });
   writeFileSync(process.argv[4] || "musique.mid", r.midi); console.log(r.resume);
 }
