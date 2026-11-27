@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-JX6jqqUKfnFp+e9z7JJq822ImXeHcwQdIyIR1OJ7kQA=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-4rNKGLAfrUMIVQqxF2k0iyhPK/3jCA9D8goN4QODTwE=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -381,6 +381,11 @@ html{overscroll-behavior-y:contain}
 .prose h3{margin:6px 0 0;font-family:var(--f-display);font-size:1rem;font-weight:700}
 .prose p{margin:0}
 .prose ul{margin:0;padding-left:18px}
+details.legal summary{cursor:pointer;font-family:var(--f-display);font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.legal summary::after{content:"⌄";font-size:1.2rem;color:var(--muted);transition:transform .2s}
+details.legal[open] summary::after{transform:rotate(180deg)}
+details.legal summary::-webkit-details-marker,details.cadenas summary::-webkit-details-marker{display:none}
+details.cadenas{text-align:center}details.cadenas summary{list-style:none;cursor:pointer;opacity:.35;font-size:.8rem;padding:6px;display:inline-block}
 .ph{background:var(--brand-soft);color:var(--brand);font-weight:800;border-radius:6px;padding:0 5px}
 .assets{display:flex;gap:12px;flex-wrap:wrap}
 .asset{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;flex:1 1 140px}
@@ -639,42 +644,35 @@ details.plus[open] .tiles{margin-top:10px}
     <a class="back" href="#meteo">← Retour à la météo</a>
     <div>
       <h2 style="font-size:1.3rem">À propos de La météo de Léo</h2>
-      <div class="sub">Des prévisions sérieuses, racontées avec le sourire.</div>
     </div>
     <div class="card prose">
-      <h3>Le principe</h3>
-      <p>La météo de votre commune, dans les Bouches-du-Rhône et quelques communes voisines. Des prévisions sérieuses, mises à jour toute la journée, avec un sourire en plus, même quand il pleut.</p>
-      <h3 style="margin:14px 0 4px;font-size:1rem">Derrière La météo de Léo</h3>
-      <p>Je suis Léo et j'habite les Bouches-du-Rhône.</p>
-      <p>J'ai créé cette app avec une idée simple : une météo fiable, claire et locale, qui donne le sourire dès le matin.</p>
-      <p>Elle est gratuite, sans publicité et sans inscription.</p>
-      <h3>D'où viennent les prévisions ?</h3>
-      <p>Des modèles AROME et ARPEGE de Météo-France. Les prévisions sont mises à jour toutes les 2&nbsp;heures. La température du moment et la pluie des 2&nbsp;prochaines heures sont actualisées à chaque ouverture de l'app.</p>
-      <h3>Quand il y a une vigilance</h3>
-      <p>Les vigilances affichées sont celles de Météo-France, mises à jour avec les prévisions. En jaune, un simple rappel apparaît. En orange ou en rouge, l'humour s'efface : l'app n'affiche que les consignes de sécurité. Pour toute décision importante, suivez vigilance.meteofrance.fr, le site officiel.</p>
+      <p>Je suis Léo, j'habite les Bouches-du-Rhône. J'ai créé cette appli pour avoir une météo fiable, claire et locale, avec un sourire chaque matin. Gratuite, sans pub, sans inscription.</p>
+      <h3>Les prévisions</h3>
+      <p>Les modèles de Météo-France, mis à jour toutes les 2&nbsp;heures. La température du moment et la pluie des 2&nbsp;prochaines heures sont actualisées à chaque ouverture.</p>
+      <h3>Les vigilances</h3>
+      <p>Celles de Météo-France. En orange ou en rouge, l'humour s'efface : il ne reste que les consignes. Pour toute décision importante, suivez le site officiel <a href="https://vigilance.meteofrance.fr/fr" target="_blank" rel="noopener">vigilance.meteofrance.fr</a>.</p>
+      <h3>🔥 Chaud ou froid&nbsp;?</h3>
+      <p>Chaque jour, devinez la température max de demain. Résultat le lendemain soir, avec la mesure officielle la plus proche.</p>
     </div>
-    <div class="card prose">
-      <h3>Mentions légales</h3>
+    <details class="card prose legal">
+      <summary>Mentions légales et confidentialité</summary>
       <ul>
         <li>Éditeur : La météo de Léo (projet non commercial).</li>
         <li>Contact : <a href="https://www.instagram.com/lameteodeleo/" target="_blank" rel="noopener">@lameteodeleo</a></li>
         <li>Hébergement : GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis</li>
         <li>Données météo : modèles de Météo-France, via <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (licence CC BY 4.0)</li>
+        <li>Aucun compte, aucune publicité. Votre commune, vos favoris et vos parties restent sur votre appareil.</li>
+        <li>La localisation ne sert que si vous touchez « Me localiser ». Elle n'est ni enregistrée ni transmise.</li>
+        <li>Les visites et les parties sont comptées de façon anonyme, sans cookie.</li>
       </ul>
-      <h3>Confidentialité</h3>
-      <ul>
-        <li>Aucune inscription, aucun compte, aucune publicité.</li>
-        <li>Votre commune, vos favoris et vos parties de « Chaud ou froid&nbsp;? » restent sur votre appareil.</li>
-        <li>La localisation ne sert que si vous touchez « Me localiser », pour trouver la commune la plus proche. Elle n'est ni enregistrée ni transmise.</li>
-        <li>Les visites et les parties du jeu sont comptées de façon anonyme, sans cookie.</li>
-      </ul>
-      <p class="sub">© La météo de Léo, tous droits réservés. Les textes, le logo et le design de l'app ne peuvent pas être réutilisés sans autorisation.</p>
-    </div>
+      <p class="sub">© La météo de Léo</p>
+    </details>
+    <details class="cadenas"><summary aria-label="Accès éditeur">🔒</summary>
     <form class="code-acces" id="codeForm" autocomplete="off">
       <label for="codeAcces">Accès éditeur</label>
       <input id="codeAcces" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" aria-describedby="codeMsg">
       <span id="codeMsg" role="status"></span>
-    </form>
+    </form></details>
   </main>
 
   <!-- ===== ESPACE CRÉATEUR ===== -->
@@ -788,9 +786,8 @@ details.plus[open] .tiles{margin-top:10px}
   </main>
 
   <footer>
-    <span>Prévisions : modèles AROME et ARPEGE de Météo-France. Vigilances officielles : <a href="https://vigilance.meteofrance.fr/fr" target="_blank" rel="noopener">vigilance.meteofrance.fr</a>.</span>
     <span id="foot"></span>
-    <span><a href="meteo/">Toutes les communes</a> · <a href="#apropos">À propos et mentions légales</a></span>
+    <span><a href="meteo/">Toutes les communes</a> · <a href="#apropos">À propos</a></span>
   </footer>
 </div>
 
@@ -2353,7 +2350,7 @@ function render(){
   $("tips").innerHTML=cs.liste.map(x=>'<div class="tip'+(x.warn?" warn":"")+(x.orange?" orange":"")+'" data-c="'+x.cat+'"><span class="i">'+CICO[x.cat]+'</span><div class="tx"><small>'+CAT[x.cat]+'</small><span>'+essentiel(x.txt)+'</span></div></div>').join("");
   let maj=enReel()?new Date(DATA.maj):new Date();if(!enReel())maj.setMinutes(0,0,0);if(st.stale)maj=new Date(maj.getTime()-5*36e5);
   const age=Math.floor((Date.now()-maj)/36e5), hMaj=maj.getHours()+" h "+String(maj.getMinutes()).padStart(2,"0");
-  $("foot").textContent="Mis à jour à "+hMaj+" · "+COMMUNES.length+" communes couvertes";
+  $("foot").textContent="Prévisions Météo-France · mises à jour à "+hMaj+" · "+COMMUNES.length+" communes";
   $("demoPill").hidden=enReel();
   if(!DATA&&!st.demo){$("stale").hidden=false;$("stale").textContent="Prévisions momentanément indisponibles : les chiffres affichés sont des exemples. Consultez meteofrance.com en attendant."}
   else if(age>=3){$("stale").hidden=false;$("stale").textContent="Dernière mise à jour il y a "+age+" h. Pour une décision importante, consultez meteofrance.com."}
@@ -3755,7 +3752,7 @@ window.addEventListener("hashchange",()=>{studioOuvert=false;route()});
   logo.addEventListener("click",e=>{e.preventDefault();studioOuvert=false;if(location.hash==="#meteo"||!location.hash)route();else location.hash="#meteo"});
 })();
 /* Espace créateur : s'ouvre avec le code à 4 chiffres saisi en bas de la page À propos */
-(()=>{const f=$("codeForm"),inp=$("codeAcces"),msg=$("codeMsg");
+(()=>{const f=$("codeForm"),inp=$("codeAcces"),msg=$("codeMsg");try{f.closest("details").addEventListener("toggle",e=>{if(e.target.open)inp.focus()})}catch(e){}
   const verifier=()=>{
     const v=inp.value.replace(/\D/g,"");inp.value=v;
     if(v.length<4){msg.textContent="";return}
