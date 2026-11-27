@@ -48,13 +48,13 @@ export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date
         if (!fin) { [0, 2.5].forEach(x => note(B, b0 + x, 0.2, 36, 70)); [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 56));
           for (let e = 0; e < 8; e++) note(B, b0 + e * 0.5 + sw(e), 0.1, 51, e % 2 ? 30 : 42); }
       } else if (G === "jazzhouse") {
-        // house jazzy : groove house posé, accords jazz (neuvièmes) au piano électrique, basse mélodique, petites phrases de saxophone ténor
+        // house jazzy : groove house posé, accords jazz (neuvièmes) au piano électrique, basse mélodique, petites phrases de saxophone alto
         const acj = [...ac0.map(n => n - 12), ac0[0] + 2];                                   // septième + neuvième, dans le médium
         [[0.5, 1.75, 3], [0, 1.5, 2.75], [0.75, 2, 3.5]][v].forEach(x => acj.forEach((n, j) => note(pistes.lead, b0 + x + j * 0.015 + hum(), 0.9, n, 48)));
         const bas = bn - (bn > 40 ? 12 : 0), tierce = S.g === MIN ? 3 : 4;
         [[0, 0], [1, 7], [2, 12], [2.5, 10], [3, tierce + 12], [3.5, 11]].forEach(([x, d], i) => { if (v !== 1 || i !== 3) note(pistes.basse, b0 + x, 0.45, bas + d, 74); });
         ac0.slice(0, 3).forEach(n => note(pistes.nappe, b0, 4, n - 12, 26));
-        if (m % 2 === 1) motif.forEach((d, e) => { if (d >= 0 && e % 2 === 0) note(pistes.sax, b0 + e * 0.5 + 0.08 * (e % 4 === 2) + hum(), 0.7, ton + (S.g === MIN ? (d === 4 ? 3 : d === 9 ? 8 : d) : d), 62); });
+        if (m % 2 === 1) motif.forEach((d, e) => { if (d >= 0 && e % 2 === 0) note(pistes.sax, b0 + e * 0.5 + 0.08 * (e % 4 === 2) + hum(), 0.7, ton + 12 + (S.g === MIN ? (d === 4 ? 3 : d === 9 ? 8 : d) : d), 62); });
         if (!fin) {
           if (!intro0(m)) for (let q = 0; q < 4; q++) note(B, b0 + q, 0.2, 36, 70);
           [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 46));
@@ -116,7 +116,7 @@ export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date
   const basseG = G === "chillhop" || G === "jazzhouse" ? 32 : G === "house" ? 38 : S.basse;
   const leadG = G === "house" ? 5 : S.lead, nappeG = G === "house" ? 89 : S.nappe;
   const tr = [tempo, piste(0, leadG, 100, 54, pistes.lead), piste(1, nappeG, G === "house" ? 80 : 72, 74, pistes.nappe, 90), piste(2, basseG, G === "house" ? 88 : 100, 64, pistes.basse, 30)];
-  if (pistes.sax.length) tr.push(piste(3, 66, 86, 70, pistes.sax, 60));
+  if (pistes.sax.length) tr.push(piste(3, 65, 82, 70, pistes.sax, 60));
   if (pistes.bat.length) tr.push(piste(9, 0, 82, 64, pistes.bat, 40));
   const head = Buffer.from([0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 1, 0, tr.length, TPQ >> 8, TPQ & 255]);
   return { midi: Buffer.concat([head, ...tr]), resume: `${G} · ${nom}, ${bpm} bpm, tonique ${ton}, suite ${suite.join("-")}, variante ${v + 1}` };
