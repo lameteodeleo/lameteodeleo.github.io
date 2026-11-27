@@ -1,0 +1,26 @@
+name: Démo musique
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instruments
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq fluidsynth fluid-soundfont-gm ffmpeg >/dev/null
+      - name: Composer et jouer
+        run: |
+          mkdir -p demos/musique && rm -f demos/musique/*
+          for x in "soleil 2026-11-28 0.5" "soleil 2026-11-29 0.5" "vent 2026-11-28 0.8" "pluie 2026-11-28 0.6" "froid 2026-11-28 0.5"; do
+            set -- $x
+            node scripts/compose.mjs $1 16 /tmp/m.mid $2 $3
+            fluidsynth -ni -g 0.7 -r 44100 -F /tmp/m.wav /usr/share/sounds/sf2/FluidR3_GM.sf2 /tmp/m.mid >/dev/null
+            ffmpeg -loglevel error -y -i /tmp/m.wav -t 16 -af "afade=t=in:d=0.4,afade=t=out:st=14.5:d=1.5,loudnorm=I=-18:TP=-2" -b:a 160k demos/musique/$1-$2.mp3
+          done
+          ls -la demos/musique
+      - name: Enregistrer
+        run: |
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add demos/musique && git commit -m "Démo musique" && git pull --rebase && git push
