@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-obzWy860OiOWV4tnUHJDV3qBEGbYOxBKzkHM7UBsUdo=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-OmxgRfc0o+YNr4DFTnA2a79dfcjIuQtLM/c8FwRqY/A=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -559,7 +559,7 @@ details.plus[open] .tiles{margin-top:10px}
 
     <div class="card install" id="install" hidden>
       <div class="install-h"><span class="mm" id="markInstall"></span><div class="tx"><b>Installez l'app</b><div class="sub">Une icône sur votre écran d'accueil.</div></div>
-        <button class="btn-brand" type="button" id="installGo">Installer</button>
+        <button class="btn-brand" type="button" id="installGo">Comment faire ?</button>
         <button class="close" type="button" id="installClose" aria-label="Fermer">✕</button></div>
       <div id="installAide" hidden>
         <div class="seg" role="group" aria-label="Type de téléphone"><button type="button" id="os-ios" aria-pressed="true">iPhone</button><button type="button" id="os-and" aria-pressed="false">Android</button></div>
@@ -2587,8 +2587,11 @@ $("map").addEventListener("click",e=>{const g=e.target.closest(".mk");if(g)goTo(
 $("map").addEventListener("keydown",e=>{const g=e.target.closest(".mk");if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();goTo(g.dataset.n)}});
 
 /* Bandeau « Ajouter à l'écran d'accueil » : une seule fois, jamais dans l'app déjà installée */
-const STEPS={ios:["Ouvrez l'app dans Safari.","Touchez Partager (le carré avec une flèche).","Choisissez « Sur l'écran d'accueil »."],
-  and:["Ouvrez l'app dans Chrome.","Touchez ⋮ en haut à droite.","Choisissez « Installer »."]};
+// Sur iPhone, rien ne s'installe d'un seul geste : on explique les étapes exactes, et on ne demande d'ouvrir Safari que si on n'y est pas déjà
+const UA=navigator.userAgent, dansSafari=/iPhone|iPad|iPod/.test(UA)&&/Safari/.test(UA)&&!/CriOS|FxiOS|EdgiOS|FBAN|FBAV|Instagram|GSA|Line/.test(UA),
+  dansChrome=/android/i.test(UA)&&/Chrome/.test(UA)&&!/FBAN|FBAV|Instagram|SamsungBrowser|wv\)/.test(UA);
+const STEPS={ios:[...(dansSafari?[]:["Ouvrez le lien lameteodeleo.fr dans Safari."]),"Touchez Partager : le carré avec une flèche vers le haut, en bas de l'écran (ou ⋯ puis Partager).","Faites défiler et touchez « Sur l'écran d'accueil ».","Touchez « Ajouter » en haut à droite. L'icône apparaît sur votre écran d'accueil."],
+  and:[...(dansChrome?[]:["Ouvrez le lien lameteodeleo.fr dans Chrome."]),"Touchez ⋮ en haut à droite.","Touchez « Installer l'application » (ou « Ajouter à l'écran d'accueil »), puis « Installer »."]};
 let os=/android/i.test(navigator.userAgent)?"and":"ios";
 function renderInstall(){$("os-ios").setAttribute("aria-pressed",os==="ios");$("os-and").setAttribute("aria-pressed",os==="and");$("installSteps").innerHTML=STEPS[os].map(t=>"<li>"+t+"</li>").join("")}
 (()=>{
@@ -2602,11 +2605,13 @@ function renderInstall(){$("os-ios").setAttribute("aria-pressed",os==="ios");$("
   $("installClose").addEventListener("click",fermer);
   // Sur Android, Chrome fournit une vraie fenêtre d'installation : on l'utilise quand elle est disponible
   let invite=null;
-  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();invite=e});
+  // Le bouton ne promet « Installer » que si le téléphone sait le faire d'un geste ; sinon il montre les étapes
+  $("installGo").textContent="Comment faire ?";
+  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();invite=e;$("installGo").textContent="Installer"});
   window.addEventListener("appinstalled",fermer);
   $("installGo").addEventListener("click",async()=>{
     if(invite){try{invite.prompt();const r=await invite.userChoice;invite=null;if(r&&r.outcome==="accepted"){fermer();return}}catch(e){}}
-    const a=$("installAide");a.hidden=!a.hidden;$("installGo").textContent=a.hidden?"Installer":"Masquer";
+    const a=$("installAide");a.hidden=!a.hidden;$("installGo").textContent=a.hidden?"Comment faire ?":"Masquer";
   });
 })();
 
