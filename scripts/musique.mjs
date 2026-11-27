@@ -37,6 +37,12 @@ function basse(f, dur, type = "ronde") {
     else b[i] = (Math.sin(TAU * f * t) + 0.25 * Math.sin(TAU * 2 * f * t)) * e; }
   return b;
 }
+function guitare(f, dur, doux = 0.5) {               // corde pincée (guitare nylon) : son naturel et chaud
+  const n = Math.floor(dur * SR), b = new Float32Array(n), P = Math.max(2, Math.round(SR / f)), d = new Float32Array(P);
+  for (let i = 0; i < P; i++) d[i] = alea() * (1 - doux * 0.6);
+  let y = 0; for (let i = 0; i < n; i++) { const j = i % P, v = 0.5 * (d[j] + d[(j + 1) % P]) * 0.996; d[j] = v; y += 0.35 * (v - y); b[i] = y * Math.min(1, (dur - i / SR) / 0.2); }
+  return b;
+}
 function grosseCaisse(doux = 1) { const n = Math.floor(0.35 * SR), b = new Float32Array(n); let ph = 0;
   for (let i = 0; i < n; i++) { const t = i / SR, f = 48 + 90 * Math.exp(-t * 28); ph += f / SR; b[i] = Math.sin(TAU * ph) * Math.exp(-t * 9) * doux; } return b; }
 function claque(couleur = 0.5) { const n = Math.floor(0.22 * SR), b = new Float32Array(n); let y = 0;
@@ -60,10 +66,10 @@ function pluieFond(dur) {
 const MAJ = [0, 2, 4, 5, 7, 9, 11], MIN = [0, 2, 3, 5, 7, 8, 10];
 const accord = (gamme, deg, n = 4) => Array.from({ length: n }, (_, k) => { const d = deg + 2 * k; return gamme[d % 7] + 12 * Math.floor(d / 7); });
 const STYLES = {
-  soleil: { gamme: MAJ, bpm: [104, 118], suites: [[0, 5, 3, 4], [0, 4, 5, 3], [3, 0, 4, 5], [0, 3, 5, 4]], toniques: [60, 62, 65, 67, 57] },
-  vent:   { gamme: MIN, bpm: [118, 132], suites: [[0, 5, 6, 4], [0, 3, 6, 5], [0, 6, 5, 6], [5, 6, 0, 0]], toniques: [57, 52, 55, 50, 53] },
-  pluie:  { gamme: MIN, bpm: [72, 84],   suites: [[0, 3, 6, 2], [5, 3, 0, 4], [0, 5, 3, 4], [3, 4, 0, 0]], toniques: [57, 55, 52, 50, 60] },
-  froid:  { gamme: MAJ, bpm: [80, 92],   suites: [[0, 4, 5, 3], [3, 0, 4, 1], [0, 5, 1, 4], [5, 3, 0, 4]], toniques: [64, 62, 60, 67, 59] },
+  soleil: { gamme: MAJ, bpm: [86, 96], suites: [[0, 5, 3, 4], [0, 4, 5, 3], [3, 0, 4, 5], [0, 3, 5, 4]], toniques: [55, 57, 53, 52, 50] },
+  vent:   { gamme: MIN, bpm: [94, 108], suites: [[0, 5, 6, 4], [0, 3, 6, 5], [0, 6, 5, 6], [5, 6, 0, 0]], toniques: [50, 52, 53, 55, 48] },
+  pluie:  { gamme: MIN, bpm: [70, 80],   suites: [[0, 3, 6, 2], [5, 3, 0, 4], [0, 5, 3, 4], [3, 4, 0, 0]], toniques: [50, 52, 53, 48, 55] },
+  froid:  { gamme: MAJ, bpm: [70, 80],   suites: [[0, 4, 5, 3], [3, 0, 4, 1], [0, 5, 1, 4], [5, 3, 0, 4]], toniques: [55, 57, 53, 52, 50] },
   alerte: { gamme: MIN, bpm: [66, 72],   suites: [[0, 0, 5, 4], [0, 5, 0, 6]], toniques: [57, 55] },
 };
 
@@ -82,39 +88,40 @@ export function musique({ ambiance = "soleil", duree = 16, date = "", intensite 
   for (let m = 0; m * M < duree; m++) {
     const k = m % 4, ac = accord(S.gamme, suite[k], nom === "pluie" || nom === "froid" ? 4 : 3).map(n => n + ton), t0 = m * M, ba = hz(ac[0] - 24);
     const mel = (q, vol, oct = 12, br = 1) => motif.forEach((d, e) => { if (d >= 0 && (e % 2 === 0 || q)) P.mix(at(t0 + e * b / 2), rhodes(hz(ton + d + oct + (S.gamme === MIN && (d === 4 || d === 9) ? -1 : 0)), b * 0.8, br), vol, e % 2 ? 0.4 : -0.4); });
-    if (nom === "soleil") {
-      for (let q = 0; q < 4; q++) P.mix(at(t0 + q * b), grosseCaisse(0.8), 0.30);
-      for (const q of [1, 3]) P.mix(at(t0 + q * b), claque(0.6), 0.10);
-      for (let e = 0; e < 8; e++) if (e % 2 || varRythme === 2) P.mix(at(t0 + e * b / 2), charleston(0.04), e % 2 ? 0.035 : 0.02, 0.3);
-      const stabs = [[1, 3, 4, 6], [0, 3, 6], [1, 2, 5, 7]][varRythme];
-      for (const e of stabs) ac.forEach((n, j) => P.mix(at(t0 + e * b / 2), rhodes(hz(n), b * 0.9, 1.2), 0.035, j % 2 ? 0.3 : -0.3));
-      [0, 1.5, 2, 3].forEach((p, j) => P.mix(at(t0 + p * b), basse(ba * (j === 2 ? 1.5 : 1), b * 0.9), 0.20));
-      if (m % 2 === 1) mel(false, 0.03, 24, 0.9);
-    } else if (nom === "vent") {
-      for (let q = 0; q < 4; q++) P.mix(at(t0 + q * b), grosseCaisse(1), 0.28 + 0.06 * I);
-      for (const q of [1, 3]) P.mix(at(t0 + q * b), claque(0.8), 0.12);
-      for (let s = 0; s < 16; s++) if (I > 0.3 || s % 2 === 0) P.mix(at(t0 + s * b / 4), charleston(s % 4 === 2 ? 0.08 : 0.025), s % 4 === 2 ? 0.045 : 0.02, s % 2 ? 0.4 : -0.4);
+    // Tout reste dans le grave et le médium : pas de sons aigus, batterie feutrée, guitare et piano chauds
+    if (nom === "soleil") {                         // chill ensoleillé : guitare arpégée, piano doux, batterie feutrée
+      for (const p of [[0, 2.5], [0, 1.5, 2.5], [0, 2]][varRythme]) P.mix(at(t0 + p * b), grosseCaisse(0.8), 0.26);
+      for (const q of [1, 3]) P.mix(at(t0 + q * b), claque(0.15), 0.05);
+      for (let e = 0; e < 8; e++) P.mix(at(t0 + e * b / 2), guitare(hz(ac[[0, 1, 2, 1, 0, 2, 1, 2][e] % ac.length]), b * 1.2, 0.6), 0.09, e % 2 ? 0.3 : -0.3);
+      ac.forEach((n, j) => P.mix(at(t0 + j * 0.02), rhodes(hz(n - 12), M * 0.9, 0.4), 0.03, j % 2 ? 0.2 : -0.2));
+      P.mix(at(t0), basse(ba, b * 2.5), 0.18); P.mix(at(t0 + 2.5 * b), basse(ba * 1.5, b * 1.4), 0.12);
+      if (m % 2 === 1) mel(false, 0.03, 0, 0.3);
+    } else if (nom === "vent") {                    // chill qui avance : basse ronde en croches, nappe large, souffle
+      for (let q = 0; q < 4; q++) P.mix(at(t0 + q * b), grosseCaisse(0.9), 0.24 + 0.05 * I);
+      for (const q of [1, 3]) P.mix(at(t0 + q * b), claque(0.2), 0.06);
       const motBasse = [[0, 0, 0, 1, 0, 0, 2, 0], [0, 1, 0, 0, 0, 1, 0, 2], [0, 0, 2, 0, 0, 0, 1, 2]][varRythme];
-      motBasse.forEach((x, e) => P.mix(at(t0 + e * b / 2), basse(ba * [1, 2, 1.5][x], b * 0.45, "synthe"), 0.16));
-      for (const e of [[0, 3, 6], [0, 2, 5], [1, 4, 6]][varRythme]) ac.forEach((n, j) => P.mix(at(t0 + e * b / 2), nappe(hz(n), b * 0.4, 1), 0.05, j % 2 ? 0.35 : -0.35));
-    } else if (nom === "pluie") {
+      motBasse.forEach((x, e) => P.mix(at(t0 + e * b / 2), basse(ba * [1, 2, 1.5][x], b * 0.45), 0.15));
+      ac.forEach((n, j) => P.mix(at(t0), nappe(hz(n - 12), M * 1.05, 0.25), 0.05, j % 2 ? 0.35 : -0.35));
+      for (const e of [[0, 3, 6], [0, 2, 5], [1, 4, 6]][varRythme]) P.mix(at(t0 + e * b / 2), guitare(hz(ac[e % ac.length]), b, 0.7), 0.07, e % 2 ? 0.3 : -0.3);
+    } else if (nom === "pluie") {                   // lo-fi au coin du feu : piano feutré, rythme balancé, pluie douce
       const sw = b * 0.16;
-      for (const p of [[0, 1.75, 2.5], [0, 2.5], [0, 0.75, 2.5]][varRythme]) P.mix(at(t0 + p * b), grosseCaisse(0.9), 0.30);
-      for (const q of [1, 3]) P.mix(at(t0 + q * b), claque(0.3), 0.09);
-      for (let e = 0; e < 8; e++) P.mix(at(t0 + e * b / 2 + (e % 2 ? sw : 0)), charleston(0.03), 0.03);
-      ac.forEach((n, j) => P.mix(at(t0 + j * 0.03), rhodes(hz(n), M * 0.95, 0.7), 0.05, j % 2 ? 0.25 : -0.25));
-      P.mix(at(t0), basse(ba, M * 0.9), 0.20);
-      if (m % 2 === 0) mel(false, 0.035, 12, 0.7);
-    } else if (nom === "froid") {
-      ac.forEach((n, j) => P.mix(at(t0), nappe(hz(n), M * 1.1, 0.35), 0.06, j % 2 ? 0.5 : -0.5));
-      P.mix(at(t0), basse(ba, M, "ronde"), 0.14);
-      mel(false, 0.022, 24, 0.4);
-      for (let q = 0; q < 4; q++) P.mix(at(t0 + q * b + b / 2), charleston(0.02), 0.022);
+      for (const p of [[0, 1.75, 2.5], [0, 2.5], [0, 0.75, 2.5]][varRythme]) P.mix(at(t0 + p * b), grosseCaisse(0.8), 0.26);
+      for (const q of [1, 3]) P.mix(at(t0 + q * b), claque(0.1), 0.05);
+      ac.forEach((n, j) => P.mix(at(t0 + j * 0.04), rhodes(hz(n - 12), M * 0.95, 0.35), 0.06, j % 2 ? 0.25 : -0.25));
+      P.mix(at(t0), basse(ba, M * 0.9), 0.18);
+      if (m % 2 === 0) mel(false, 0.03, 0, 0.3);
+    } else if (nom === "froid") {                   // calme et doux : nappe chaude, guitare lente, presque pas de batterie
+      ac.forEach((n, j) => P.mix(at(t0), nappe(hz(n - 12), M * 1.1, 0.15), 0.06, j % 2 ? 0.5 : -0.5));
+      P.mix(at(t0), basse(ba, M, "ronde"), 0.13);
+      for (const e of [0, 3, 5]) P.mix(at(t0 + e * b / 2), guitare(hz(ac[e % ac.length]), b * 2, 0.8), 0.08, e === 3 ? 0.4 : -0.4);
+      P.mix(at(t0), grosseCaisse(0.5), 0.12);
     } else {
-      ac.forEach(n => P.mix(at(t0), nappe(hz(n - 12), M * 1.05, 0.2), 0.06));
+      ac.forEach(n => P.mix(at(t0), nappe(hz(n - 12), M * 1.05, 0.15), 0.06));
       P.mix(at(t0), grosseCaisse(0.5), 0.2);
     }
   }
+  // filtre doux sur l'ensemble : on enlève les aigus pour un son chaud et naturel
+  { let yl = 0, yr = 0; const c = 1 - Math.exp(-TAU * 3200 / SR); for (let i = 0; i < P.N; i++) { yl += c * (P.L[i] - yl); yr += c * (P.R[i] - yr); P.L[i] = yl; P.R[i] = yr; } }
   const { N, L, R } = P, fi = SR * 0.4, fo = SR * 1.5; let max = 0;
   for (let i = 0; i < N; i++) { const g = Math.min(1, i / fi, (N - i) / fo); L[i] = Math.tanh(L[i] * 1.4) * g; R[i] = Math.tanh(R[i] * 1.4) * g; max = Math.max(max, Math.abs(L[i]), Math.abs(R[i])); }
   const k = max > 0 ? 0.7 / max : 1, buf = Buffer.alloc(44 + N * 4);
