@@ -21,7 +21,7 @@ const STYLES = {
   alerte: { g: MIN, bpm: [64, 70], suites: [[0, 0, 5, 4], [0, 5, 0, 6]], toniques: [50, 48], lead: 4, nappe: 89, basse: 32, batterie: "rien", melodie: 0 },
 };
 
-export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date = "", intensite = 0.5, sansSax = true, signature = false } = {}) {   // signature : activée après validation à l'oreille   // le saxophone est retiré (choix de Léo) : la mélodie est jouée au piano électrique
+export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date = "", intensite = 0.5, sansSax = true, signature = true } = {}) {   // signature validée par Léo le 28/11   // le saxophone est retiré (choix de Léo) : la mélodie est jouée au piano électrique
   const nom = STYLES[ambiance] ? ambiance : "soleil", S = STYLES[nom], I = Math.max(0, Math.min(1, intensite));
   graine = 7; for (const ch of nom + "|" + date) graine = (graine * 31 + ch.charCodeAt(0)) % 2147483647; if (graine <= 0) graine += 2147483646; for (let i = 0; i < 4; i++) alea();
   const ton = choix(S.toniques), suite = choix(S.suites), v = Math.floor(alea() * 3);

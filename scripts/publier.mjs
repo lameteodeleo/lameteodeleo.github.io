@@ -20,7 +20,7 @@
 import { chromium } from "playwright-core";
 import { execFileSync } from "node:child_process";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { composer, ambianceDe, genreDe } from "./compose.mjs";
+import { composer, ambianceDe, genreDe, mastering } from "./compose.mjs";
 import { writeFileSync } from "node:fs";
 
 const SITE = process.env.SITE_URL || "https://lameteodeleo.fr/";
@@ -317,7 +317,9 @@ function preparerVideo(brut, sortie, plan) {
     const mid = sortie.replace(/\.mp4$/, ".mid"), wav = sortie.replace(/\.mp4$/, ".wav"); writeFileSync(mid, m.midi);
     execFileSync("fluidsynth", ["-ni", "-g", "0.7", "-r", "48000", "-F", wav, SF2, mid], { stdio: "ignore" });
     const fin = Math.max(0, duree - 1.2).toFixed(2);
-    ffmpeg(["-i", brut, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", `afade=t=in:d=0.15,afade=t=out:st=${fin}:d=1.2,loudnorm=I=-18:TP=-2`, "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-shortest", "-movflags", "+faststart", sortie]);
+    // Passage « studio » (aigus durs coupés, chaleur, espace, léger souffle de vinyle) ; s'il échoue, mixage simple comme avant
+    try { ffmpeg(["-i", brut, "-i", wav, "-filter_complex", mastering({ entree: "1:a", debut: 0.15, fin: +fin, fondu: 1.2, I: -18, TP: -2 }), "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-shortest", "-movflags", "+faststart", sortie]); }
+    catch (e) { log("⚠️ Passage studio impossible : mixage simple."); ffmpeg(["-i", brut, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", `afade=t=in:d=0.15,afade=t=out:st=${fin}:d=1.2,loudnorm=I=-18:TP=-2`, "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-shortest", "-movflags", "+faststart", sortie]); }
     log(`Musique du jour : ${m.resume}`);
     return sortie;
   } catch (e) { log(`⚠️ Musique impossible (${String(e.message).slice(0, 80)}) : piste muette.`); }
@@ -331,8 +333,9 @@ function videoDepuisImage(img, sortie, secondes = 7, plan = null) {
     const m = composer({ ambiance, genre, duree: secondes + 1, date: plan.date + "-story", intensite: Math.min(intensite, 0.5) });
     const mid = sortie.replace(/\.mp4$/, ".mid"), wav = sortie.replace(/\.mp4$/, ".wav"); writeFileSync(mid, m.midi);
     execFileSync("fluidsynth", ["-ni", "-g", "0.7", "-r", "48000", "-F", wav, banqueSons(), mid], { stdio: "ignore" });
-    ffmpeg(["-loop", "1", "-framerate", "30", "-i", img, "-i", wav, "-t", String(secondes), "-vf", "scale=1080:1920,format=yuv420p", "-c:v", "libx264", "-profile:v", "high", "-preset", "veryfast", "-crf", "18", "-g", "60", "-r", "30",
-      "-af", `afade=t=in:d=0.3,afade=t=out:st=${secondes - 1}:d=1,loudnorm=I=-21:TP=-3`, "-c:a", "aac", "-b:a", "128k", "-ar", "48000", "-shortest", "-movflags", "+faststart", sortie]);
+    const V = ["-loop", "1", "-framerate", "30", "-i", img, "-i", wav, "-t", String(secondes)], X = ["-c:v", "libx264", "-profile:v", "high", "-preset", "veryfast", "-crf", "18", "-g", "60", "-r", "30"];
+    try { ffmpeg([...V, "-filter_complex", `[0:v]scale=1080:1920,format=yuv420p[v];${mastering({ entree: "1:a", debut: 0.3, fin: secondes - 1, fondu: 1, I: -21, TP: -3 })}`, "-map", "[v]", "-map", "[a]", ...X, "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-shortest", "-movflags", "+faststart", sortie]); }
+    catch (e) { log("⚠️ Passage studio impossible : mixage simple."); ffmpeg([...V, "-vf", "scale=1080:1920,format=yuv420p", ...X, "-af", `afade=t=in:d=0.3,afade=t=out:st=${secondes - 1}:d=1,loudnorm=I=-21:TP=-3`, "-c:a", "aac", "-b:a", "128k", "-ar", "48000", "-shortest", "-movflags", "+faststart", sortie]); }
     log(`Musique de la story : ${m.resume}`);
     return sortie;
   } catch (e) { log(`⚠️ Musique de la story impossible (${String(e.message).slice(0, 80)}) : story muette.`); }
@@ -385,7 +388,18 @@ async function envoyerPhotoFB(image, legende) {   // publication (image + texte)
   if (!r.ok || j.error) throw new Error(masque(`Meta ${r.status} : ${(j.error && j.error.message) || "publication impossible"}`));
   return j.post_id ? `https://www.facebook.com/${j.post_id}` : j.id;
 }
-async function envoyerStoryFB(image) {
+// Story Facebook en vidéo (avec la musique du jour) ; si Facebook refuse, on repasse en image fixe comme avant
+async function envoyerStoryFB(fichier, image) {
+  if (/\.mp4$/.test(fichier)) try {
+    const d = await api(`/${PAGE_ID}/video_stories`, { methode: "POST", params: { upload_phase: "start" } });
+    const octets = await readFile(fichier);
+    await api(null, { url: d.upload_url || `https://rupload.facebook.com/video-upload/${GV}/${d.video_id}`, methode: "POST", corps: octets, entetes: { Authorization: `OAuth ${TOKEN}`, offset: "0", file_size: String(octets.length) } });
+    const f = await api(`/${PAGE_ID}/video_stories`, { methode: "POST", params: { upload_phase: "finish", video_id: d.video_id } });
+    return (f.post_id || "story vidéo publiée") + " (vidéo)";
+  } catch (e) { log(`⚠️ Story Facebook en vidéo refusée (${masque(String(e.message)).slice(0, 120)}) : envoi en image.`); }
+  return envoyerStoryPhotoFB(image || fichier);
+}
+async function envoyerStoryPhotoFB(image) {
   const f = new FormData();
   f.set("published", "false"); f.set("access_token", TOKEN);
   f.set("source", new Blob([await readFile(image)], { type: "image/jpeg" }), "story.jpg");
@@ -456,7 +470,7 @@ async function principal() {
     const m = media[r];
     prets[r] = type === "reel"
       ? { fichier: preparerVideo(m.video, `${OUT}/reel-${r}.mp4`, m.plan), legende: m.legende }
-      : { fichier: r === "instagram" ? videoDepuisImage(m.image, `${OUT}/story-${r}.mp4`, 7, m.plan) : m.image, legende: "" };
+      : { fichier: videoDepuisImage(m.image, `${OUT}/story-${r}.mp4`, 7, m.plan), image: m.image, legende: "" };
     log(`${r} prêt : ${prets[r].fichier} (${decrire(prets[r].fichier)})`);
     if (prets[r].legende) log(`Légende ${r} :\n${prets[r].legende}\n`);
   }
@@ -468,7 +482,7 @@ async function principal() {
       const p = prets[r];
       const lien = r === "instagram"
         ? await envoyerIG(IG, type === "reel" ? "REELS" : "STORIES", p.fichier, p.legende)
-        : type === "reel" ? await envoyerReelFB(p.fichier, p.legende) : await envoyerStoryFB(p.fichier);
+        : type === "reel" ? await envoyerReelFB(p.fichier, p.legende) : await envoyerStoryFB(p.fichier, p.image);
       log(`✔ ${nomType} publié sur ${r} : ${lien}`);
     } catch (e) { echecs.push(`${r} : ${masque(e.message)}`); log(`✘ ${r} : ${masque(e.message)}`); }
   }
