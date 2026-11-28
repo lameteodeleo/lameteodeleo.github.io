@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-ST9pfj07J8TN1o1OF3fbzf58cYkVIC/8859fvMgb5FY=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-Kd+vuz65H4RDoZztM+DzE6rY9IpE/y4X2vELtpoZjDk=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -2167,10 +2167,11 @@ function imageJeu(g,res,serie,d){
   [[W/2-230,"VOUS",g.v+"°"],[W/2+230,"MESURE OFFICIELLE",fr(res.mes)+"°"]].forEach(([cx,l,v])=>{x.fillStyle="rgba(255,255,255,.12)";rr(x,cx-200,470,400,260,40);x.fill();
     x.fillStyle="rgba(255,255,255,.8)";x.font="800 30px "+FB;x.fillText(l,cx,535);x.fillStyle=B.white;x.font="900 120px "+FD;x.fillText(v,cx,670)});
   x.fillStyle=B.sun;rr(x,90,790,W-180,190,48);x.fill();x.fillStyle=B.sunInk;x.font="900 76px "+FD;x.fillText(res.titre,W/2,880);
-  x.font="700 38px "+FB;x.fillText(res.ecart===0?"Exactement le bon chiffre !":res.ecart<=2?"À "+fr(res.ecart)+"° près":fr(res.ecart)+"° d'écart",W/2,940);
-  const gagnes=BADGES.filter(b=>d.b&&d.b[b[0]]).map(b=>b[1]).join("  ");
+  x.font="700 38px "+FB;x.fillText((res.ecart===0?"Exactement le bon chiffre !":res.ecart<=2?"À "+fr(res.ecart)+"° près":fr(res.ecart)+"° d'écart")+(res.pts?"  ·  +"+res.pts+" pts":""),W/2,940);
+  // le dernier badge gagné, avec son nom (un emoji seul ne veut rien dire pour celui qui regarde)
+  const dernier=BADGES.filter(b=>d.b&&d.b[b[0]]).sort((a,b2)=>String(d.b[b2[0]]).localeCompare(String(d.b[a[0]])))[0], gagnes=dernier?dernier[1]+" "+dernier[2]:"";
   x.fillStyle=B.white;x.font="800 42px "+FB;x.fillText((serie>=2?"🔥 Série : "+serie+" jours":"")+(serie>=2&&gagnes?"   ·   ":"")+gagnes,W/2,1080);
-  x.font="800 44px "+FD;x.fillStyle=B.white;x.fillText("Et vous, chaud ou froid ?",W/2,1190);x.fillStyle=B.sun;x.fillText("lameteodeleo.fr",W/2,1260);
+  x.font="800 44px "+FD;x.fillStyle=B.white;x.fillText("Et vous, chaud ou froid ?",W/2,1190);x.fillStyle=B.sun;x.fillText("Jouez aussi sur lameteodeleo.fr",W/2,1260);
   x.setTransform(1,0,0,1,0,0);x.textAlign="left";return cv;
 }
 function renderJeu(){
