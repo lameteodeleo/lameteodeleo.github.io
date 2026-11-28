@@ -21,7 +21,7 @@ const STYLES = {
   alerte: { g: MIN, bpm: [64, 70], suites: [[0, 0, 5, 4], [0, 5, 0, 6]], toniques: [50, 48], lead: 4, nappe: 89, basse: 32, batterie: "rien", melodie: 0 },
 };
 
-export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date = "", intensite = 0.5, sansSax = true } = {}) {   // le saxophone est retiré (choix de Léo) : la mélodie est jouée au piano électrique
+export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date = "", intensite = 0.5, sansSax = true, signature = true } = {}) {   // le saxophone est retiré (choix de Léo) : la mélodie est jouée au piano électrique
   const nom = STYLES[ambiance] ? ambiance : "soleil", S = STYLES[nom], I = Math.max(0, Math.min(1, intensite));
   graine = 7; for (const ch of nom + "|" + date) graine = (graine * 31 + ch.charCodeAt(0)) % 2147483647; if (graine <= 0) graine += 2147483646; for (let i = 0; i < 4; i++) alea();
   const ton = choix(S.toniques), suite = choix(S.suites), v = Math.floor(alea() * 3);
@@ -29,7 +29,10 @@ export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date
   const bpm = Math.round(BP[0] + (BP[1] - BP[0]) * (nom === "vent" ? I : alea()));
   const motif = Array.from({ length: 8 }, () => choix([0, 2, 4, 7, 9, 7, 4, -1, -1]));
   const TPQ = 480, temps = 60 / bpm, mesures = Math.ceil(duree / (temps * 4)) + 1;
-  const pistes = { lead: [], nappe: [], basse: [], bat: [], sax: [] };
+  const pistes = { lead: [], nappe: [], basse: [], bat: [], sax: [], sig: [] };
+  // Signature sonore de La météo de Léo : le même petit motif au piano doux en ouverture, chaque jour (do, sol, do, ré tenu),
+  // joué dans la tonalité du jour ; sans tierce, il sonne juste en majeur comme en mineur. La batterie n'entre qu'après.
+  if (signature) [[0, 0, 0.55, 58], [0.5, 7, 0.55, 54], [1, 12, 0.55, 58], [1.5, 14, 2.4, 64]].forEach(([b, d, du, vel]) => pistes.sig.push([Math.round(b * 480), Math.round(du * 480), ton + d, vel]));
   const intro0 = m => m === 0;
   const note = (p, beat, dur, n, vel) => p.push([Math.round(beat * TPQ), Math.round(dur * TPQ), n, vel]);
   const hum = () => (alea() - 0.5) * 0.03;                                     // léger « jeu humain »
@@ -45,7 +48,7 @@ export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date
         if (m % 2) motif.forEach((d, e) => { if (d >= 0 && e % 2 === 0) note(pistes.lead, b0 + e * 0.5 + sw(e) + hum(), 0.8, ton + 12 + (S.g === MIN ? (d === 4 ? 3 : d === 9 ? 8 : d) : d), 52); });
         [0, 1, 2, 3].forEach(q => note(pistes.basse, b0 + q, 0.9, [bn, bn + 7, bn + 12, bn + (S.g === MIN ? 3 : 4) + 7][q] - (q === 2 ? 12 : 0), 68));
         ac0.slice(0, 3).forEach(n => note(pistes.nappe, b0, 4, n, 28));
-        if (!fin) { [0, 2.5].forEach(x => note(B, b0 + x, 0.2, 36, 70)); [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 56));
+        if (!fin && !(signature && m === 0)) { [0, 2.5].forEach(x => note(B, b0 + x, 0.2, 36, 70)); [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 56));
           for (let e = 0; e < 8; e++) note(B, b0 + e * 0.5 + sw(e), 0.1, 51, e % 2 ? 30 : 42); }
       } else if (G === "jazzhouse") {
         // house jazzy : groove house posé, accords jazz (neuvièmes) au piano électrique, basse mélodique, petites phrases de saxophone alto
@@ -60,7 +63,7 @@ export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date
           const rythmes = [[0, 0.75, 1.5, 2], [0.5, 1, 1.75, 2.5], [0, 1, 1.5, 2.5]][v];
           ph.forEach((d, i) => { const debut = b0 + 0.25 + rythmes[i], der = i === ph.length - 1, duree = der ? 1.6 : (rythmes[i + 1] - rythmes[i]) + 0.08;   // notes liées, la dernière tenue
             note(sansSax ? pistes.lead : pistes.sax, debut + hum(), duree, deg(d), sansSax ? 56 : der ? 66 : 58 + (i % 2 ? 0 : 6)); }); }
-        if (!fin) {
+        if (!fin && !(signature && m === 0)) {
           if (!intro0(m)) for (let q = 0; q < 4; q++) note(B, b0 + q, 0.2, 36, 70);
           [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 46));
           for (let e = 0; e < 8; e++) note(B, b0 + e * 0.5 + (e % 2 ? 0.06 : 0), 0.1, 51, e % 2 ? 28 : 38);
@@ -97,9 +100,9 @@ export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date
     else note(pistes.basse, b0, 3.8, bn, 66);
     // instrument principal : accord feutré au piano électrique + petite mélodie (plus fréquente quand il fait beau)
     ac.forEach((n, j) => note(pistes.lead, b0 + j * 0.04 + (nom === "froid" ? 0.2 : 0), nom === "froid" ? 3.8 : 3.5, n, nom === "alerte" ? 40 : 48));
-    if (S.melodie && (S.melodie === 2 || m % 2)) motif.forEach((d, e) => { if (d >= 0 && (e % 2 === 0 || nom === "soleil")) note(pistes.lead, b0 + e * 0.5 + hum(), 0.9, ton + 12 + (S.g === MIN ? (d === 4 ? 3 : d === 9 ? 8 : d) : d), nom === "soleil" ? 54 : 50); });
+    if (S.melodie && (S.melodie === 2 || m % 2) && !(signature && m === 0)) motif.forEach((d, e) => { if (d >= 0 && (e % 2 === 0 || nom === "soleil")) note(pistes.lead, b0 + e * 0.5 + hum(), 0.9, ton + 12 + (S.g === MIN ? (d === 4 ? 3 : d === 9 ? 8 : d) : d), nom === "soleil" ? 54 : 50); });
     // batterie douce (canal 10) : 36 grosse caisse, 37 baguette sur le bord, 42 charleston fermé, 70 maracas
-    if (!fin && S.batterie !== "rien") {
+    if (!fin && S.batterie !== "rien" && !(signature && m === 0)) {
       const B = pistes.bat;
       const motifs = [[0, 1.75, 2.5], [0, 2.5], [0, 0.75, 2.5]];
       if (S.batterie === "lofi" || S.batterie === "lofiPlus") { motifs[v].forEach(x => note(B, b0 + x, 0.2, 36, 66)); [1, 3].forEach(x => note(B, b0 + x, 0.2, 37, 48));
@@ -128,21 +131,31 @@ export function composer({ ambiance = "soleil", genre = "lofi", duree = 16, date
   const basseG = G === "chillhop" || G === "jazzhouse" ? 32 : G === "house" ? 38 : S.basse;
   const leadG = G === "house" ? 5 : S.lead, nappeG = G === "house" ? 89 : S.nappe;
   const tr = [tempo, piste(0, leadG, 100, 54, pistes.lead), piste(1, nappeG, G === "house" ? 80 : 72, 74, pistes.nappe, 90), piste(2, basseG, G === "house" ? 88 : 100, 64, pistes.basse, 30)];
+  if (pistes.sig.length) tr.push(piste(4, 0, 96, 60, pistes.sig, 100));
   if (pistes.sax.length) tr.push(piste(3, 65, 82, 70, pistes.sax, 75, true));
   if (pistes.bat.length) tr.push(piste(9, 0, 82, 64, pistes.bat, 40));
   const head = Buffer.from([0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 1, 0, tr.length, TPQ >> 8, TPQ & 255]);
   return { midi: Buffer.concat([head, ...tr]), resume: `${G} · ${nom}, ${bpm} bpm, tonique ${ton}, suite ${suite.join("-")}, variante ${v + 1}` };
 }
 // Le style du jour, choisi par le robot selon les prévisions :
-//   lo-fi pour la pluie, le froid, le gel et les vigilances (calme, feutré) ;
-//   chillhop jazzy pour le mistral et les journées ordinaires (vivant, balancé) ;
-//   house jazzy pour le beau temps, la douceur et le week-end (plus d'élan).
+// Une seule famille, le lo-fi jazzy (identité sonore de la page) ; la météo change l'ambiance, pas le genre :
+//   lo-fi feutré pour la pluie, le froid, le gel et les vigilances ;
+//   chillhop jazzy pour le soleil, le vent et les journées ordinaires ;
+//   house jazzy seulement pour les vraies chaleurs (28° et plus).
 export function genreDe(a) {
-  const t = a && a.t, n = a && +a.n, d = a && a.date ? new Date(a.date + "T12:00:00") : new Date(), we = [0, 6].includes(d.getDay()), pair = Math.floor(d.getTime() / 864e5) % 2 === 0;
+  const t = a && a.t, n = a && +a.n;
   if (!a || a.niveau || t === "pluie" || t === "froid") return "lofi";
-  if (t === "vent") return "chillhop";
-  if (t === "chaud" || we || n >= 18) return "jazzhouse";
-  return pair ? "jazzhouse" : "chillhop";                  // les autres jours de beau temps, on alterne
+  if (t === "chaud" && n >= 28) return "jazzhouse";
+  return "chillhop";
+}
+// Le « studio » : aigus durs coupés, chaleur de cassette, compression douce, un peu d'espace et un souffle de vinyle très discret.
+// Renvoie un graphe pour -filter_complex : entrée [<entree>], sortie [a].
+export function mastering({ entree = "1:a", debut = 0.3, fin = 15, fondu = 1.2, I = -18, TP = -2, souffle = true } = {}) {
+  const m = `[${entree}]highpass=f=40,lowpass=f=8000,equalizer=f=220:t=q:w=1:g=1.5,equalizer=f=3500:t=q:w=1.2:g=-2,acompressor=threshold=0.125:ratio=2.5:attack=15:release=200:makeup=1.4,asoftclip=type=tanh,aecho=0.85:0.55:50|95:0.16|0.08`;
+  const f = `afade=t=in:d=${debut},afade=t=out:st=${Math.max(0, fin)}:d=${fondu},loudnorm=I=${I}:TP=${TP}`;
+  return souffle
+    ? `${m}[m];anoisesrc=c=pink:r=48000:a=0.0035,highpass=f=500,lowpass=f=4500[n];[m][n]amix=inputs=2:duration=first:normalize=0,${f}[a]`
+    : `${m},${f}[a]`;
 }
 // L'ambiance et l'intensité selon l'accroche du Reel
 export function ambianceDe(a) {
