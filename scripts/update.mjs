@@ -709,7 +709,7 @@ function iconeK(k, t = 40) {
   const sol = `<g transform="translate(1 1) scale(.72)">${SOLEIL}</g>`, lun = `<g transform="translate(4 -4) scale(.8)">${LUNE}</g>`;
   const G = {
     soleil: SOLEIL, lune: LUNE, chaleur: SOLEIL, nuageux: sol + NUAGE(), nuitNuageux: lun + NUAGE(), couvert: NUAGE("#CFC8F2"),
-    mistral: VENT, vent: VENT, gel: FLOCON,
+    mistral: VENT, vent: VENT, gel: `<g transform="scale(.62)">${SOLEIL}</g><g stroke="#9FD0FF" stroke-width="3.2" stroke-linecap="round"><path d="M35 28v18M27.2 32.5l15.6 9M27.2 41.5l15.6-9"/></g>`, // soleil + flocon : gelée sous le soleil, pas de la neige
     brouillard: `<g stroke="#B9B0EA" stroke-width="3.2" stroke-linecap="round"><path d="M9 18h30M6 25h36M9 32h30M13 39h22"/></g>`,
     orage: `<g transform="translate(0 -8)">${NUAGE("#CFC8F2")}</g><path d="M25 32l-6 9h6l-3 8 9-11h-6l3-6z" fill="#FFC21A"/>`,
     neige: `<g transform="translate(0 -8)">${NUAGE()}</g><g fill="#9FD0FF"><circle cx="18" cy="42" r="2.4"/><circle cx="26" cy="45" r="2.4"/><circle cx="34" cy="42" r="2.4"/></g>`,
@@ -785,7 +785,7 @@ p,li,.sub,.ps{text-wrap:pretty}h1,h2,.pt{text-wrap:balance}
 .plus li small{display:block;font-weight:500;opacity:.82;font-size:.82rem}
 .flot{position:sticky;bottom:14px;display:flex;justify-content:center;margin-top:22px;pointer-events:none;z-index:5}
 .flot a{pointer-events:auto;display:flex;align-items:center;gap:9px;background:var(--sun);color:#1B1640;font-weight:800;text-decoration:none;padding:11px 20px 11px 12px;border-radius:999px;box-shadow:0 8px 22px rgba(0,0,0,.28)}
-.flot img{width:26px;height:26px;border-radius:7px}
+.flot img{width:26px;height:26px;border-radius:7px}.flot{transition:opacity .25s,transform .25s}.flot.cache{opacity:0;transform:translateY(14px)}.flot.cache a{pointer-events:none}
 footer{color:var(--muted);font-size:.78rem;margin-top:30px;line-height:1.5}`;
 // Sécurité : chaque script écrit dans la page est autorisé par son empreinte (sha256), sans « unsafe-inline »
 function securiser(html) {
@@ -800,13 +800,13 @@ function page({ titre, desc, url, corps }) {
 <style>${STYLE}</style>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a3212f59-b8e9-486f-9e0f-d7256926be65" data-domains="lameteodeleo.fr"></script>
 </head><body><main><a class="top" href="/"><img src="/icons/icon-192.png" alt=""><span>La météo <em>de Léo</em></span></a>${corps}
-<footer>La météo de Léo : la météo des Bouches-du-Rhône, commune par commune. Prévisions des modèles AROME et ARPEGE de Météo-France, mises à jour toutes les 2 heures. Vigilances officielles : <a href="https://vigilance.meteofrance.fr/fr">vigilance.meteofrance.fr</a>. Données météo : Open-Meteo, licence CC BY 4.0. <a href="/#apropos">À propos et mentions légales</a>.</footer>
-</main><script>try{const n=new Date().toLocaleString("sv-SE",{timeZone:"Europe/Paris"}).replace(" ","T").slice(0,13);const L=[...document.querySelectorAll(".h[data-t]")];const v=L.filter(e=>e.dataset.t>=n);if(v.length&&v.length<L.length){L.forEach(e=>{if(e.dataset.t<n)e.remove()});L.forEach(e=>e.classList.remove("now"));v[0].classList.add("now");v[0].querySelector(".hh").textContent="Maint."}if(v.length){const h=v[0],mt=document.getElementById("mt"),mi=document.getElementById("mi"),ml=document.getElementById("ml");if(mt&&h.querySelector("b"))mt.textContent=h.querySelector("b").textContent;if(mi){const g=h.querySelector("svg").cloneNode(true);g.setAttribute("width","84");g.setAttribute("height","84");mi.replaceChildren(g)}if(ml&&h.dataset.l)ml.textContent=h.dataset.l}const c=document.querySelector(".bar .cur"),t=v[0]&&v[0].querySelector("b");if(c&&t){const T=parseFloat(t.textContent);c.style.left=Math.max(0,Math.min(100,(T-c.dataset.bas)/c.dataset.et*100))+"%";c.title="Maintenant "+T+"°"}}catch(e){}</script></body></html>`);
+<footer>La météo de Léo : la météo des Bouches-du-Rhône, commune par commune. Prévisions des modèles AROME et ARPEGE de Météo-France, mises à jour toutes les 2 heures. Vigilances officielles : <a href="https://vigilance.meteofrance.fr/fr">vigilance.meteofrance.fr</a>. <a href="/#apropos">À propos et mentions légales</a>.</footer>
+</main><script>try{const n=new Date().toLocaleString("sv-SE",{timeZone:"Europe/Paris"}).replace(" ","T").slice(0,13);const L=[...document.querySelectorAll(".h[data-t]")];const v=L.filter(e=>e.dataset.t>=n);if(v.length&&v.length<L.length){L.forEach(e=>{if(e.dataset.t<n)e.remove()});L.forEach(e=>e.classList.remove("now"));v[0].classList.add("now");v[0].querySelector(".hh").textContent="Maint."}if(v.length){const h=v[0],mt=document.getElementById("mt"),mi=document.getElementById("mi"),ml=document.getElementById("ml");if(mt&&h.querySelector("b"))mt.textContent=h.querySelector("b").textContent;if(mi){const g=h.querySelector("svg").cloneNode(true);g.setAttribute("width","84");g.setAttribute("height","84");mi.replaceChildren(g)}if(ml&&h.dataset.l)ml.textContent=h.dataset.l}const c=document.querySelector(".bar .cur"),t=v[0]&&v[0].querySelector("b");if(c&&t){const T=parseFloat(t.textContent);c.style.left=Math.max(0,Math.min(100,(T-c.dataset.bas)/c.dataset.et*100))+"%";c.title="Maintenant "+T+"°"}}catch(e){}try{const f=document.querySelector(".flot"),B=[...document.querySelectorAll("a.btn")];if(f&&B.length&&"IntersectionObserver" in window){const V=new Set();const o=new IntersectionObserver(es=>{es.forEach(e=>e.isIntersecting?V.add(e.target):V.delete(e.target));f.classList.toggle("cache",V.size>0)});B.forEach(b=>o.observe(b))}}catch(e){}</script></body></html>`);
 }
 async function pagesCommunes(ok, vig) {
   let ANEC = {};
   try { ANEC = JSON.parse(await (await import("node:fs/promises")).readFile("scripts/anecdotes-communes.json", "utf8")); } catch (e) { console.warn("Anecdotes des communes illisibles : " + e.message); }
-  const maj = new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).replace(":", " h ");
+  const maj = new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit" }).replace(":", "\u00a0h\u00a0").replace(/(\d) (?=[a-zéû])/g, "$1\u00a0");
   const jourTxt = d => new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   const urls = [`${SITE}/`, `${SITE}/meteo/`];
   for (const x of ok) {
@@ -845,8 +845,8 @@ async function pagesCommunes(ok, vig) {
         `<ul>${pl ? `<li class="pl">${GOUTTEI}${pl}</li>` : ""}<li class="vt${mis ? " mis" : ""}">${VENTI}${vt}</li></ul></section>`; };
     const D1 = x.d[1];
     const deuxJours = `<div class="deux">${carte(J, 0)}${carte(D1, 1)}</div>`;
-    const fil = `<nav class="fil" aria-label="Fil d'Ariane"><a href="/">Accueil</a> › <a href="/meteo/">Météo du 13</a> › ${esc(NOMS_SECTEURS[x.s] || "")} › ${esc(x.n)}</nav>`;
-    const ld = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [["Accueil", SITE + "/"], ["Météo du 13", SITE + "/meteo/"], [x.n, url]].map(([name, item], k) => ({ "@type": "ListItem", position: k + 1, name, item })) });
+    const fil = `<nav class="fil" aria-label="Fil d'Ariane"><a href="/">Accueil</a> › <a href="/meteo/">Bouches-du-Rhône</a> › ${esc(NOMS_SECTEURS[x.s] || "")} › ${esc(x.n)}</nav>`;
+    const ld = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [["Accueil", SITE + "/"], ["Bouches-du-Rhône", SITE + "/meteo/"], [x.n, url]].map(([name, item], k) => ({ "@type": "ListItem", position: k + 1, name, item })) });
     const titre = `Météo ${x.n} : prévisions heure par heure et à 7 jours`;
     const desc = `Météo ${article(x.n)} aujourd'hui : ${lib0.toLowerCase()}, ${Math.round(J[3])}° à ${Math.round(J[2])}°, rafales ${Math.round(J[4])} km/h. Prévisions Météo-France sur 7 jours, mises à jour toutes les 2 heures.`;
     const corps = `${fil}<script type="application/ld+json">${ld}</script><h1>Météo ${article(x.n)}</h1><p class="sub">${esc(dep)}${dep ? " · " : ""}${NOMS_SECTEURS[x.s] || ""} · mis à jour ${maj}</p>${vigB}
