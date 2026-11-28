@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-tCALRW8pj5WMVVu0+Z2Q3TBUMObcmqlXKZguflvgINU=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-25t/ljHnojvIHhSKmXLuj2h+25R4+QBL5P0PPglAR+8=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -248,10 +248,10 @@ p,li,small,.sub,.tip{text-wrap:pretty}h1,h2,h3,summary{text-wrap:balance}
 .jeu .detail{text-align:center;color:var(--muted);font-size:.88rem;margin-bottom:10px}
 .jeu .attente{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:12px;text-align:center;font-size:.93rem}
 .jeu .sep{border-top:1px solid var(--line);margin:14px 0}
-.jeu .badges{display:flex;align-items:center;gap:6px;margin-top:12px;flex-wrap:wrap}
-.jeu .bdg{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.15rem;cursor:pointer;filter:grayscale(1);opacity:.5;padding:0;border-style:dashed}
+.jeu .badges{display:flex;align-items:center;gap:5px;margin-top:12px;flex-wrap:nowrap}
+.jeu .bdg{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.05rem;cursor:pointer;filter:grayscale(1);opacity:.5;padding:0;border-style:dashed}
 .jeu .bdg.ok{filter:none;opacity:1;border-color:var(--sun);box-shadow:0 0 0 2px var(--sun) inset}
-.jeu .mois{margin-left:auto;font-size:.85rem;color:var(--muted)}.jeu .mois b{color:var(--ink)}
+.jeu .mois{margin-left:auto;font-size:.8rem;text-align:right;line-height:1.25;min-width:0;color:var(--muted)}.jeu .mois b{color:var(--ink)}
 .jeu .bdgtxt{margin-top:8px;font-size:.85rem;color:var(--muted)}.jeu .bdgtxt b{color:var(--ink)}.jeu .okb{color:var(--brand);font-weight:800}
 .jeu .nbadge{margin:0 0 8px;background:var(--sun);color:var(--sun-ink);border-radius:14px;padding:10px 12px;text-align:center;font-size:.92rem}.jeu .nbadge span{font-size:.85rem}
 .jeu .lien{background:none;border:0;color:var(--brand);font-weight:800;cursor:pointer;padding:6px 0;font-size:.9rem}
@@ -2217,7 +2217,7 @@ function renderJeu(){
   const mois=jourISO(0).slice(0,7), nomMois=cap(new Date().toLocaleDateString("fr-FR",{month:"long"}));
   if(Object.keys(d.p).length){
     h+='<div class="badges" role="group" aria-label="Badges">'+BADGES.map(b=>'<button type="button" class="bdg'+(d.b[b[0]]?' ok':'')+'" data-b="'+b[0]+'" aria-label="'+escJ(b[2]+(d.b[b[0]]?" (gagné)":" (à gagner)")+" : "+b[3])+'">'+b[1]+'</button>').join("")+
-      '<span class="mois">'+nomMois+' : <b>'+(d.mois&&d.mois[mois]||0)+' pts</b></span></div><div class="bdgtxt" id="jeuBdgTxt" hidden></div>'}
+      '<span class="mois">'+nomMois+'&nbsp;: <b style="white-space:nowrap">'+(d.mois&&d.mois[mois]||0)+'&nbsp;pts</b></span></div><div class="bdgtxt" id="jeuBdgTxt" hidden></div>'}
   box.innerHTML=h;sec.hidden=false;
   for(const el of box.querySelectorAll(".bdg"))el.onclick=()=>{const b=BADGES.find(x=>x[0]===el.dataset.b),t=$("jeuBdgTxt");
     t.innerHTML='<b>'+b[1]+' '+escJ(b[2])+'</b> · '+escJ(b[3])+(d.b[b[0]]?' · <span class="okb">gagné ✓</span>':'');t.hidden=false};
