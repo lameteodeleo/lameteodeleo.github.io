@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-Kd+vuz65H4RDoZztM+DzE6rY9IpE/y4X2vELtpoZjDk=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-ysJg7TMV/a1T7ssscxbJROrmDszLvxP6E9zMcw4+Pe0=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -2157,8 +2157,14 @@ function imageJeu(g,res,serie,d){
   const gr=x.createLinearGradient(0,0,W*.4,H);gr.addColorStop(0,"#5B4BD0");gr.addColorStop(1,"#2B2366");x.fillStyle=gr;x.fillRect(0,0,W,H);
   // décor des marges (peut être coupé sans rien perdre) : petites étoiles et halos
   let gs=7;const rnd=()=>(gs=(gs*16807)%2147483647)/2147483647;
-  for(let i=0;i<46;i++){const yy=rnd()<.5?rnd()*260:1660+rnd()*260;x.globalAlpha=.25+rnd()*.5;x.fillStyle=i%5?B.white:B.sun;x.beginPath();x.arc(rnd()*W,yy,2+rnd()*4,0,7);x.fill()}
-  x.globalAlpha=.12;x.fillStyle=B.sun;x.beginPath();x.arc(W*.85,120,180,0,7);x.fill();x.fillStyle=B.white;x.beginPath();x.arc(W*.12,1800,220,0,7);x.fill();x.globalAlpha=1;
+  // halos lumineux flous, qui se fondent dans le fond
+  const halo=(cx,cy,r,c,a)=>{const h=x.createRadialGradient(cx,cy,0,cx,cy,r);h.addColorStop(0,c);h.addColorStop(1,"rgba(0,0,0,0)");x.globalAlpha=a;x.fillStyle=h;x.fillRect(cx-r,cy-r,2*r,2*r);x.globalAlpha=1};
+  halo(W*.82,110,380,B.sun,.22);halo(W*.15,1820,420,"#8B7CF0",.35);
+  // un ciel étoilé fin : peu d'étoiles, quelques-unes qui brillent davantage
+  for(let i=0;i<22;i++){const yy=i%2?20+rnd()*230:1680+rnd()*220, xx=30+rnd()*(W-60), r=i%7===0?3.2:1.4+rnd()*1.2;
+    x.globalAlpha=i%7===0?.9:.35+rnd()*.35;x.fillStyle=i%7===0?B.sun:B.white;x.beginPath();x.arc(xx,yy,r,0,7);x.fill();
+    if(i%7===0){x.globalAlpha=.35;x.fillRect(xx-9,yy-.6,18,1.2);x.fillRect(xx-.6,yy-9,1.2,18)}}
+  x.globalAlpha=1;
   x.translate(0,285);
   drawMark(x,130,130,96,true);logoCanvas(x,200,148,52,B.white,B.sun);
   x.textAlign="center";x.fillStyle=B.white;x.font="900 84px "+FD;x.fillText("🔥 Chaud ou froid ? 🧊",W/2,330);
