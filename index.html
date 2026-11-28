@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-HXOL29EabIaV8cSV4jRU2T9V8ehaF6w7NfJxTpZoAoE=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-bouKbgsWo9qTpUgXOfG9L/YWsLNnYOvL+sVdozjkamQ=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -2825,6 +2825,23 @@ function typeDominant(L){const n={};L.forEach(m=>n[m.type]=(n[m.type]||0)+1);
   const v={};L.filter(m=>m.type===dom).forEach(m=>{const k=m.ico||dom;v[k]=(v[k]||0)+1});
   const top=Object.entries(v).sort((a,b)=>b[1]-a[1])[0], nb=L.filter(m=>m.type===dom).length;
   return {dom,ico:top&&top[1]>=nb*.5?top[0]:dom,sec:tri[1]&&tri[1][1]>=L.length*.2?tri[1][0]:null}}
+/* Titre du jour pour tout le département, comme une vraie météo : un temps n'est le titre que s'il concerne au moins
+   la moitié des communes ; sinon on dit le ciel le plus répandu (le gel compte comme du soleil) et ce qui se passe à côté.
+   Ex. : « Soleil, mistral à l'ouest ». Renvoie aussi un titre court (le ciel seul) pour les phrases. */
+const CIEL={soleil:"Soleil",nuageux:"Soleil et nuages",couvert:"Ciel couvert",brouillard:"Brouillard le matin",pluie:"Pluie",chaleur:"Forte chaleur",neige:"Neige",orage:"Orages",mistral:"Mistral",vent:"Vent fort"};
+const A_COTE={orage:"orages",neige:"neige",pluie:"pluie",mistral:"mistral",vent:"vent fort",gel:"gelées au réveil"};
+function titreDep(L,d){
+  const N=L.length, nb=t=>L.filter(o=>o.m.type===t).length;
+  if(!N||nb(d.dom)>=N*.5)return null;                                  // un temps majoritaire : le titre habituel
+  const ciel=t=>t==="gel"?"soleil":t, cpt={};L.forEach(o=>{const k=ciel(o.m.type);cpt[k]=(cpt[k]||0)+1});
+  const [base,nbase]=Object.entries(cpt).sort((a,b)=>b[1]-a[1])[0];
+  if(nbase<N*.4||!CIEL[base])return null;
+  const autre=["orage","neige","pluie","mistral","vent","gel"].find(t=>ciel(t)!==base&&nb(t)>=N*.2||t==="gel"&&base==="soleil"&&nb(t)>=N*.3);
+  if(!autre)return {titre:CIEL[base],court:TITRE[base]||CIEL[base]};
+  const sec=new Set(L.filter(o=>o.m.type===autre).map(o=>(COMMUNES[idx(o.nom)]||{}).s));
+  const ou=autre==="gel"?"":[...sec].every(k=>["salon","arles","berre"].includes(k))?" à l'ouest":[...sec].every(k=>["mc","berre"].includes(k))?" sur le littoral":" par endroits";
+  return {titre:CIEL[base]+", "+A_COTE[autre]+ou,court:TITRE[base]||CIEL[base]};
+}
 /* Bilan du département pour un jour donné */
 /* Températures « typiques » d'un groupe de communes : la valeur du milieu, pour ne pas afficher l'écart entre
    la commune la plus chaude et la plus froide comme si c'était la journée de tout le monde */
@@ -2834,6 +2851,7 @@ const pluies=M=>({jour:Math.max(0,...M.filter(m=>!m.plNuit).map(m=>m.pl)),nuit:M
 const txtPluie=p=>p.jour>=0.5?"pluie jusqu'à "+mm(p.jour):p.nuit>=1?"pluie la nuit seulement":"pas de pluie";
 function bilanDep(j){
   const L=COMMUNES.map(c=>({nom:c.n,m:meteo(c,st.scen,j)})), M=L.map(o=>o.m), d=typeDominant(M);
+  const td2=titreDep(L,d);
   const par=f=>L.slice().sort((a,b)=>f(a.m)-f(b.m)), T=par(m=>m.max), R=par(m=>m.raf), P=par(m=>m.plNuit?0:m.pl);
   // Quand tombe la pluie ? D'après les heures (7 h à 21 h) des communes où il pleut
   let moment=null;
@@ -2845,7 +2863,7 @@ function bilanDep(j){
       moment=hd>=15?{titre:d.dom==="orage"?"Orages en fin de journée":"Pluie en fin de journée",sous:"Au sec jusqu'en début d'après-midi.",leg:"au sec le matin, pluie en fin de journée"}:
         hf<=11?{titre:d.dom==="orage"?"Orages le matin":"Pluie le matin",sous:"Plus calme l'après-midi.",leg:"pluie le matin, plus calme l'après-midi"}:null}
   }
-  return {L,dom:d.dom,ico:d.ico,sec:d.sec,moment,titre:moment?moment.titre:(TITRE[d.ico]||TITRE[d.dom]||LIB[d.dom]),min:Math.min(...M.map(m=>m.min)),tMax:mediane(M.map(m=>m.max)),tMin:mediane(M.map(m=>m.min)),frais:T[0],chaud:T[T.length-1],vent:R[R.length-1],pluie:P[P.length-1],pl:pluies(M),
+  return {L,dom:d.dom,ico:d.ico,sec:d.sec,moment,titre:moment?moment.titre:(td2?td2.titre:(TITRE[d.ico]||TITRE[d.dom]||LIB[d.dom])),titreCourt:td2?td2.court:null,min:Math.min(...M.map(m=>m.min)),tMax:mediane(M.map(m=>m.max)),tMin:mediane(M.map(m=>m.min)),frais:T[0],chaud:T[T.length-1],vent:R[R.length-1],pluie:P[P.length-1],pl:pluies(M),
     nbPluie:M.filter(m=>!m.plNuit&&m.pl>=1).length,al:alerte13(M),vj:enReel()?vigJaune13(j):null};
 }
 // Vigilance des Bouches-du-Rhône uniquement : les communes voisines (Var, Vaucluse…) ont leur propre bulletin
@@ -3276,7 +3294,7 @@ function choixAccroche(J,R,al){
     if(R.pl.jour>=2&&R.pl.jour<10) L.push({t:"pluie",n:Math.round(R.pl.jour),u:" mm",lab:"de pluie attendus dans le 13",ico:R.ico||"pluie"});
     if(R.min>0&&R.min<=3) L.push({t:"froid",n:R.min,u:"°",lab:"au petit matin dans le 13",ico:R.ico||R.dom});
     const venteux=R.dom==="mistral"||R.dom==="vent";   // quand on évite le vent, l'accroche température ne reparle pas de vent
-    L.push({t:"temp",n:R.chaud.m.max,u:"°",lab:venteux?"au plus chaud dans le 13":(R.titre||"").toLowerCase()+" dans le 13",ico:venteux?"soleil":(R.ico||R.dom)});
+    L.push({t:"temp",n:R.chaud.m.max,u:"°",lab:venteux?"au plus chaud dans le 13":(R.titreCourt||R.titre||"").toLowerCase()+" dans le 13",ico:venteux?"soleil":(R.ico||R.dom)});
     return L};
   let hook;
   if(al) hook={k:al.titre.replace(/^(Vigilance \S+) /,"$1\n"),n:null,lab:"sur les Bouches-du-Rhône",ico:R.ico||R.dom,t:"alerte"};
