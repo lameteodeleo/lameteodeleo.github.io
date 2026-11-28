@@ -666,8 +666,8 @@ function jourApp(D, H) {
     if (jj.length >= 5 && !jj.some(e => PRECIP(codeFiable(e[1], e[2], e[5]))) && Math.max(...jj.map(e => e[2] || 0)) < 50) {
       const v = H.slice(1, 6).filter(e => e && e[1] != null).map(e => e[1]), nb = c => c <= 1 ? 0 : c === 2 ? .5 : 1, mo = v.length ? v.reduce((a, c) => a + nb(c), 0) / v.length : 1;
       codeOK = mo <= .65 ? 2 : 3; plNuit = true; } }
-  const type = classer(codeOK, raf, dir, max, min); let ico = type;
-  if (type === "nuageux") { const jj = H ? H.slice(0, 7).filter(e => e && e[1] != null) : [];
+  const type = classer(codeOK, raf, dir, max, min); let ico = type === "gel" ? (codeOK <= 1 ? "soleil" : "nuageux") : type; // l'icône montre le ciel, le gel se lit sur la min en bleu
+  if (ico === "nuageux") { const jj = H ? H.slice(0, 7).filter(e => e && e[1] != null) : [];
     if (jj.length >= 5 && jj.filter(e => e[1] === 3).length >= Math.ceil(jj.length * .7)) ico = "couvert"; }
   else if (type === "pluie") ico = pl >= 15 ? "pluieForte" : variante(codeOK === 63 || codeOK === 65 ? 61 : codeOK, type, false);
   return { type, ico, lib: LIB_APP[ico], plNuit };
@@ -709,7 +709,7 @@ function iconeK(k, t = 40) {
   const sol = `<g transform="translate(1 1) scale(.72)">${SOLEIL}</g>`, lun = `<g transform="translate(4 -4) scale(.8)">${LUNE}</g>`;
   const G = {
     soleil: SOLEIL, lune: LUNE, chaleur: SOLEIL, nuageux: sol + NUAGE(), nuitNuageux: lun + NUAGE(), couvert: NUAGE("#CFC8F2"),
-    mistral: VENT, vent: VENT, gel: `<g transform="scale(.62)">${SOLEIL}</g><g stroke="#9FD0FF" stroke-width="3.2" stroke-linecap="round"><path d="M35 28v18M27.2 32.5l15.6 9M27.2 41.5l15.6-9"/></g>`, // soleil + flocon : gelée sous le soleil, pas de la neige
+    mistral: VENT, vent: VENT, gel: SOLEIL,
     brouillard: `<g stroke="#B9B0EA" stroke-width="3.2" stroke-linecap="round"><path d="M9 18h30M6 25h36M9 32h30M13 39h22"/></g>`,
     orage: `<g transform="translate(0 -8)">${NUAGE("#CFC8F2")}</g><path d="M25 32l-6 9h6l-3 8 9-11h-6l3-6z" fill="#FFC21A"/>`,
     neige: `<g transform="translate(0 -8)">${NUAGE()}</g><g fill="#9FD0FF"><circle cx="18" cy="42" r="2.4"/><circle cx="26" cy="45" r="2.4"/><circle cx="34" cy="42" r="2.4"/></g>`,
@@ -749,7 +749,7 @@ h1{font-size:1.65rem;line-height:1.2;margin:22px 0 4px;letter-spacing:-.01em}.su
 .ve span{display:flex;align-items:center;gap:3px;font-weight:700;font-size:1.02rem;font-variant-numeric:tabular-nums}.ve .fl{width:12px;height:12px;color:var(--muted)}
 .ve.mis span,.ve.mis .fl{color:#0E9AA7}.ve.mis em{margin-top:2px;background:rgba(14,154,167,.12);color:#0E9AA7;border-radius:999px;padding:1px 6px;font-size:.66rem;font-weight:800}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-.tp{display:flex;align-items:center;gap:7px;font-variant-numeric:tabular-nums;font-size:.95rem}.tp .mn{color:var(--muted);width:2.1em;text-align:right;flex:none}.tp .mx{font-weight:800;width:2.1em;flex:none}
+.tp{display:flex;align-items:center;gap:7px;font-variant-numeric:tabular-nums;font-size:.95rem}.tp .mn{color:var(--muted);width:2.1em;text-align:right;flex:none}.tp .mn.gel{color:#4A90E2;font-weight:700}.tp .mx{font-weight:800;width:2.1em;flex:none}
 .bar{position:relative;flex:1;min-width:30px;height:6px;border-radius:9px;background:var(--line)}.bar i{position:absolute;top:0;bottom:0;border-radius:9px;background:linear-gradient(90deg,var(--froid),var(--chaud))}
 .bar .cur{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#fff;border:3px solid var(--brand);box-shadow:0 1px 4px rgba(0,0,0,.25)}
 @media (max-width:370px){.j{grid-template-columns:70px 46px 44px 1fr;column-gap:7px}.j .d{font-size:.9rem}.jours{padding:4px 12px}.tp{gap:5px;font-size:.9rem}}
@@ -821,7 +821,7 @@ async function pagesCommunes(ok, vig) {
       return `<div class="j${k === 0 ? " auj" : ""}"><div class="d">${k === 0 ? "Aujourd'hui" : k === 1 ? "Demain" : cap(jourTxt(D[0]).split(" ")[0])}<span>${new Date(D[0] + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span></div>` +
         `<div class="ci" title="${lb}">${iconeK(jj.ico, 34)}<span class="sr">${lb}</span>${jj.plNuit ? `<em>${GOUTTE}la nuit</em>` : D[6] >= 0.5 ? `<em>${GOUTTE}${String(D[6]).replace(".", ",")} mm</em>` : ""}</div>` +
         `<div class="ve${mis ? " mis" : ""}"><span>${fl}${Math.round(D[4])}</span>${mis ? "<em>mistral</em>" : ""}</div>` +
-        `<div class="tp"><span class="mn">${Math.round(D[3])}°</span><span class="bar"><i style="left:${pos(D[3])}%;right:${100 - pos(D[2])}%"></i>${cur}</span><span class="mx">${Math.round(D[2])}°</span></div></div>`; }).join("");
+        `<div class="tp"><span class="mn${Math.round(D[3]) <= 0 ? " gel" : ""}">${Math.round(D[3])}°</span><span class="bar"><i style="left:${pos(D[3])}%;right:${100 - pos(D[2])}%"></i>${cur}</span><span class="mx">${Math.round(D[2])}°</span></div></div>`; }).join("");
     const voisines = ok.filter(o => o.s === x.s && o.n !== x.n).sort((a, b) => Math.hypot(a.lat - x.lat, a.lon - x.lon) - Math.hypot(b.lat - x.lat, b.lon - x.lon)).slice(0, 8);
     // Vigilance Météo-France du département (et du littoral pour les communes au bord de la mer)
     let vigB = "";
