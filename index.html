@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-YSEmm+kkDPUDA+VWFYXBCSEKXzLf5YvcHF6qV92bnGs=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Q3vS7pWX32S1lsFkwonLVl8lPfBgAFO8ki4iIq94j1E=' 'sha256-AE+Ezy+a0TQRnp04NWSI+Mt7wwx6hALEf30HPSPg+L8=' 'sha256-Hr44atCfI0Y2L9pDSDSNuf6YR/ORvenixO2LzGOFW1s=' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' data: blob: https://api.open-meteo.com https://cloud.umami.is https://gateway.umami.is https://*.umami.is https://*.umami.dev https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>La météo de Léo · Météo des Bouches-du-Rhône, commune par commune</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -239,22 +239,22 @@ p,li,small,.sub,.tip{text-wrap:pretty}h1,h2,h3,summary{text-wrap:balance}
 .jeu .choix button{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:1.6rem;font-weight:800;cursor:pointer}
 .jeu .val{font-size:2.6rem;font-weight:900;min-width:96px;text-align:center;font-variant-numeric:tabular-nums}
 .jeu .go{display:block;width:100%;min-height:48px;border:0;border-radius:14px;background:var(--brand);color:var(--surface);font-weight:900;font-size:1.05rem;cursor:pointer}
-.jeu .duel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 10px}
-.jeu .duel div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.jeu .duel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:2px 0 8px}
+.jeu .duel div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:7px 8px;text-align:center}
 .jeu .duel small{display:block;color:var(--muted);font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
-.jeu .duel b{font-size:1.7rem;font-variant-numeric:tabular-nums}
+.jeu .duel b{font-size:1.5rem;font-variant-numeric:tabular-nums}
 .jeu .verdict{font-weight:900;font-size:1.15rem;text-align:center;margin:4px auto 2px;padding:6px 16px;border-radius:999px;width:fit-content}
 .jeu .verdict.vb{background:#FFB020;color:#3A2200}.jeu .verdict.vc{background:#FFD84D;color:#3A2E00}.jeu .verdict.vt{background:#B9C3DA;color:#1E2640}.jeu .verdict.vg{background:#9FD8FF;color:#08304D}
-.jeu .detail{text-align:center;color:var(--muted);font-size:.88rem;margin-bottom:10px}
-.jeu .attente{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:12px;text-align:center;font-size:.93rem}
-.jeu .sep{border-top:1px solid var(--line);margin:14px 0}
+.jeu .detail{text-align:center;color:var(--muted);font-size:.88rem;margin-bottom:2px}
+.jeu .attente{background:var(--surface);border-radius:12px;padding:9px 12px;text-align:center;font-size:.88rem;color:var(--muted);margin-bottom:10px}.jeu .attente b{color:var(--ink)}.jeu .attente .r{font-size:.82rem}
+.jeu .sep{border-top:1px solid var(--line);margin:10px 0}
 .jeu .badges{display:flex;align-items:center;gap:5px;margin-top:12px;flex-wrap:nowrap}
 .jeu .bdg{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.05rem;cursor:pointer;filter:grayscale(1);opacity:.5;padding:0;border-style:dashed}
 .jeu .bdg.ok{filter:none;opacity:1;border-color:var(--sun);box-shadow:0 0 0 2px var(--sun) inset}
 .jeu .mois{margin-left:auto;font-size:.8rem;text-align:right;line-height:1.25;min-width:0;color:var(--muted)}.jeu .mois b{color:var(--ink)}
 .jeu .bdgtxt{margin-top:8px;font-size:.85rem;color:var(--muted)}.jeu .bdgtxt b{color:var(--ink)}.jeu .okb{color:var(--brand);font-weight:800}
 .jeu .nbadge{margin:0 0 8px;background:var(--sun);color:var(--sun-ink);border-radius:14px;padding:10px 12px;text-align:center;font-size:.92rem}.jeu .nbadge span{font-size:.85rem}
-.jeu .lien{background:none;border:0;color:var(--brand);font-weight:800;cursor:pointer;padding:6px 0;font-size:.9rem}
+.jeu .lien{background:none;border:0;color:var(--brand);font-weight:800;cursor:pointer;padding:4px 0;font-size:.9rem}
 .tip+.tip{border-top:1px solid var(--line)}
 .tip span.i{flex:0 0 36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand)}
 .tip span.i svg{width:20px;height:20px}
@@ -2197,17 +2197,17 @@ function renderJeu(){
   const faits=Object.keys(d.p).filter(x=>x<=jourISO(0)).sort().reverse();
   let res=null,dres=null;for(const x of faits){const r=resultatJeu(x,d.p[x]);if(r){res=r;dres=x;break}}
   if(res&&dres>=jourISO(-2)){const g=d.p[dres], jl=new Date(dres+"T12:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
-    h+='<div class="js">Résultat du '+jl+' · '+escJ(g.n)+'</div><div class="duel"><div><small>Vous</small><b>'+g.v+'°</b></div><div><small>Mesure officielle</small><b>'+fr(res.mes)+'°</b></div></div>'+
-      '<div class="verdict v'+(res.pts>=10?'b':res.pts>=6?'c':res.pts>=3?'t':'g')+'">'+res.titre+'</div><div class="detail">'+(res.ecart===0?"Exactement le bon chiffre !":res.ecart<=2?"À "+fr(res.ecart)+"° près. ":fr(res.ecart)+"° d'écart. ")+(res.ecart===0?"":res.det)+' · +'+res.pts+'&nbsp;points</div>'+
+    h+='<div class="js">Résultat du '+jl+'<br>'+escJ(g.n)+'</div><div class="duel"><div><small>Vous</small><b>'+g.v+'°</b></div><div><small>Mesure officielle</small><b>'+fr(res.mes)+'°</b></div></div>'+
+      '<div class="verdict v'+(res.pts>=10?'b':res.pts>=6?'c':res.pts>=3?'t':'g')+'">'+res.titre+'</div><div class="detail">'+(res.ecart===0?"Exactement le bon chiffre !":res.ecart<=2?"À "+fr(res.ecart)+"°&nbsp;près":fr(res.ecart)+"°&nbsp;d'écart")+' · +'+res.pts+'&nbsp;points</div>'+
       '<div style="text-align:center"><button type="button" class="lien" id="jeuPartage">Partager mon résultat</button></div><div class="sep"></div>'}
   // Un badge vient d'être gagné : on le fête juste après le résultat
   for(const n of nouveaux){const b=BADGES.find(x=>x[0]===n);h+='<div class="nbadge">🎉 Nouveau badge : <b>'+b[1]+' '+escJ(b[2])+'</b><br><span>'+escJ(b[3])+'</span></div>'}
   if(nouveaux.length)h+='<div class="sep"></div>';
   // La partie en cours pour aujourd'hui (jouée hier) : on la rappelle, résultat ce soir
   const auj=d.p[jourISO(0)];
-  if(auj&&!resultatJeu(jourISO(0),auj))h+='<div class="attente">En cours : votre réponse pour aujourd\'hui à <b>'+escJ(auj.n)+'</b> : <b>'+auj.v+'°</b><br><span class="sub">Résultat ce soir, vers 21&nbsp;h.</span></div><div class="sep"></div>';
+  if(auj&&!resultatJeu(jourISO(0),auj))h+='<div class="attente">⏳ Aujourd\'hui à <b>'+escJ(auj.n)+'</b>&nbsp;: <b>'+auj.v+'°</b><br><span class="r">Résultat ce soir vers 21&nbsp;h</span></div>';
   const dj=d.p[dem];
-  if(dj){h+='<div class="attente">Votre réponse pour demain à <b>'+escJ(dj.n)+'</b> : <b>'+dj.v+'°</b><br><span class="sub">Résultat demain soir, vers 21&nbsp;h.</span></div>'}
+  if(dj){h+='<div class="attente">⏳ Demain à <b>'+escJ(dj.n)+'</b>&nbsp;: <b>'+dj.v+'°</b><br><span class="r">Résultat demain soir vers 21&nbsp;h</span></div>'}
   else{
     const prop=Math.round(m0?m0.max:15);
     h+='<div class="js">Devinez la température max de demain à <b>'+escJ(nomSt)+'</b>'+(nomSt!==c.n?' (la station officielle la plus proche)':'')+'.</div>'+
